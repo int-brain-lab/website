@@ -1,0 +1,132 @@
+/*************************************************************************************************/
+/*  Global                                                                                       */
+/*************************************************************************************************/
+
+html.wait,
+html.wait * {
+    cursor: wait !important;
+}
+
+
+
+/*************************************************************************************************/
+/*  Header                                                                                       */
+/*************************************************************************************************/
+
+#titleLinks {
+    position: relative;
+    top: -20px;
+}
+
+#titleLinks a {
+    padding: 0 10px;
+}
+
+
+
+/*************************************************************************************************/
+/*  Left panel                                                                                   */
+/*************************************************************************************************/
+
+.container {
+    max-width: 1280px;
+}
+
+#left {
+    padding: 20px;
+    background-color: #ddd;
+    position: sticky;
+    top: 20px;
+}
+
+#left ol {
+    list-style-type: none;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #888;
+}
+
+#left ol select {
+    background-color: #eaeaea;
+    margin-bottom: 8px;
+}
+
+#left ol input {
+    background-color: #eaeaea;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+#left ol li {
+    margin-bottom: 8px;
+}
+
+#left li label {
+    padding: 0 0 0 10px;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+#left li span {
+    padding-left: 10px;
+}
+
+
+
+/*************************************************************************************************/
+/*  Right panel                                                                                  */
+/*************************************************************************************************/
+
+#right img {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #aaa;
+    aspect-ratio: 3/2;
+}
+
+
+
+/*************************************************************************************************/
+/*  Double slider                                                                                */
+/*************************************************************************************************/
+
+.noUi-target {
+    margin: 0 20px 10px 10px;
+}
+
+.noUi-base,
+.noUi-target {
+    height: 10px !important;
+}
+
+.noUi-handle {
+    width: 24px !important;
+    height: 18px !important;
+}
+
+.noUi-tooltip {
+    font-size: 14px;
+    opacity: 0.75;
+    display: none;
+}
+
+.noUi-active .noUi-tooltip {
+    display: block;
+}
+
+.noUi-connect {
+    background-color: #666
+}
+
+.noUi-handle::before,
+.noUi-handle:after {
+    height: 5px !important;
+}
+
+.noUi-handle:before {
+    left: 10px !important;
+}
+
+.noUi-handle:after {
+    left: 12px !important;
+}
