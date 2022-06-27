@@ -1,0 +1,382 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_u_m___volume_renderer" kind="class" language="C#" prot="public">
+    <compoundname>UM_VolumeRenderer</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">MonoBehaviour</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1a4d618611445785e3ad867ae953bc51bc" prot="private" static="no" mutable="no">
+        <type>GameObject</type>
+        <definition>GameObject UM_VolumeRenderer.volumeLoadingUIGO</definition>
+        <argsstring></argsstring>
+        <name>volumeLoadingUIGO</name>
+        <qualifiedname>UM_VolumeRenderer.volumeLoadingUIGO</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="9" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1af1e7be5ad7c7226db547970d8aebbdef" prot="private" static="no" mutable="no">
+        <type>TMP_Text</type>
+        <definition>TMP_Text UM_VolumeRenderer.volumeLoadingUIText</definition>
+        <argsstring></argsstring>
+        <name>volumeLoadingUIText</name>
+        <qualifiedname>UM_VolumeRenderer.volumeLoadingUIText</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="10" column="15" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1aaa368a856b69a702c557f027c4d255d0" prot="private" static="no" mutable="no">
+        <type><ref refid="class_u_m___camera_controller" kindref="compound">UM_CameraController</ref></type>
+        <definition>UM_CameraController UM_VolumeRenderer.cameraControl</definition>
+        <argsstring></argsstring>
+        <name>cameraControl</name>
+        <qualifiedname>UM_VolumeRenderer.cameraControl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="12" column="26" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1a131e4aa5a84991c7ddc1aff370c7bc61" prot="private" static="no" mutable="no">
+        <type>Texture3D</type>
+        <definition>Texture3D UM_VolumeRenderer.volumeTexture</definition>
+        <argsstring></argsstring>
+        <name>volumeTexture</name>
+        <qualifiedname>UM_VolumeRenderer.volumeTexture</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="14" column="23" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="14" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1ab8b03f6ffc1f7d3c7e849e113a0100a1" prot="private" static="no" mutable="no">
+        <type>Dictionary&lt; string, Color32[]&gt;</type>
+        <definition>Dictionary&lt;string, Color32[]&gt; UM_VolumeRenderer.volumeData</definition>
+        <argsstring></argsstring>
+        <name>volumeData</name>
+        <qualifiedname>UM_VolumeRenderer.volumeData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="15" column="24" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="15" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1aa46aba8269fd1be287e783327fd15e53" prot="private" static="no" mutable="no">
+        <type>Dictionary&lt; string, Color32[]&gt;</type>
+        <definition>Dictionary&lt;string, Color32[]&gt; UM_VolumeRenderer.colormaps</definition>
+        <argsstring></argsstring>
+        <name>colormaps</name>
+        <qualifiedname>UM_VolumeRenderer.colormaps</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="16" column="24" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="16" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1a85e6e2322f134f1d9233e66600fd8557" prot="private" static="no" mutable="no">
+        <type>Color32[]</type>
+        <definition>Color32 [] UM_VolumeRenderer.defaultColormap</definition>
+        <argsstring></argsstring>
+        <name>defaultColormap</name>
+        <qualifiedname>UM_VolumeRenderer.defaultColormap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="18" column="21" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1abe8930694ffecaf40cad4f5806987bfb" prot="private" static="no" mutable="no">
+        <type>Color32</type>
+        <definition>Color32 UM_VolumeRenderer.black</definition>
+        <argsstring></argsstring>
+        <name>black</name>
+        <qualifiedname>UM_VolumeRenderer.black</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="19" column="21" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1abeed20c9d1728ef56ffc8fb6a4107c79" prot="private" static="no" mutable="no">
+        <type>Color32</type>
+        <definition>Color32 UM_VolumeRenderer.transparentBlack</definition>
+        <argsstring></argsstring>
+        <name>transparentBlack</name>
+        <qualifiedname>UM_VolumeRenderer.transparentBlack</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="20" column="21" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1a6c0533417b74018e48f2dec9caae1246" prot="private" static="no" mutable="no">
+        <type>string</type>
+        <definition>string UM_VolumeRenderer.nextVol</definition>
+        <argsstring></argsstring>
+        <name>nextVol</name>
+        <qualifiedname>UM_VolumeRenderer.nextVol</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="108" column="20" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="108" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1ab1f75f758e4c787a8376d82ed1192197" prot="private" static="no" mutable="no">
+        <type>int</type>
+        <definition>int UM_VolumeRenderer.nextSlice</definition>
+        <argsstring></argsstring>
+        <name>nextSlice</name>
+        <qualifiedname>UM_VolumeRenderer.nextSlice</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="109" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___volume_renderer_1a6fe7580398f62c4e17fd0416ba0bd154" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool UM_VolumeRenderer.nextApply</definition>
+        <argsstring></argsstring>
+        <name>nextApply</name>
+        <qualifiedname>UM_VolumeRenderer.nextApply</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="110" column="18" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="110" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="class_u_m___volume_renderer_1ab9394cbf7920fbea23312d82bd1106bd" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.Awake</definition>
+        <argsstring>()</argsstring>
+        <name>Awake</name>
+        <qualifiedname>UM_VolumeRenderer.Awake</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="22" column="18" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="22" bodyend="36"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a565c1583555178544022efd17edfcbe1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.CreateVolume</definition>
+        <argsstring>(string name)</argsstring>
+        <name>CreateVolume</name>
+        <qualifiedname>UM_VolumeRenderer.CreateVolume</qualifiedname>
+        <param>
+          <type>string</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="38" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="38" bodyend="55"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a89e99adb9eb16716755977e10f84cf91" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.SetVolumeColormap</definition>
+        <argsstring>(string name, List&lt; string &gt; hexColors)</argsstring>
+        <name>SetVolumeColormap</name>
+        <qualifiedname>UM_VolumeRenderer.SetVolumeColormap</qualifiedname>
+        <param>
+          <type>string</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>List&lt; string &gt;</type>
+          <declname>hexColors</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="57" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="57" bodyend="73"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a026ee2a07b3ce359d4d2bd149b8ea314" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.SetVolumeVisibility</definition>
+        <argsstring>(string name, bool visible)</argsstring>
+        <name>SetVolumeVisibility</name>
+        <qualifiedname>UM_VolumeRenderer.SetVolumeVisibility</qualifiedname>
+        <param>
+          <type>string</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>visible</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="75" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="75" bodyend="90"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a3dc5a7a4058399762f9c5a2bb51ede65" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>async void</type>
+        <definition>async void UM_VolumeRenderer.DisplayAllenVolume</definition>
+        <argsstring>(bool visible)</argsstring>
+        <name>DisplayAllenVolume</name>
+        <qualifiedname>UM_VolumeRenderer.DisplayAllenVolume</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>visible</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="92" column="23" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="92" bodyend="106"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a1b1ca1eda5cf2a219147796beeab274a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.AddVolumeMeta</definition>
+        <argsstring>(string name, int slice, bool immediateApply)</argsstring>
+        <name>AddVolumeMeta</name>
+        <qualifiedname>UM_VolumeRenderer.AddVolumeMeta</qualifiedname>
+        <param>
+          <type>string</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>slice</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>immediateApply</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="112" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="112" bodyend="118"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1a51446e010d89713c0cdc0952831b9948" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.AddVolumeData</definition>
+        <argsstring>(byte[] newData)</argsstring>
+        <name>AddVolumeData</name>
+        <qualifiedname>UM_VolumeRenderer.AddVolumeData</qualifiedname>
+        <param>
+          <type>byte[]</type>
+          <declname>newData</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="120" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="120" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___volume_renderer_1ac9260738758cecf55f97fa1b124822bd" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_VolumeRenderer.Clear</definition>
+        <argsstring>()</argsstring>
+        <name>Clear</name>
+        <qualifiedname>UM_VolumeRenderer.Clear</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="138" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="138" bodyend="141"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>UM_VolumeRenderer</label>
+        <link refid="class_u_m___volume_renderer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>UM_VolumeRenderer</label>
+        <link refid="class_u_m___volume_renderer"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" line="7" column="7" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_VolumeRenderer.cs" bodystart="8" bodyend="142"/>
+    <listofallmembers>
+      <member refid="class_u_m___volume_renderer_1a51446e010d89713c0cdc0952831b9948" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>AddVolumeData</name></member>
+      <member refid="class_u_m___volume_renderer_1a1b1ca1eda5cf2a219147796beeab274a" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>AddVolumeMeta</name></member>
+      <member refid="class_u_m___volume_renderer_1ab9394cbf7920fbea23312d82bd1106bd" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>Awake</name></member>
+      <member refid="class_u_m___volume_renderer_1abe8930694ffecaf40cad4f5806987bfb" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>black</name></member>
+      <member refid="class_u_m___volume_renderer_1aaa368a856b69a702c557f027c4d255d0" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>cameraControl</name></member>
+      <member refid="class_u_m___volume_renderer_1ac9260738758cecf55f97fa1b124822bd" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>Clear</name></member>
+      <member refid="class_u_m___volume_renderer_1aa46aba8269fd1be287e783327fd15e53" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>colormaps</name></member>
+      <member refid="class_u_m___volume_renderer_1a565c1583555178544022efd17edfcbe1" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>CreateVolume</name></member>
+      <member refid="class_u_m___volume_renderer_1a85e6e2322f134f1d9233e66600fd8557" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>defaultColormap</name></member>
+      <member refid="class_u_m___volume_renderer_1a3dc5a7a4058399762f9c5a2bb51ede65" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>DisplayAllenVolume</name></member>
+      <member refid="class_u_m___volume_renderer_1a6fe7580398f62c4e17fd0416ba0bd154" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>nextApply</name></member>
+      <member refid="class_u_m___volume_renderer_1ab1f75f758e4c787a8376d82ed1192197" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>nextSlice</name></member>
+      <member refid="class_u_m___volume_renderer_1a6c0533417b74018e48f2dec9caae1246" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>nextVol</name></member>
+      <member refid="class_u_m___volume_renderer_1a89e99adb9eb16716755977e10f84cf91" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>SetVolumeColormap</name></member>
+      <member refid="class_u_m___volume_renderer_1a026ee2a07b3ce359d4d2bd149b8ea314" prot="public" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>SetVolumeVisibility</name></member>
+      <member refid="class_u_m___volume_renderer_1abeed20c9d1728ef56ffc8fb6a4107c79" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>transparentBlack</name></member>
+      <member refid="class_u_m___volume_renderer_1ab8b03f6ffc1f7d3c7e849e113a0100a1" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>volumeData</name></member>
+      <member refid="class_u_m___volume_renderer_1a4d618611445785e3ad867ae953bc51bc" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>volumeLoadingUIGO</name></member>
+      <member refid="class_u_m___volume_renderer_1af1e7be5ad7c7226db547970d8aebbdef" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>volumeLoadingUIText</name></member>
+      <member refid="class_u_m___volume_renderer_1a131e4aa5a84991c7ddc1aff370c7bc61" prot="private" virt="non-virtual"><scope>UM_VolumeRenderer</scope><name>volumeTexture</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

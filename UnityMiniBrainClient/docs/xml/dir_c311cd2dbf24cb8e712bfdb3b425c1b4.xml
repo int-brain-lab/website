@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="dir_c311cd2dbf24cb8e712bfdb3b425c1b4" kind="dir">
+    <compoundname>C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest</compoundname>
+    <innerfile refid="_latency_test_8cs">LatencyTest.cs</innerfile>
+    <innerfile refid="_latency_test___mouse_over_8cs">LatencyTest_MouseOver.cs</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/"/>
+  </compounddef>
+</doxygen>

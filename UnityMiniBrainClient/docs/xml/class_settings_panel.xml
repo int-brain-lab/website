@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_settings_panel" kind="class" language="C#" prot="public">
+    <compoundname>SettingsPanel</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">MonoBehaviour</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_settings_panel_1a9f7861b233c02378f20cb04941db371c" prot="private" static="no" mutable="no">
+        <type>BrainCameraController</type>
+        <definition>BrainCameraController SettingsPanel.cameraController</definition>
+        <argsstring></argsstring>
+        <name>cameraController</name>
+        <qualifiedname>SettingsPanel.cameraController</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" line="8" column="36" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_settings_panel_1af87edc28ac3029f06987a3328ad5b197" prot="private" static="no" mutable="no">
+        <type>GameObject</type>
+        <definition>GameObject SettingsPanel.settingsPanel</definition>
+        <argsstring></argsstring>
+        <name>settingsPanel</name>
+        <qualifiedname>SettingsPanel.settingsPanel</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" line="9" column="25" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="class_settings_panel_1ab33fc7cbbc3a08b55fe666d0a66c2b3e" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void SettingsPanel.Start</definition>
+        <argsstring>()</argsstring>
+        <name>Start</name>
+        <qualifiedname>SettingsPanel.Start</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" line="11" column="10" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" bodystart="11" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="class_settings_panel_1a99550ff78b55025bdfb45ce40b1206c5" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void SettingsPanel.Update</definition>
+        <argsstring>()</argsstring>
+        <name>Update</name>
+        <qualifiedname>SettingsPanel.Update</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" line="17" column="10" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" bodystart="17" bodyend="27"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>SettingsPanel</label>
+        <link refid="class_settings_panel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>SettingsPanel</label>
+        <link refid="class_settings_panel"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" line="6" column="7" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/SettingsPanel.cs" bodystart="7" bodyend="28"/>
+    <listofallmembers>
+      <member refid="class_settings_panel_1a9f7861b233c02378f20cb04941db371c" prot="private" virt="non-virtual"><scope>SettingsPanel</scope><name>cameraController</name></member>
+      <member refid="class_settings_panel_1af87edc28ac3029f06987a3328ad5b197" prot="private" virt="non-virtual"><scope>SettingsPanel</scope><name>settingsPanel</name></member>
+      <member refid="class_settings_panel_1ab33fc7cbbc3a08b55fe666d0a66c2b3e" prot="private" virt="non-virtual"><scope>SettingsPanel</scope><name>Start</name></member>
+      <member refid="class_settings_panel_1a99550ff78b55025bdfb45ce40b1206c5" prot="private" virt="non-virtual"><scope>SettingsPanel</scope><name>Update</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
