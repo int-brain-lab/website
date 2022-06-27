@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_u_m___camera_controller" kind="class" language="C#" prot="public">
+    <compoundname>UM_CameraController</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">MonoBehaviour</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_u_m___camera_controller_1a9f72916410cc756432df9f7cae72bf29" prot="private" static="no" mutable="no">
+        <type>BrainCameraController</type>
+        <definition>BrainCameraController UM_CameraController.cameraController</definition>
+        <argsstring></argsstring>
+        <name>cameraController</name>
+        <qualifiedname>UM_CameraController.cameraController</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="7" column="28" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="7" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___camera_controller_1ad684b00074936a5e7cf0ec7a13412de9" prot="private" static="no" mutable="no">
+        <type>Camera</type>
+        <definition>Camera UM_CameraController.orthoCamera</definition>
+        <argsstring></argsstring>
+        <name>orthoCamera</name>
+        <qualifiedname>UM_CameraController.orthoCamera</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="9" column="13" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_u_m___camera_controller_1a19d8b042d7e97065464ac314198b6a47" prot="private" static="no" mutable="no">
+        <type>Camera</type>
+        <definition>Camera UM_CameraController.perspectiveCamera</definition>
+        <argsstring></argsstring>
+        <name>perspectiveCamera</name>
+        <qualifiedname>UM_CameraController.perspectiveCamera</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="10" column="13" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_u_m___camera_controller_1a4061ea1b445d2cbfb1bb59918bcb382e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_CameraController.CameraContinuousRotationButton</definition>
+        <argsstring>()</argsstring>
+        <name>CameraContinuousRotationButton</name>
+        <qualifiedname>UM_CameraController.CameraContinuousRotationButton</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="12" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="12" bodyend="15"/>
+      </memberdef>
+      <memberdef kind="function" id="class_u_m___camera_controller_1af9a0fcec142f0d5728dc470cae44654e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void UM_CameraController.SwitchCameraMode</definition>
+        <argsstring>(bool orthographic)</argsstring>
+        <name>SwitchCameraMode</name>
+        <qualifiedname>UM_CameraController.SwitchCameraMode</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>orthographic</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="17" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="17" bodyend="33"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>UM_CameraController</label>
+        <link refid="class_u_m___camera_controller"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+      <node id="1">
+        <label>UM_CameraController</label>
+        <link refid="class_u_m___camera_controller"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" line="5" column="7" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/UM_CameraController.cs" bodystart="6" bodyend="34"/>
+    <listofallmembers>
+      <member refid="class_u_m___camera_controller_1a4061ea1b445d2cbfb1bb59918bcb382e" prot="public" virt="non-virtual"><scope>UM_CameraController</scope><name>CameraContinuousRotationButton</name></member>
+      <member refid="class_u_m___camera_controller_1a9f72916410cc756432df9f7cae72bf29" prot="private" virt="non-virtual"><scope>UM_CameraController</scope><name>cameraController</name></member>
+      <member refid="class_u_m___camera_controller_1ad684b00074936a5e7cf0ec7a13412de9" prot="private" virt="non-virtual"><scope>UM_CameraController</scope><name>orthoCamera</name></member>
+      <member refid="class_u_m___camera_controller_1a19d8b042d7e97065464ac314198b6a47" prot="private" virt="non-virtual"><scope>UM_CameraController</scope><name>perspectiveCamera</name></member>
+      <member refid="class_u_m___camera_controller_1af9a0fcec142f0d5728dc470cae44654e" prot="public" virt="non-virtual"><scope>UM_CameraController</scope><name>SwitchCameraMode</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

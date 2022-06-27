@@ -1,0 +1,254 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygenindex xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="index.xsd" version="1.9.4" xml:lang="en-US">
+  <compound refid="class_latency_test" kind="class"><name>LatencyTest</name>
+    <member refid="class_latency_test_1a1bc195e3700e8916550c5f28f5918793" kind="variable"><name>modelControl</name></member>
+    <member refid="class_latency_test_1a61444044988cdb6dde2dc3de0f06ecf5" kind="variable"><name>maxExplosion</name></member>
+    <member refid="class_latency_test_1a520d0d7af20ba564e72a91d3efa87f01" kind="variable"><name>elapsedTimeText</name></member>
+    <member refid="class_latency_test_1a74083ef3260dcedda28dd44284d4fc21" kind="variable"><name>cameraController</name></member>
+    <member refid="class_latency_test_1a8fbd68684aefaa63d85ad1413e68ddbb" kind="variable"><name>tooltipPanelGO</name></member>
+    <member refid="class_latency_test_1a71bcf606f770c3736543d863a8c08fef" kind="variable"><name>percentageExploded</name></member>
+    <member refid="class_latency_test_1a56a228cb7760b72859aa1c82a77d52b2" kind="variable"><name>elapsedTime</name></member>
+    <member refid="class_latency_test_1a01f026fe9fcb6240e695d306e523ee6f" kind="variable"><name>prevPerc</name></member>
+    <member refid="class_latency_test_1ac9060a629e3b7dc2840ee586b85669e9" kind="variable"><name>prevElapsed</name></member>
+    <member refid="class_latency_test_1aa087fee2280c9d541f7a848003372504" kind="variable"><name>latencies</name></member>
+    <member refid="class_latency_test_1a19658787c570aa8d508aedb267dd8f02" kind="variable"><name>nodes</name></member>
+    <member refid="class_latency_test_1ac9946a63b74b615442ce67b230459c36" kind="variable"><name>center</name></member>
+    <member refid="class_latency_test_1ab8c25283d2aa5fabe0ba599cc3f53b90" kind="variable"><name>teal</name></member>
+    <member refid="class_latency_test_1a5dbef37670dad6e82cfb89d4b8cd822c" kind="variable"><name>magenta</name></member>
+    <member refid="class_latency_test_1a74844eb146ed459973218238fe2d9ce7" kind="variable"><name>cosmos</name></member>
+    <member refid="class_latency_test_1aeab6ecf512fe2ac08d8ca8d1d7c0ce05" kind="variable"><name>cosmosMeshCenters</name></member>
+    <member refid="class_latency_test_1aeb81a1ea63255d7af9e869e87b3531c3" kind="variable"><name>originalTransformPositions</name></member>
+    <member refid="class_latency_test_1a3bd64b7677317e14daf1cfc9f86599da" kind="variable"><name>nodeMeshCenters</name></member>
+    <member refid="class_latency_test_1a6b5455f1a43ea185bc19a6dfe5b2e028" kind="function"><name>Awake</name></member>
+    <member refid="class_latency_test_1a3df0f83a9a4445c1bc948176fade1bd1" kind="function"><name>Start</name></member>
+    <member refid="class_latency_test_1a5a17f4d9927a553c693c006a012b69e8" kind="function"><name>Update</name></member>
+    <member refid="class_latency_test_1addf2f9bfd26f6c58443992a3370b4784" kind="function"><name>UpdateElapsedTime</name></member>
+    <member refid="class_latency_test_1a1c15bd2390edeba074f5d8732fe6013f" kind="function"><name>UpdateExploded</name></member>
+  </compound>
+  <compound refid="class_latency_test___mouse_over" kind="class"><name>LatencyTest_MouseOver</name>
+    <member refid="class_latency_test___mouse_over_1ae1df4ca331f87b73914d31521d8c2835" kind="variable"><name>node</name></member>
+    <member refid="class_latency_test___mouse_over_1a8aec3e06866637490e8f51a76fe2cda2" kind="variable"><name>tooltipPanelGO</name></member>
+    <member refid="class_latency_test___mouse_over_1a6a6d01730b47e539dc6649d4b0654426" kind="variable"><name>hasControl</name></member>
+    <member refid="class_latency_test___mouse_over_1aebef6f6ec2ecd3abd9c40e46cf5b1768" kind="variable"><name>offset</name></member>
+    <member refid="class_latency_test___mouse_over_1aaf48f90fc655ed1cb42c91e26244221c" kind="function"><name>OnMouseOver</name></member>
+    <member refid="class_latency_test___mouse_over_1acc807aabaa66c907d1eb9b84f524eefa" kind="function"><name>OnMouseExit</name></member>
+    <member refid="class_latency_test___mouse_over_1a9780ce0f38ce95ee2dba4603ac4e2fee" kind="function"><name>SetNode</name></member>
+    <member refid="class_latency_test___mouse_over_1a195f8c2052dd4bb3dc0e2fc483cc6b96" kind="function"><name>SetTooltip</name></member>
+  </compound>
+  <compound refid="class_settings_panel" kind="class"><name>SettingsPanel</name>
+    <member refid="class_settings_panel_1a9f7861b233c02378f20cb04941db371c" kind="variable"><name>cameraController</name></member>
+    <member refid="class_settings_panel_1af87edc28ac3029f06987a3328ad5b197" kind="variable"><name>settingsPanel</name></member>
+    <member refid="class_settings_panel_1ab33fc7cbbc3a08b55fe666d0a66c2b3e" kind="function"><name>Start</name></member>
+    <member refid="class_settings_panel_1a99550ff78b55025bdfb45ce40b1206c5" kind="function"><name>Update</name></member>
+  </compound>
+  <compound refid="class_u_m___camera_controller" kind="class"><name>UM_CameraController</name>
+    <member refid="class_u_m___camera_controller_1a9f72916410cc756432df9f7cae72bf29" kind="variable"><name>cameraController</name></member>
+    <member refid="class_u_m___camera_controller_1ad684b00074936a5e7cf0ec7a13412de9" kind="variable"><name>orthoCamera</name></member>
+    <member refid="class_u_m___camera_controller_1a19d8b042d7e97065464ac314198b6a47" kind="variable"><name>perspectiveCamera</name></member>
+    <member refid="class_u_m___camera_controller_1a4061ea1b445d2cbfb1bb59918bcb382e" kind="function"><name>CameraContinuousRotationButton</name></member>
+    <member refid="class_u_m___camera_controller_1af9a0fcec142f0d5728dc470cae44654e" kind="function"><name>SwitchCameraMode</name></member>
+  </compound>
+  <compound refid="class_u_m___client" kind="class"><name>UM_Client</name>
+    <member refid="class_u_m___client_1a718301d72d7ff4ffbb0d41d6d6ba571e" kind="variable"><name>main</name></member>
+    <member refid="class_u_m___client_1af37d399b55ad92995a97cd9a1c7eba52" kind="variable"><name>modelControl</name></member>
+    <member refid="class_u_m___client_1a704bdfc7bf22de93d0be10b83957fce1" kind="variable"><name>cameraControl</name></member>
+    <member refid="class_u_m___client_1ab4ba6474c0752d9848c1761a79b8a587" kind="variable"><name>localhost</name></member>
+    <member refid="class_u_m___client_1a0c537694f4302f09cc582b22325a01d2" kind="variable"><name>idPanel</name></member>
+    <member refid="class_u_m___client_1a239a432ab355d54c885b6c881cdee634" kind="variable"><name>idInput</name></member>
+    <member refid="class_u_m___client_1a2008338e0b328efb2af26675f1ca5246" kind="variable"><name>volRenderer</name></member>
+    <member refid="class_u_m___client_1a03028bee3d688162af42ec6b49a4f6a6" kind="variable"><name>neuronPrefab</name></member>
+    <member refid="class_u_m___client_1ac23f1bc0a68dc45644620e8fb64cc61a" kind="variable"><name>neuronMeshList</name></member>
+    <member refid="class_u_m___client_1ae054d876f8e9d1c8f53b9460243823a5" kind="variable"><name>neuronMeshNames</name></member>
+    <member refid="class_u_m___client_1a78689da8c9e89fc37202b735e87f7166" kind="variable"><name>neuronParent</name></member>
+    <member refid="class_u_m___client_1a6ad2d12c482a5c758add57abe0478e0f" kind="variable"><name>neurons</name></member>
+    <member refid="class_u_m___client_1a5daff39933fefa5dae9275dafc4c61a6" kind="variable"><name>probePrefab</name></member>
+    <member refid="class_u_m___client_1a8f2e0ddf66480e930e5e6c125dbb7592" kind="variable"><name>probeLinePrefab</name></member>
+    <member refid="class_u_m___client_1ab39f2732926a78d74b485579b8cf8d70" kind="variable"><name>probeParent</name></member>
+    <member refid="class_u_m___client_1ac8c0de5cc10758fa2ce10cc0badd3dd8" kind="variable"><name>probes</name></member>
+    <member refid="class_u_m___client_1a469947687fd5f6ae8658c665cfef1ab5" kind="variable"><name>probeCoordinates</name></member>
+    <member refid="class_u_m___client_1afd542f8bd3f643c2ab9fc55cc9528c8e" kind="variable"><name>visibleNodes</name></member>
+    <member refid="class_u_m___client_1a0c4cf3868d5c2dda54d7986b9264b0e6" kind="variable"><name>center</name></member>
+    <member refid="class_u_m___client_1a0792e007d24f780aebff98eb6a517dde" kind="variable"><name>ID</name></member>
+    <member refid="class_u_m___client_1a0455981f304e1192208d040ced5902ec" kind="variable"><name>manager</name></member>
+    <member refid="class_u_m___client_1a2af3ccffd5aee0fb14c0ba56a7b7b7d6" kind="variable"><name>int</name></member>
+    <member refid="class_u_m___client_1ac1d3520b1ab7f2be4ca76cb27e28f838" kind="variable"><name>bool</name></member>
+    <member refid="class_u_m___client_1a0a633246141064b5ce7888b0873fca48" kind="variable"><name>nodeTasks</name></member>
+    <member refid="class_u_m___client_1a9222902eda323b7b904bfb5cf925456e" kind="variable"><name>areaDataIndex</name></member>
+    <member refid="class_u_m___client_1a2c14ef8ff227b9ffdcd42490a6342ecd" kind="variable"><name>areaData</name></member>
+    <member refid="class_u_m___client_1af0c9035487331ee7b594951435cd4162" kind="variable"><name>areaSides</name></member>
+    <member refid="class_u_m___client_1adc4a88c1690bed858427febbaecdf00d" kind="function"><name>Awake</name></member>
+    <member refid="class_u_m___client_1a5d30da280f8b1165c1070b65027d2935" kind="function"><name>Start</name></member>
+    <member refid="class_u_m___client_1ae30d5dab9cc3a84f9e85fe9044a8fe37" kind="function"><name>UpdateVolumeVisibility</name></member>
+    <member refid="class_u_m___client_1aa8c09ef6a22722170a4b0f57b22b1036" kind="function"><name>SetVolumeColormap</name></member>
+    <member refid="class_u_m___client_1a972a6a1c8ac98e0d2097fbecd31eb653" kind="function"><name>CreateVolume</name></member>
+    <member refid="class_u_m___client_1afe256b389c5c9d17c0b0cc15400c70f1" kind="function"><name>UpdateVolumeMeta</name></member>
+    <member refid="class_u_m___client_1a1f3c5f2ed508a4271404bf408a824c80" kind="function"><name>UpdateVolumeData</name></member>
+    <member refid="class_u_m___client_1a20af94758e97cd51f25ac65005ff8e13" kind="function"><name>SetCameraRotation</name></member>
+    <member refid="class_u_m___client_1ad21bfc031cf1921858cddc6a007c6a07" kind="function"><name>SetCameraPosition</name></member>
+    <member refid="class_u_m___client_1a52eb3862dcdd1bd71edd356fe1dd9d9f" kind="function"><name>SetCameraYAngle</name></member>
+    <member refid="class_u_m___client_1a4c76645862243adf8999bee57cfbd6c5" kind="function"><name>SetCameraTargetArea</name></member>
+    <member refid="class_u_m___client_1aeaaf9adc0d396fb871b4ab670dd357cb" kind="function"><name>SetCameraTarget</name></member>
+    <member refid="class_u_m___client_1a7fb7de18fd6c358ebb381a6cfb949ef4" kind="function"><name>Update</name></member>
+    <member refid="class_u_m___client_1afbe0984d086ee237b76a45323be897e8" kind="function"><name>Clear</name></member>
+    <member refid="class_u_m___client_1a04772274f9732379487d2b3291516d9a" kind="function"><name>ClearNeurons</name></member>
+    <member refid="class_u_m___client_1a31b834cb6021ff0040b5f1a3001c51e9" kind="function"><name>ClearProbes</name></member>
+    <member refid="class_u_m___client_1ab5545e694f9218be46ca38a75d59f24b" kind="function"><name>ClearAreas</name></member>
+    <member refid="class_u_m___client_1ad9502302cacbab959f1f7359c466efd4" kind="function"><name>ClearVolumes</name></member>
+    <member refid="class_u_m___client_1af8c20af2f1a166f84240f393d429359c" kind="function"><name>UpdateProbeStyle</name></member>
+    <member refid="class_u_m___client_1a399bd1411eb03ba989c51f6ef797328c" kind="function"><name>UpdateProbeAngles</name></member>
+    <member refid="class_u_m___client_1a85d819b9380aa4e5b9a67cdb17ae1bc0" kind="function"><name>UpdateProbePos</name></member>
+    <member refid="class_u_m___client_1a0a29f7503180ed0d90029d6c72b76721" kind="function"><name>SetProbePositionAndAngles</name></member>
+    <member refid="class_u_m___client_1a13580fb07529555ad3906c3c919034c7" kind="function"><name>UpdateProbeColors</name></member>
+    <member refid="class_u_m___client_1a4653aea963b3fd201b147995a63caadd" kind="function"><name>UpdateProbeScale</name></member>
+    <member refid="class_u_m___client_1af7a9651c49183daaa6542b16bca37fa2" kind="function"><name>CreateProbes</name></member>
+    <member refid="class_u_m___client_1a9c2e375fa54d7df3f114d64de1fb1881" kind="function"><name>SetVolumeAnnotationColor</name></member>
+    <member refid="class_u_m___client_1a427dbd08c9174d0ff84486bc8a7fd70f" kind="function"><name>SetVolumeSlice</name></member>
+    <member refid="class_u_m___client_1a0f3c9857535b556ed926bca27fca191b" kind="function"><name>UpdateNeuronMaterial</name></member>
+    <member refid="class_u_m___client_1ae5061f6b52b9cb9191933c55b46b259d" kind="function"><name>UpdateNeuronScale</name></member>
+    <member refid="class_u_m___client_1a119b4b15f97698b505f747a7c137c5f6" kind="function"><name>UpdateNeuronShape</name></member>
+    <member refid="class_u_m___client_1a87ca51a1e12106820192e361b5da7649" kind="function"><name>UpdateNeuronColor</name></member>
+    <member refid="class_u_m___client_1a393ffe864d390749c5dbabeb27d17c89" kind="function"><name>UpdateNeuronPos</name></member>
+    <member refid="class_u_m___client_1a90e611a05f816c6a4fb1f7916ca36a28" kind="function"><name>CreateNeurons</name></member>
+    <member refid="class_u_m___client_1a7ad2b135a33c5d44d64e7cccda205016" kind="function"><name>DeleteNeurons</name></member>
+    <member refid="class_u_m___client_1a08ae2d1d25d43147cee8a74bd614dee8" kind="function"><name>UpdateVolumeColormap</name></member>
+    <member refid="class_u_m___client_1ab7d9601369174a501e0c43e5526da36b" kind="function"><name>GetID</name></member>
+    <member refid="class_u_m___client_1a2de85d4443a264dc4dc4951c81e3d610" kind="function"><name>UpdateAreaDataIndex</name></member>
+    <member refid="class_u_m___client_1a10df94dc40ae756b0b7699a8d122e2ce" kind="function"><name>UpdateAreaData</name></member>
+    <member refid="class_u_m___client_1a08f690653cf499d77471adda062075f8" kind="function"><name>UpdateAreaDataIntensity</name></member>
+    <member refid="class_u_m___client_1af318aae18d84e5ae581e70f131a9ccbd" kind="function"><name>LoadDefaultAreas</name></member>
+    <member refid="class_u_m___client_1ac8e0387d57e32c9e4cd78cd2a482b593" kind="function"><name>UpdateVolumeMaterial</name></member>
+    <member refid="class_u_m___client_1ad80ca6afbc431a7f32d8e74731812b2e" kind="function"><name>UpdateColors</name></member>
+    <member refid="class_u_m___client_1ab1832f5d85f5d15ed17e187f4389a4f6" kind="function"><name>UpdateVisibility</name></member>
+    <member refid="class_u_m___client_1a07b4604420bc45367aef6153ec64d3e0" kind="function"><name>UpdateAlpha</name></member>
+    <member refid="class_u_m___client_1a6c7d9cf523432068174247b1edf35808" kind="function"><name>UpdateIntensity</name></member>
+    <member refid="class_u_m___client_1a40387ee1cb7a70efb6e4d8be0e9dd6b7" kind="function"><name>WaitingOnTask</name></member>
+    <member refid="class_u_m___client_1a83ad9fc78b50995399c5974bb4d0ac7e" kind="function"><name>OnDestroy</name></member>
+    <member refid="class_u_m___client_1a8bac36b902d08f0b504f854169519311" kind="function"><name>Connected</name></member>
+    <member refid="class_u_m___client_1a29dc42363a90c3c796085d57428ab87d" kind="function"><name>Log</name></member>
+    <member refid="class_u_m___client_1ac3926850453036a65dc32e42c9716239" kind="function"><name>LogWarning</name></member>
+    <member refid="class_u_m___client_1ac8f61d6372c489a4ee3ead74040e737f" kind="function"><name>LogError</name></member>
+    <member refid="class_u_m___client_1a82f7c2b72185686974841889e2d408c1" kind="function"><name>SetAreaDataIndex</name></member>
+    <member refid="class_u_m___client_1a853be00609432e4027b39716aaaa4c71" kind="function"><name>UpdateID</name></member>
+  </compound>
+  <compound refid="class_u_m___launch" kind="class"><name>UM_Launch</name>
+    <member refid="class_u_m___launch_1a18f679c77ae19c196d900b7f69faca7f" kind="variable"><name>modelControl</name></member>
+    <member refid="class_u_m___launch_1a32ab4d76b24b282ea53f8f40eb4b4c62" kind="variable"><name>cameraController</name></member>
+    <member refid="class_u_m___launch_1a2dcaa33c057268972490d516ec8866de" kind="variable"><name>maxExplosion</name></member>
+    <member refid="class_u_m___launch_1ab12141ac85e3d2dd86e917fb6ca34a23" kind="variable"><name>settingsPanel</name></member>
+    <member refid="class_u_m___launch_1a5f0b5c6a0c8b15d2d1ec344fcd8cf5c6" kind="variable"><name>brainControlsT</name></member>
+    <member refid="class_u_m___launch_1ac7980b7d718528474e0392cb42caefd2" kind="variable"><name>consolePanel</name></member>
+    <member refid="class_u_m___launch_1a05090ca1b08f0d5cf89e15a6ffa5c6a8" kind="variable"><name>consoleText</name></member>
+    <member refid="class_u_m___launch_1ac796ab5d6cfbd1e48c5419bd98681142" kind="variable"><name>loadDefaults</name></member>
+    <member refid="class_u_m___launch_1a6ddd0f37ea6cd5cc3044a0d9cc3a5fc2" kind="variable"><name>axesGO</name></member>
+    <member refid="class_u_m___launch_1a78c451848c98024b1930981d50798f31" kind="variable"><name>gridGO</name></member>
+    <member refid="class_u_m___launch_1a9f01b4ade9d498c6b0213054958b73d2" kind="variable"><name>percentageExploded</name></member>
+    <member refid="class_u_m___launch_1a9d4676277c9974fd150288f6bd7d1611" kind="variable"><name>prevPerc</name></member>
+    <member refid="class_u_m___launch_1abae6ad42b32cd0b522bf6c4b701efee0" kind="variable"><name>explodeLeftOnly</name></member>
+    <member refid="class_u_m___launch_1a962975cdf69a6ffcc7811fc466b29cf6" kind="variable"><name>colorLeftOnly</name></member>
+    <member refid="class_u_m___launch_1ace22882318069a117b3fbf7746d6fb58" kind="variable"><name>center</name></member>
+    <member refid="class_u_m___launch_1aae128368c1d77e39f9744478ef19d424" kind="variable"><name>neuronMaterials</name></member>
+    <member refid="class_u_m___launch_1a6c36f3c5a054b63482c83044005e04c2" kind="variable"><name>colormaps</name></member>
+    <member refid="class_u_m___launch_1a3246d611f6fcb313c3ffc8702d50c058" kind="variable"><name>colormapOptions</name></member>
+    <member refid="class_u_m___launch_1a671736958f66e4a63d40fc54f7f15a12" kind="variable"><name>activeColormap</name></member>
+    <member refid="class_u_m___launch_1afe9467d0c20a96e1de2cdc0a6c8a8919" kind="variable"><name>teal</name></member>
+    <member refid="class_u_m___launch_1a2a88831e0120e77be3d330970fcaae2f" kind="variable"><name>magenta</name></member>
+    <member refid="class_u_m___launch_1aca4f55aa3be3bf22dc4dd95a35ba5a63" kind="variable"><name>cosmos</name></member>
+    <member refid="class_u_m___launch_1a30950110c503196c2fe5517bdfef2127" kind="variable"><name>cosmosMeshCenters</name></member>
+    <member refid="class_u_m___launch_1a07758e1a783a91000816e18299cb0842" kind="variable"><name>originalTransformPositionsLeft</name></member>
+    <member refid="class_u_m___launch_1ab3434acbdf337d3fc52414300647c243" kind="variable"><name>originalTransformPositionsRight</name></member>
+    <member refid="class_u_m___launch_1abd5ef4ee3db5c1d67e2b939a7afebbef" kind="variable"><name>cosmosVectors</name></member>
+    <member refid="class_u_m___launch_1a620cb4240002ea047983cae0cd556dad" kind="variable"><name>visibleNodes</name></member>
+    <member refid="class_u_m___launch_1a616cc3ed39523c6b4c2f06ddfb3c49f1" kind="variable"><name>cosmosParentObjects</name></member>
+    <member refid="class_u_m___launch_1a0ff45f45d7f622dae5d06fc2e33326af" kind="variable"><name>cosmosParentIdx</name></member>
+    <member refid="class_u_m___launch_1a3fd953da4c5ea04aeeb68c7fdf63b58a" kind="variable"><name>ccfLoaded</name></member>
+    <member refid="class_u_m___launch_1a319198393c65f484c907fb179a5b67ed" kind="function"><name>Start</name></member>
+    <member refid="class_u_m___launch_1aa6174f7f1d2589c25787e16a27019d4e" kind="function"><name>DelayedStart</name></member>
+    <member refid="class_u_m___launch_1a118587c6c50453b066f6f5304a0edc01" kind="function"><name>RecomputeCosmosCenters</name></member>
+    <member refid="class_u_m___launch_1acfe19b4f520dcd910f6dcd1360e2aab1" kind="function"><name>Update</name></member>
+    <member refid="class_u_m___launch_1af7c345c8e61160058df120a6b657e52b" kind="function"><name>_UpdateExploded</name></member>
+    <member refid="class_u_m___launch_1a3238f749a4778ad08ae06e25cae70705" kind="function"><name>FixNodeTransformPosition</name></member>
+    <member refid="class_u_m___launch_1a114ea1cac7484a88148f1ce495c5cb65" kind="function"><name>ChangeCosmosIdx</name></member>
+    <member refid="class_u_m___launch_1aaa1fda30e4c82fcd4d4bc1dad5a094b0" kind="function"><name>RegisterNode</name></member>
+    <member refid="class_u_m___launch_1a3d4135c5ce130630ee6f11c773029e7d" kind="function"><name>GetColormapColor</name></member>
+    <member refid="class_u_m___launch_1a63e455f3e8266a770af3ec9067f2d468" kind="function"><name>ChangeColormap</name></member>
+    <member refid="class_u_m___launch_1af0dba3f6d5570bbd4493fc4000a0f2a3" kind="function"><name>Cool</name></member>
+    <member refid="class_u_m___launch_1a0852142dd47314ba0006e1710ef2f628" kind="function"><name>Gray</name></member>
+    <member refid="class_u_m___launch_1a7f0836db6054f59467e2e9c60fc7eea3" kind="function"><name>Log</name></member>
+    <member refid="class_u_m___launch_1a562625d33d2b7cd0ef0667a46da7bbc4" kind="function"><name>SetLeftExplodeOnly</name></member>
+    <member refid="class_u_m___launch_1ad50bbba4a70a4908897ba478e231525a" kind="function"><name>UpdateExploded</name></member>
+    <member refid="class_u_m___launch_1abd9d653a357cc6672b13e76ab1461f70" kind="function"><name>UpdateDataIndex</name></member>
+    <member refid="class_u_m___launch_1a141677533fe34f5fae883501f969495c" kind="function"><name>SwitchCameraMode</name></member>
+  </compound>
+  <compound refid="class_u_m___volume_renderer" kind="class"><name>UM_VolumeRenderer</name>
+    <member refid="class_u_m___volume_renderer_1a4d618611445785e3ad867ae953bc51bc" kind="variable"><name>volumeLoadingUIGO</name></member>
+    <member refid="class_u_m___volume_renderer_1af1e7be5ad7c7226db547970d8aebbdef" kind="variable"><name>volumeLoadingUIText</name></member>
+    <member refid="class_u_m___volume_renderer_1aaa368a856b69a702c557f027c4d255d0" kind="variable"><name>cameraControl</name></member>
+    <member refid="class_u_m___volume_renderer_1a131e4aa5a84991c7ddc1aff370c7bc61" kind="variable"><name>volumeTexture</name></member>
+    <member refid="class_u_m___volume_renderer_1ab8b03f6ffc1f7d3c7e849e113a0100a1" kind="variable"><name>volumeData</name></member>
+    <member refid="class_u_m___volume_renderer_1aa46aba8269fd1be287e783327fd15e53" kind="variable"><name>colormaps</name></member>
+    <member refid="class_u_m___volume_renderer_1a85e6e2322f134f1d9233e66600fd8557" kind="variable"><name>defaultColormap</name></member>
+    <member refid="class_u_m___volume_renderer_1abe8930694ffecaf40cad4f5806987bfb" kind="variable"><name>black</name></member>
+    <member refid="class_u_m___volume_renderer_1abeed20c9d1728ef56ffc8fb6a4107c79" kind="variable"><name>transparentBlack</name></member>
+    <member refid="class_u_m___volume_renderer_1a6c0533417b74018e48f2dec9caae1246" kind="variable"><name>nextVol</name></member>
+    <member refid="class_u_m___volume_renderer_1ab1f75f758e4c787a8376d82ed1192197" kind="variable"><name>nextSlice</name></member>
+    <member refid="class_u_m___volume_renderer_1a6fe7580398f62c4e17fd0416ba0bd154" kind="variable"><name>nextApply</name></member>
+    <member refid="class_u_m___volume_renderer_1ab9394cbf7920fbea23312d82bd1106bd" kind="function"><name>Awake</name></member>
+    <member refid="class_u_m___volume_renderer_1a565c1583555178544022efd17edfcbe1" kind="function"><name>CreateVolume</name></member>
+    <member refid="class_u_m___volume_renderer_1a89e99adb9eb16716755977e10f84cf91" kind="function"><name>SetVolumeColormap</name></member>
+    <member refid="class_u_m___volume_renderer_1a026ee2a07b3ce359d4d2bd149b8ea314" kind="function"><name>SetVolumeVisibility</name></member>
+    <member refid="class_u_m___volume_renderer_1a3dc5a7a4058399762f9c5a2bb51ede65" kind="function"><name>DisplayAllenVolume</name></member>
+    <member refid="class_u_m___volume_renderer_1a1b1ca1eda5cf2a219147796beeab274a" kind="function"><name>AddVolumeMeta</name></member>
+    <member refid="class_u_m___volume_renderer_1a51446e010d89713c0cdc0952831b9948" kind="function"><name>AddVolumeData</name></member>
+    <member refid="class_u_m___volume_renderer_1ac9260738758cecf55f97fa1b124822bd" kind="function"><name>Clear</name></member>
+  </compound>
+  <compound refid="namespace_best_h_t_t_p_1_1_socket_i_o3" kind="namespace"><name>BestHTTP::SocketIO3</name>
+  </compound>
+  <compound refid="namespace_system" kind="namespace"><name>System</name>
+  </compound>
+  <compound refid="namespace_system_1_1_collections" kind="namespace"><name>System::Collections</name>
+  </compound>
+  <compound refid="namespace_system_1_1_collections_1_1_generic" kind="namespace"><name>System::Collections::Generic</name>
+  </compound>
+  <compound refid="namespace_system_1_1_collections_1_1_specialized" kind="namespace"><name>System::Collections::Specialized</name>
+  </compound>
+  <compound refid="namespace_system_1_1_linq" kind="namespace"><name>System::Linq</name>
+  </compound>
+  <compound refid="namespace_system_1_1_text" kind="namespace"><name>System::Text</name>
+  </compound>
+  <compound refid="namespace_system_1_1_threading_1_1_tasks" kind="namespace"><name>System::Threading::Tasks</name>
+  </compound>
+  <compound refid="namespace_t_m_pro" kind="namespace"><name>TMPro</name>
+  </compound>
+  <compound refid="namespace_unity_1_1_entities" kind="namespace"><name>Unity::Entities</name>
+  </compound>
+  <compound refid="namespace_unity_engine" kind="namespace"><name>UnityEngine</name>
+  </compound>
+  <compound refid="namespace_unity_engine_1_1_event_systems" kind="namespace"><name>UnityEngine::EventSystems</name>
+  </compound>
+  <compound refid="_latency_test_8cs" kind="file"><name>LatencyTest.cs</name>
+  </compound>
+  <compound refid="_latency_test___mouse_over_8cs" kind="file"><name>LatencyTest_MouseOver.cs</name>
+  </compound>
+  <compound refid="_settings_panel_8cs" kind="file"><name>SettingsPanel.cs</name>
+  </compound>
+  <compound refid="_u_m___camera_controller_8cs" kind="file"><name>UM_CameraController.cs</name>
+  </compound>
+  <compound refid="_u_m___client_8cs" kind="file"><name>UM_Client.cs</name>
+  </compound>
+  <compound refid="_u_m___launch_8cs" kind="file"><name>UM_Launch.cs</name>
+  </compound>
+  <compound refid="_u_m___volume_renderer_8cs" kind="file"><name>UM_VolumeRenderer.cs</name>
+  </compound>
+  <compound refid="dir_8b8e5eb0741400fe6cf2587e3a0c9a3f" kind="dir"><name>C:/proj/VBL/UnityNeuroscience/UnityClient/Assets</name>
+  </compound>
+  <compound refid="dir_c311cd2dbf24cb8e712bfdb3b425c1b4" kind="dir"><name>C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest</name>
+  </compound>
+  <compound refid="dir_f544df21092e7794f88f8d03281059f7" kind="dir"><name>C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts</name>
+  </compound>
+  <compound refid="dir_2db7b56294a6072f2c22e9b443a72154" kind="dir"><name>C:/proj/VBL/UnityNeuroscience/UnityClient</name>
+  </compound>
+  <compound refid="dir_818ca78a6ae5ab34624cf64d4b48a36c" kind="dir"><name>C:/proj/VBL/UnityNeuroscience</name>
+  </compound>
+  <compound refid="dir_079d512a27f5b9e45477185f8cf01cfc" kind="dir"><name>C:/proj/VBL</name>
+  </compound>
+</doxygenindex>

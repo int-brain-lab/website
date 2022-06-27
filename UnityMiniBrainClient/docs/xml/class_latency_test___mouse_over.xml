@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.4" xml:lang="en-US">
+  <compounddef id="class_latency_test___mouse_over" kind="class" language="C#" prot="public">
+    <compoundname>LatencyTest_MouseOver</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">MonoBehaviour</basecompoundref>
+      <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="class_latency_test___mouse_over_1ae1df4ca331f87b73914d31521d8c2835" prot="private" static="no" mutable="no">
+        <type>CCFTreeNode</type>
+        <definition>CCFTreeNode LatencyTest_MouseOver.node</definition>
+        <argsstring></argsstring>
+        <name>node</name>
+        <qualifiedname>LatencyTest_MouseOver.node</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="8" column="25" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="8" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_latency_test___mouse_over_1a8aec3e06866637490e8f51a76fe2cda2" prot="private" static="no" mutable="no">
+        <type>GameObject</type>
+        <definition>GameObject LatencyTest_MouseOver.tooltipPanelGO</definition>
+        <argsstring></argsstring>
+        <name>tooltipPanelGO</name>
+        <qualifiedname>LatencyTest_MouseOver.tooltipPanelGO</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="9" column="24" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="9" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_latency_test___mouse_over_1a6a6d01730b47e539dc6649d4b0654426" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool LatencyTest_MouseOver.hasControl</definition>
+        <argsstring></argsstring>
+        <name>hasControl</name>
+        <qualifiedname>LatencyTest_MouseOver.hasControl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="10" column="18" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="10" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="class_latency_test___mouse_over_1aebef6f6ec2ecd3abd9c40e46cf5b1768" prot="private" static="no" mutable="no">
+        <type>Vector3</type>
+        <definition>Vector3 LatencyTest_MouseOver.offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <qualifiedname>LatencyTest_MouseOver.offset</qualifiedname>
+        <initializer>= new Vector3(75f, 20f)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="12" column="13" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="12" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="private-func">
+      <memberdef kind="function" id="class_latency_test___mouse_over_1aaf48f90fc655ed1cb42c91e26244221c" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void LatencyTest_MouseOver.OnMouseOver</definition>
+        <argsstring>()</argsstring>
+        <name>OnMouseOver</name>
+        <qualifiedname>LatencyTest_MouseOver.OnMouseOver</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="15" column="18" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="15" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="class_latency_test___mouse_over_1acc807aabaa66c907d1eb9b84f524eefa" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void LatencyTest_MouseOver.OnMouseExit</definition>
+        <argsstring>()</argsstring>
+        <name>OnMouseExit</name>
+        <qualifiedname>LatencyTest_MouseOver.OnMouseExit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="26" column="18" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="26" bodyend="33"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="public-func">
+      <memberdef kind="function" id="class_latency_test___mouse_over_1a9780ce0f38ce95ee2dba4603ac4e2fee" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void LatencyTest_MouseOver.SetNode</definition>
+        <argsstring>(CCFTreeNode node)</argsstring>
+        <name>SetNode</name>
+        <qualifiedname>LatencyTest_MouseOver.SetNode</qualifiedname>
+        <param>
+          <type>CCFTreeNode</type>
+          <declname>node</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="35" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="35" bodyend="38"/>
+      </memberdef>
+      <memberdef kind="function" id="class_latency_test___mouse_over_1a195f8c2052dd4bb3dc0e2fc483cc6b96" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void LatencyTest_MouseOver.SetTooltip</definition>
+        <argsstring>(GameObject tooltipPanel)</argsstring>
+        <name>SetTooltip</name>
+        <qualifiedname>LatencyTest_MouseOver.SetTooltip</qualifiedname>
+        <param>
+          <type>GameObject</type>
+          <declname>tooltipPanel</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="40" column="17" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="40" bodyend="43"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>LatencyTest_MouseOver</label>
+        <link refid="class_latency_test___mouse_over"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>LatencyTest_MouseOver</label>
+        <link refid="class_latency_test___mouse_over"/>
+        <childnode refid="2" relation="public-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>MonoBehaviour</label>
+      </node>
+    </collaborationgraph>
+    <location file="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" line="6" column="7" bodyfile="C:/proj/VBL/UnityNeuroscience/UnityClient/Assets/Scripts/IBLTest/LatencyTest_MouseOver.cs" bodystart="7" bodyend="44"/>
+    <listofallmembers>
+      <member refid="class_latency_test___mouse_over_1a6a6d01730b47e539dc6649d4b0654426" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>hasControl</name></member>
+      <member refid="class_latency_test___mouse_over_1ae1df4ca331f87b73914d31521d8c2835" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>node</name></member>
+      <member refid="class_latency_test___mouse_over_1aebef6f6ec2ecd3abd9c40e46cf5b1768" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>offset</name></member>
+      <member refid="class_latency_test___mouse_over_1acc807aabaa66c907d1eb9b84f524eefa" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>OnMouseExit</name></member>
+      <member refid="class_latency_test___mouse_over_1aaf48f90fc655ed1cb42c91e26244221c" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>OnMouseOver</name></member>
+      <member refid="class_latency_test___mouse_over_1a9780ce0f38ce95ee2dba4603ac4e2fee" prot="public" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>SetNode</name></member>
+      <member refid="class_latency_test___mouse_over_1a195f8c2052dd4bb3dc0e2fc483cc6b96" prot="public" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>SetTooltip</name></member>
+      <member refid="class_latency_test___mouse_over_1a8aec3e06866637490e8f51a76fe2cda2" prot="private" virt="non-virtual"><scope>LatencyTest_MouseOver</scope><name>tooltipPanelGO</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
