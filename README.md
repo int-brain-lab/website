@@ -26,7 +26,7 @@ WantedBy=multi-user.target
 
 ### Unity dev notes
 
-To install the Unity environment you need to first clone [vbl-core](https://github.com/VirtualBrainLab/vbl-core) as a git submodule in `Assets/vbl-core`. E.g.: 
+To install the Unity environment you need to clone [vbl-core](https://github.com/VirtualBrainLab/vbl-core) as a git submodule in `Assets/vbl-core`. E.g.: 
 
 ```
 git clone https://github.com/int-brain-lab/website
