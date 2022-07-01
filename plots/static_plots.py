@@ -48,6 +48,12 @@ def _filter(obj, idx):
 
     return obj
 
+def filter_spikes_by_good_clusters(spikes):
+    return _filter(spikes, spikes.good)
+
+def filter_clusters_by_good_clusters(clusters):
+    idx = np.where(clusters.label == 1)[0]
+    return _filter(clusters, idx)
 
 def filter_spikes_by_cluster_idx(spikes, cluster_idx):
     idx = np.where(spikes.clusters == cluster_idx)[0]
@@ -323,6 +329,8 @@ def plot_autocorrelogram(spikes, cluster_idx):
 def on_pid_change(pid, cluster_idx, trial_idx):
     spikes = load_spikes(pid)
     clusters = load_clusters(pid)
+    spikes = filter_spikes_by_good_clusters(spikes)
+    clusters = filter_clusters_by_good_clusters(clusters)
     trials = load_trials(pid)
     waveforms, waveform_channels = load_cluster_waveforms(pid)
     channels = load_channels(pid)
@@ -346,6 +354,7 @@ def on_pid_change(pid, cluster_idx, trial_idx):
 
 def on_trial_change(pid, cluster_idx, trial_idx):
     spikes = load_spikes(pid)
+    spikes = filter_spikes_by_good_clusters(spikes)
     trials = load_trials(pid)
 
     figs = []
@@ -356,6 +365,8 @@ def on_trial_change(pid, cluster_idx, trial_idx):
 def on_cluster_change(pid, cluster_idx, trial_idx):
     spikes = load_spikes(pid)
     clusters = load_clusters(pid)
+    spikes = filter_spikes_by_good_clusters(spikes)
+    clusters = filter_clusters_by_good_clusters(clusters)
     trials = load_trials(pid)
     waveforms, waveform_channels = load_cluster_waveforms(pid)
     channels = load_channels(pid)
@@ -374,3 +385,13 @@ def on_cluster_change(pid, cluster_idx, trial_idx):
 
     return figs
 
+
+def get_cluster_choices(pid):
+    """
+    Helper function to figure out which clusters we can choose
+    :param pid:
+    :return:
+    """
+    clusters = load_clusters(pid)
+    clusters = filter_clusters_by_good_clusters(clusters)
+    return clusters.cluster_id
