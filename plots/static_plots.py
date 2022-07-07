@@ -452,3 +452,23 @@ def get_cluster_choices(pid):
     clusters = load_clusters(pid)
     clusters = filter_clusters_by_good_clusters(clusters)
     return clusters.cluster_id
+
+
+if __name__ == '__main__':
+
+    pid = list(DATA_PATH.iterdir())[0]
+
+    clusters = load_clusters(pid)
+    channels = load_channels(pid)
+    spikes = load_spikes(pid)
+    trials = load_trials(pid)
+    # cluster_waveforms = load_cluster_waveforms(pid)
+
+    cluster_idx = clusters.cluster_id[10]
+    trial_idx = len(trials) // 2
+
+    # fig = plot_session_raster(spikes, trials, cluster_idx, trial_idx)
+
+    plot_spikes_fr_vs_depth(clusters, cluster_idx)
+
+    plt.show()
