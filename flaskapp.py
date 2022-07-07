@@ -2,19 +2,23 @@
 # Imports
 # -------------------------------------------------------------------------------------------------
 
-from flask_cors import CORS, cross_origin
-from flask import Flask, render_template, send_file, session, request
-import png
-import matplotlib.pyplot as plt
 import argparse
 import base64
 from pathlib import Path
 import logging
 import io
 from math import ceil
+import locale
 
+from flask_cors import CORS, cross_origin
+from flask import Flask, render_template, send_file, session, request
+from psutil import pid_exists
+import png
 import numpy as np
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+import pandas as pd
+
 mpl.use('Agg')
 
 
@@ -24,6 +28,7 @@ mpl.use('Agg')
 
 logger = logging.getLogger('datoviz')
 mpl.style.use('seaborn')
+locale.setlocale(locale.LC_ALL, '')
 
 
 # -------------------------------------------------------------------------------------------------
@@ -97,16 +102,33 @@ def get_pids():
     return pids
 
 
+def open_file(pid, name):
+    return np.load(DATA_DIR / pid / name, mmap_mode='r')
+
+
 def get_session_object(pid):
-    return {'pid': pid}
+    spike_times = open_file(pid, 'spikes.times.npy')
+    n_spikes = len(spike_times)
+
+    metrics = pd.read_parquet(DATA_DIR / pid / 'clusters.table.pqt')
+    metrics = metrics.reindex(metrics['cluster_id'])
+    n_clusters = len(metrics)
+
+    duration = spike_times[-1] + 1
+    return {
+        'pid': pid,
+        # 'lab': lab,
+        # 'subject_name': subject_name,
+        # 'dob': dob,
+        # 'probe_count': probe_count,
+        'duration': duration,
+        'n_clusters': f'{n_clusters:n}',
+        'n_spikes': f'{n_spikes:n}',
+    }
 
 
 def get_sessions(pids):
     return [get_session_object(pid) for pid in pids]
-
-
-# def get_context():
-#     return {'sessions': get_sessions(get_pids())}
 
 
 def get_js_context():
@@ -117,7 +139,6 @@ def get_js_context():
 def main():
     return render_template(
         'index.html',
-        # context=get_context(),
         sessions=get_sessions(get_pids()),
         js_context=get_js_context(),
     )
@@ -125,7 +146,15 @@ def main():
 
 @app.route('/api/session/<pid>/details')
 def session_details(pid):
-    return f'This session <strong>{pid}</strong> is great'
+    ses = get_session_object(pid)
+    return f'''
+        <table>
+            <tr>
+                <th>Spike count</th>
+                <td>{ses['n_spikes']}</td>
+            </tr>
+        </table>
+    '''
 
 
 # -------------------------------------------------------------------------------------------------

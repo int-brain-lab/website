@@ -85,11 +85,10 @@
             <!-- Session selector -->
             <div class="row">
                 <div class="three columns">
-                    <label for="selectSession">session</label>
+                    <label for="selectSession">select a session</label>
                 </div>
                 <div class="nine columns">
                     <select id="sessionSelector" class="u-full-width">
-                        <option value="">select a session:</option>
                         {% for session in sessions %}
                         <option value="{{ session.pid }}">{{ session.pid }}</option>
                         {% endfor %}
@@ -99,7 +98,11 @@
 
             <!-- Session details -->
             <div class="row">
-                <div class="twelve columns" id="sessionDetails">
+                <div class="three columns">
+                    session details
+                </div>
+
+                <div class="nine columns" id="sessionDetails">
 
                 </div>
             </div>

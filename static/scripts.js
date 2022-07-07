@@ -134,16 +134,22 @@ function setupSliders() {
 
 
 
+async function selectSession(pid) {
+    var url = `/api/session/${pid}/details`;
+    var r = await fetch(url);
+    document.getElementById('sessionDetails').innerHTML = await r.text();
+}
+
 function setupDropdowns() {
 
     document.getElementById('sessionSelector').onchange = async function (e) {
-        var session = e.target.value;
-        if(!session) return;
-        var url = `/api/session/${session}/details`;
-
-        var r = await fetch(url);
-        document.getElementById('sessionDetails').innerHTML = await r.text();
+        var pid = e.target.value;
+        if(!pid) return;
+        await selectSession(pid);
     }
+
+    document.getElementById('sessionSelector').selectedIndex = 0;
+    selectSession(document.getElementById('sessionSelector').value);
 };
 
 
