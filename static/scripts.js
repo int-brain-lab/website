@@ -170,6 +170,9 @@ async function selectSession(pid) {
         s.options[s.options.length] = new Option(`cluster #${cluster_id}`, cluster_id);
     }
 
+    // Update the other plots.
+    selectTrial(pid, 1);
+    selectCluster(pid, 0);
 }
 
 
@@ -218,8 +221,6 @@ function setupDropdowns() {
     document.getElementById('sessionSelector').selectedIndex = 0;
     var pid = document.getElementById('sessionSelector').value;
     selectSession(pid);
-    selectTrial(pid, 1);
-    selectCluster(pid, 0);
 };
 
 
