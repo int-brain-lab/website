@@ -135,10 +135,17 @@ function setupSliders() {
 
 
 async function selectSession(pid) {
+    // Show the session details.
     var url = `/api/session/${pid}/details`;
     var r = await fetch(url);
     document.getElementById('sessionDetails').innerHTML = await r.text();
+
+    // Show the raster plot.
+    url = `/api/session/${pid}/raster`;
+    document.getElementById('rasterPlot').src = url;
 }
+
+
 
 function setupDropdowns() {
 

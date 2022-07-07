@@ -19,6 +19,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from plots.static_plots import *
+
 mpl.use('Agg')
 
 
@@ -92,7 +94,7 @@ CORS(app, support_credentials=True)
 
 
 # -------------------------------------------------------------------------------------------------
-# Serving the HTML page
+# Logic functions
 # -------------------------------------------------------------------------------------------------
 
 def get_pids():
@@ -135,6 +137,10 @@ def get_js_context():
     return {}
 
 
+# -------------------------------------------------------------------------------------------------
+# Entry points
+# -------------------------------------------------------------------------------------------------
+
 @app.route('/')
 def main():
     return render_template(
@@ -155,6 +161,13 @@ def session_details(pid):
             </tr>
         </table>
     '''
+
+
+@app.route('/api/session/<pid>/raster')
+def raster(pid):
+    spikes = load_spikes(pid)
+    fig = plot_session_raster(spikes)
+    return send_figure(fig)
 
 
 # -------------------------------------------------------------------------------------------------
