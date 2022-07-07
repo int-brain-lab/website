@@ -225,9 +225,9 @@ def add_trial_events_to_raster(ax, trials):
     return ax
 
 
-def plot_spikes_amp_vs_depth(clusters, cluster_idx):
-
-    fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+def plot_spikes_amp_vs_depth(clusters, cluster_idx, fig=None, ax=None):
+    if fig is None and ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(4, 6))
     set_figure_style(fig)
     ax.set_ylim(0, 3840)
     ax.set_xlim(-5, 500)
@@ -239,9 +239,9 @@ def plot_spikes_amp_vs_depth(clusters, cluster_idx):
     return fig
 
 
-def plot_spikes_fr_vs_depth(clusters, cluster_idx):
-
-    fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+def plot_spikes_fr_vs_depth(clusters, cluster_idx, fig=None, ax=None):
+    if fig is None and ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(4, 6))
     set_figure_style(fig)
     ax.set_ylim(0, 3840)
     ax.set_xlim(-2, 30)

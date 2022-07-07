@@ -163,6 +163,13 @@ async function selectSession(pid) {
         s.options[s.options.length] = new Option(`trial #${i}`, i);
     }
 
+    // Set the cluster selector.
+    var s = document.getElementById('clusterSelector');
+    var cluster_ids = details.cluster_ids;
+    for (var cluster_id of cluster_ids) {
+        s.options[s.options.length] = new Option(`cluster #${cluster_id}`, cluster_id);
+    }
+
 }
 
 
@@ -171,6 +178,14 @@ function selectTrial(pid, tid) {
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_raster/${tid}`;
     document.getElementById('trialRasterPlot').src = url;
+
+}
+
+
+
+function selectCluster(pid, cid) {
+    var url = `/api/session/${pid}/cluster/${cid}`;
+    document.getElementById('clusterPlot').src = url;
 
 }
 
@@ -192,11 +207,19 @@ function setupDropdowns() {
         selectTrial(CTX.pid, tid);
     }
 
+    // Cluster selector.
+    document.getElementById('clusterSelector').onchange = function (e) {
+        var cid = e.target.value;
+        if(!cid) return;
+        selectCluster(CTX.pid, cid);
+    }
+
     // Initial selection.
     document.getElementById('sessionSelector').selectedIndex = 0;
     var pid = document.getElementById('sessionSelector').value;
     selectSession(pid);
     selectTrial(pid, 1);
+    selectCluster(pid, 0);
 };
 
 
