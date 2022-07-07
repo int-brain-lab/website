@@ -45,13 +45,23 @@ The first time you open the project the Unity Editor will install all the depend
 
 No Addressable assets are used specific to this project. All 3D mesh files are loaded from the [AddressablesStorage](https://github.com/VirtualBrainLab/AddressablesStorage) repo. Data files (e.g. the probe positions csv for the bwm) are currently bundled into the build.
 
-### Javascript link
+### Unity -> Javascript link
 
 You can add javascript functions to access in this `.jslib` file: [unity_js_link](https://github.com/int-brain-lab/website/blob/main/UnityMiniBrainClient/Assets/Plugins/unity_js_link.jslib). These functions can be called from anywhere in Unity by including a DLL import call referencing the corresponding Javascript functions. Note that **only individual strings or numerical types** can be passed to javascript without dealing directly with the javascript heap.
 
 ```
 [DllImport("__Internal")]
 private static extern void SelectPID(string pid);
+```
+
+### Javascript -> Unity link
+
+We exposed a javascript variable `myGameInstance` which can be used to call arbitrary Unity code by using the `SendMessage` function. Floats and strings can be passed as variables.
+
+```
+myGameInstance.SendMessage('MyGameObject', 'MyFunction');
+myGameInstance.SendMessage('MyGameObject', 'MyFunction', 5);
+myGameInstance.SendMessage('MyGameObject', 'MyFunction', 'string');
 ```
 
 ### Build to WebGL
