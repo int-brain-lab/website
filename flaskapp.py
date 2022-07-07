@@ -82,6 +82,7 @@ def send_figure(fig):
 # -------------------------------------------------------------------------------------------------
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 CORS(app, support_credentials=True)
 
 
@@ -89,34 +90,58 @@ CORS(app, support_credentials=True)
 # Serving the HTML page
 # -------------------------------------------------------------------------------------------------
 
-def get_session_info(session):
-    return {}
+def get_pids():
+    pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
+    if 'README' in pids:
+        pids.remove('README')
+    return pids
 
 
-def get_context():
+def get_session_object(pid):
+    return {'pid': pid}
+
+
+def get_sessions(pids):
+    return [get_session_object(pid) for pid in pids]
+
+
+# def get_context():
+#     return {'sessions': get_sessions(get_pids())}
+
+
+def get_js_context():
     return {}
 
 
 @app.route('/')
 def main():
-    ctx = get_context()
-    return render_template('index.html', js_context=ctx)
+    return render_template(
+        'index.html',
+        # context=get_context(),
+        sessions=get_sessions(get_pids()),
+        js_context=get_js_context(),
+    )
+
+
+@app.route('/api/session/<pid>/details')
+def session_details(pid):
+    return f'This session <strong>{pid}</strong> is great'
 
 
 # -------------------------------------------------------------------------------------------------
 # Raw ephys data server
 # -------------------------------------------------------------------------------------------------
 
-@app.route('/<eid>')
-@cross_origin(supports_credentials=True)
-def cluster_plot(eid):
-    fig, ax = plt.subplots(1, 1, figsize=(9, 6))
-    x = np.random.randn(1000)
-    y = np.random.randn(1000)
-    ax.plot(x, y, 'o')
-    out = send_figure(fig)
-    plt.close(fig)
-    return out
+# @app.route('/<eid>')
+# @cross_origin(supports_credentials=True)
+# def cluster_plot(eid):
+#     fig, ax = plt.subplots(1, 1, figsize=(9, 6))
+#     x = np.random.randn(1000)
+#     y = np.random.randn(1000)
+#     ax.plot(x, y, 'o')
+#     out = send_figure(fig)
+#     plt.close(fig)
+#     return out
 
 
 if __name__ == '__main__':
