@@ -5,7 +5,10 @@
 
 const DEFAULT_PARAMS = {
 };
-
+var CTX = {
+    pid: null,
+    tid: 0,
+};
 
 
 /*************************************************************************************************/
@@ -135,28 +138,65 @@ function setupSliders() {
 
 
 async function selectSession(pid) {
+    CTX.pid = pid;
+
     // Show the session details.
     var url = `/api/session/${pid}/details`;
     var r = await fetch(url);
-    document.getElementById('sessionDetails').innerHTML = await r.text();
+    var details = await r.json();
+    document.getElementById('sessionDetails').innerHTML = `
+    <table>
+        <tr>
+            <th>Spike count</th>
+            <td>${details.n_spikes}</td>
+        </tr>
+    </table>
+    `
 
     // Show the raster plot.
     url = `/api/session/${pid}/raster`;
     document.getElementById('rasterPlot').src = url;
+
+    // Set the trial selector.
+    var s = document.getElementById('trialSelector');
+    for (var i = 1; i <= details.n_trials; i++) {
+        s.options[s.options.length] = new Option(`trial #${i}`, i);
+    }
+
+}
+
+
+
+function selectTrial(pid, tid) {
+    // Show the trial raster plot.
+    var url = `/api/session/${pid}/trial_raster/${tid}`;
+    document.getElementById('trialRasterPlot').src = url;
+
 }
 
 
 
 function setupDropdowns() {
 
+    // Session selector.
     document.getElementById('sessionSelector').onchange = async function (e) {
         var pid = e.target.value;
         if(!pid) return;
         await selectSession(pid);
     }
 
+    // Trial selector.
+    document.getElementById('trialSelector').onchange = function (e) {
+        var tid = e.target.value;
+        if(!tid) return;
+        selectTrial(CTX.pid, tid);
+    }
+
+    // Initial selection.
     document.getElementById('sessionSelector').selectedIndex = 0;
-    selectSession(document.getElementById('sessionSelector').value);
+    var pid = document.getElementById('sessionSelector').value;
+    selectSession(pid);
+    selectTrial(pid, 1);
 };
 
 

@@ -185,8 +185,8 @@ def plot_session_raster(
     return fig
 
 
-def plot_trial_raster(spikes, trials, cluster_idx, trial_idx):
-
+def plot_trial_raster(spikes, trials, trial_idx, cluster_idx=None):
+    assert trial_idx >= 1
     trials = filter_trials_by_trial_idx(trials, trial_idx)
     spikes = filter_spikes_by_trial(
         spikes, trials['stimOn_times'] - 2, trials['feedback_times'] + 2)
@@ -198,12 +198,16 @@ def plot_trial_raster(spikes, trials, cluster_idx, trial_idx):
     ax.set_ylim(0, 3840)
     ax.set_xlim(np.min(spikes.times), np.max(spikes.times))
 
-    spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
-    ax.scatter(spikes.times, spikes.depths, s=spikes.sizes, c='r')
+    if cluster_idx is not None:
+        spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
+        ax.scatter(spikes.times, spikes.depths, s=spikes.sizes, c='r')
+
     ax = add_trial_events_to_raster(ax, trials)
     ax = set_axis_style(ax, xlabel='Time (s)', ylabel='Depth (um)')
 
-    return ax
+    fig.suptitle(f'Trial {trial_idx}', fontweight='bold')
+
+    return fig
 
 
 def add_trial_events_to_raster(ax, trials):
