@@ -159,24 +159,28 @@ def set_axis_style(ax, **kwargs):
 # Plotting functions
 # -------------------------------------------------------------------------------------------------
 
-def plot_session_raster(spikes, trials, cluster_idx, trial_idx, subsample=100):
+def plot_session_raster(
+        spikes, trials=None, cluster_idx=None, trial_idx=None, subsample=100):
 
-    alpha = spikes.sizes / np.max(spikes.sizes)
+    alpha = .1 * spikes.sizes / np.max(spikes.sizes)
     fig, ax = plt.subplots(1, 1, figsize=(9, 6))
     set_figure_style(fig)
     ax.set_xlim(0, np.max(spikes.times))
     ax.set_ylim(0, 3840)
-    ax.scatter(spikes.times[::subsample], spikes.depths[::subsample], s=spikes.sizes[::subsample], alpha=alpha[::subsample],
-               c='grey')
-
-    # TODO Allen colours
-    spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
-    ax.scatter(spikes.times, spikes.depths, s=spikes.sizes,
-               facecolors='none', edgecolors='r')
+    ax.scatter(
+        spikes.times[::subsample], spikes.depths[::subsample], s=spikes.sizes[::subsample],
+        alpha=alpha[::subsample], c='grey')
     ax = set_axis_style(ax, xlabel='Time (s)', ylabel='Depth (um)')
 
-    trials = filter_trials_by_trial_idx(trials, trial_idx)
-    ax.axvline(trials['goCue_times'], *ax.get_ylim(), c='k', ls='--')
+    if cluster_idx is not None:
+        # TODO Allen colours
+        spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
+        ax.scatter(spikes.times, spikes.depths, s=spikes.sizes,
+                   facecolors='none', edgecolors='r')
+
+    if trials is not None and trial_idx is not None:
+        trials = filter_trials_by_trial_idx(trials, trial_idx)
+        ax.axvline(trials['goCue_times'], *ax.get_ylim(), c='k', ls='--')
 
     return fig
 
