@@ -116,6 +116,9 @@ def get_session_object(pid):
     metrics = metrics.reindex(metrics['cluster_id'])
     n_clusters = len(metrics)
 
+    trials = pd.read_parquet(DATA_DIR / pid / '_ibl_trials.table.pqt')
+    n_trials = len(trials)
+
     duration = spike_times[-1] + 1
     return {
         'pid': pid,
@@ -126,6 +129,7 @@ def get_session_object(pid):
         'duration': duration,
         'n_clusters': f'{n_clusters:n}',
         'n_spikes': f'{n_spikes:n}',
+        'n_trials': f'{n_trials:n}',
     }
 
 
@@ -152,21 +156,22 @@ def main():
 
 @app.route('/api/session/<pid>/details')
 def session_details(pid):
-    ses = get_session_object(pid)
-    return f'''
-        <table>
-            <tr>
-                <th>Spike count</th>
-                <td>{ses['n_spikes']}</td>
-            </tr>
-        </table>
-    '''
+    return get_session_object(pid)
 
 
 @app.route('/api/session/<pid>/raster')
 def raster(pid):
     spikes = load_spikes(pid)
     fig = plot_session_raster(spikes)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/trial_raster/<int:trial_idx>')
+def trial_raster(pid, trial_idx):
+    spikes = load_spikes(pid)
+    trials = load_trials(pid)
+    # clusters = load_clusters(pid)
+    fig = plot_trial_raster(spikes, trials, trial_idx)
     return send_figure(fig)
 
 
