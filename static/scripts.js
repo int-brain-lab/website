@@ -3,8 +3,6 @@
 /*  Constants                                                                                    */
 /*************************************************************************************************/
 
-const SPIKES_DATA_URI = (eid) => "/" + eid;
-
 const DEFAULT_PARAMS = {
 };
 
@@ -138,14 +136,14 @@ function setupSliders() {
 
 function setupDropdowns() {
 
-    document.getElementById('selectSession').onchange = function (e) {
+    document.getElementById('sessionSelector').onchange = async function (e) {
         var session = e.target.value;
-        var url = SPIKES_DATA_URI(session);
-        document.getElementById('imgCluster').src = url;
-    }
+        if(!session) return;
+        var url = `/api/session/${session}/details`;
 
-    // Initial values.
-    // document.getElementById('selectSize').value = 0;
+        var r = await fetch(url);
+        document.getElementById('sessionDetails').innerHTML = await r.text();
+    }
 };
 
 

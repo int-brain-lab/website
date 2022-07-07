@@ -81,33 +81,29 @@
             </div>
         </div>
         <form onsubmit="return false;">
-            <div class="row">
-                <div class="three columns" id="left">
-                    <nav>
-                        <!-- Sesssion -->
-                        <ol>
-                            <li>
-                                <label for="selectSession">session</label>
-                                <select id="selectSession" class="u-full-width">
-                                    <option value="session 1">session 1</option>
-                                    <option value="session 2">session 2</option>
-                                </select>
-                            </li>
-                        </ol>
 
-                        <!-- Buttons -->
-                        <!-- <ol>
-                            <li><input type="button" id="resetButton" value="reset params"></li>
-                        </ol> -->
-                    </nav>
+            <!-- Session selector -->
+            <div class="row">
+                <div class="three columns">
+                    <label for="selectSession">session</label>
                 </div>
-                <div class="nine columns" id="right">
-                    <div>
-                        <div>
-                            <img id="imgCluster" src="/init">
-                        </div>
-                    </div>
+                <div class="nine columns">
+                    <select id="sessionSelector" class="u-full-width">
+                        <option value="">select a session:</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.pid }}">{{ session.pid }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+            </div>
+
+            <!-- Session details -->
+            <div class="row">
+                <div class="twelve columns" id="sessionDetails">
+
+                </div>
+            </div>
+
         </form>
     </div>
 

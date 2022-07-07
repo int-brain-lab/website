@@ -19,7 +19,7 @@ import one.alf.io as alfio
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = ROOT_DIR / 'data'
+DATA_DIR = ROOT_DIR / 'data'
 
 
 # -------------------------------------------------------------------------------------------------
@@ -27,28 +27,28 @@ DATA_PATH = ROOT_DIR / 'data'
 # -------------------------------------------------------------------------------------------------
 
 def load_clusters(pid):
-    clusters = alfio.load_object(DATA_PATH.joinpath(pid), object='clusters')
+    clusters = alfio.load_object(DATA_DIR.joinpath(pid), object='clusters')
     return clusters
 
 
 def load_channels(pid):
-    channels = alfio.load_object(DATA_PATH.joinpath(pid), object='channels')
+    channels = alfio.load_object(DATA_DIR.joinpath(pid), object='channels')
     return channels
 
 
 def load_spikes(pid):
-    spikes = alfio.load_object(DATA_PATH.joinpath(pid), object='spikes')
+    spikes = alfio.load_object(DATA_DIR.joinpath(pid), object='spikes')
     return spikes
 
 
 def load_trials(pid):
-    trials = alfio.load_object(DATA_PATH.joinpath(pid), object='trials')
+    trials = alfio.load_object(DATA_DIR.joinpath(pid), object='trials')
     return trials
 
 
 def load_cluster_waveforms(pid):
-    wfs = np.load(DATA_PATH.joinpath(pid, 'clusters.waveforms.npy'))
-    wf_chns = np.load(DATA_PATH.joinpath(
+    wfs = np.load(DATA_DIR.joinpath(pid, 'clusters.waveforms.npy'))
+    wf_chns = np.load(DATA_DIR.joinpath(
         pid, 'clusters.waveformsChannels.npy'))
 
     return wfs, wf_chns
@@ -456,7 +456,7 @@ def get_cluster_choices(pid):
 
 if __name__ == '__main__':
 
-    pid = list(DATA_PATH.iterdir())[0]
+    pid = list(DATA_DIR.iterdir())[0]
 
     clusters = load_clusters(pid)
     channels = load_channels(pid)
