@@ -80,6 +80,7 @@ def send_image(img):
 def send_figure(fig):
     buf = io.BytesIO()
     fig.savefig(buf)
+    plt.close(fig)
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
 
@@ -87,7 +88,6 @@ def send_figure(fig):
 # -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
-
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 CORS(app, support_credentials=True)
@@ -127,6 +127,9 @@ def get_session_object(pid):
         # 'dob': dob,
         # 'probe_count': probe_count,
         'duration': duration,
+        'cluster_ids': [int(_) for _ in metrics['cluster_id']],
+
+        # TODO: return integers and not strings, move the string formatting logic to JS
         'n_clusters': f'{n_clusters:n}',
         'n_spikes': f'{n_spikes:n}',
         'n_trials': f'{n_trials:n}',
@@ -172,6 +175,15 @@ def trial_raster(pid, trial_idx):
     trials = load_trials(pid)
     # clusters = load_clusters(pid)
     fig = plot_trial_raster(spikes, trials, trial_idx)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/cluster/<int:cluster_idx>')
+def cluster_plot(pid, cluster_idx):
+    clusters = load_clusters(pid)
+    fig, axes = plt.subplots(1, 2, figsize=(9, 6))
+    plot_spikes_amp_vs_depth(clusters, cluster_idx, fig=fig, ax=axes[0])
+    plot_spikes_fr_vs_depth(clusters, cluster_idx, fig=fig, ax=axes[1])
     return send_figure(fig)
 
 
