@@ -191,7 +191,6 @@ sysinfo.txt
 crashlytics-build.properties
 
 UnityMiniBrainClient/Assets/Resources/*
-UnityMiniBrainClient/Assets/AddressableAssets/*
 UnityMiniBrainClient/Assets/Best HTTP/*
 UnityMiniBrainClient/Assets/UXIcons/*
 UnityMiniBrainClient/Assets/vbl-core/Planet Earth Free/*

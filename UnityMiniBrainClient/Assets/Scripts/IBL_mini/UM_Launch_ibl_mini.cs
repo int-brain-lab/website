@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 {
     [DllImport("__Internal")]
     private static extern void SelectPID(string pid);
+    [DllImport("__Internal")]
+    private static extern void SelectCluster(int cluster);
 
     [SerializeField] private CCFModelControl modelControl;
     [SerializeField] private BrainCameraController cameraController;
@@ -21,6 +24,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     [SerializeField] private GameObject probeLinePrefab;
     [SerializeField] private Transform probeParentT;
     [SerializeField] private AssetReference probeData;
+
+    [SerializeField] private AddressablesRemoteLoader remoteLoader;
 
     [SerializeField] private bool loadDefaults;
 
@@ -44,6 +49,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
        "steinmetzlab", "wittenlab", "zadorlab" };
     private Dictionary<string, Color> labColors;
 
+    private GameObject highlightedProbe;
+
+    private string serverTarget;
+
     private void Awake()
     {
         pid2probe = new Dictionary<string, GameObject>();
@@ -55,6 +64,30 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         labColors = new Dictionary<string, Color>();
         for (int i = 0; i < labs.Length; i++)
             labColors.Add(labs[i], colors[i]);
+
+#if UNITY_WEBGL
+        // get the url
+        string appURL = Application.absoluteURL;
+        // parse for query strings
+        int queryIdx = appURL.IndexOf("?");
+        if (queryIdx > 0) {
+            Debug.Log("Found query string");
+            string queryString = appURL.Substring(queryIdx);
+            Debug.Log(queryString);
+            NameValueCollection qscoll = System.Web.HttpUtility.ParseQueryString(queryString);
+            foreach (string query in qscoll) {
+                Debug.Log(query);
+                Debug.Log(qscoll[query]);
+                if (query.Equals("server")) {
+                    serverTarget = qscoll[query];
+                    Debug.Log("Found server target in URL querystring, setting to: " + serverTarget);
+                    SetServerTarget();
+                }
+            }
+        }
+
+#else
+#endif
     }
 
     // Start is called before the first frame update
@@ -70,7 +103,18 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         umCamera.SwitchCameraMode(false);
 
         LoadProbes();
+    }
 
+    private void SetServerTarget() {
+        switch (serverTarget)
+        {
+            case "localhost":
+                remoteLoader.ChangeCatalogServer("localhost:4321");
+                break;
+            case "vbl":
+                remoteLoader.ChangeCatalogServer("http://data.virtualbrainlab.org/AddressablesStorage");
+                break;
+        }
     }
 
 
@@ -140,6 +184,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private async void LoadProbes()
     {
+        await remoteLoader.GetCatalogLoadedTask();
         AsyncOperationHandle<TextAsset> probeCSVLoader = Addressables.LoadAssetAsync<TextAsset>(probeData);
 
         await probeCSVLoader.Task;
@@ -174,9 +219,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         }
 
         // activate a few probes for testing
-        ActivateProbe("0fa33419-e7b9-4d00-8cab-3b51f93ecf0c");
-        ActivateProbe("6efc58a4-e1cd-4eca-9205-7e4898cc1f8b");
-        ActivateProbe("89606895-287e-4559-8536-9830b047af34");
+        ActivateProbe("7d999a68-0215-4e45-8e6c-879c6ca2b771");
+        ActivateProbe("3eb6e6e0-8a57-49d6-b7c9-f39d5834e682");
+        ActivateProbe("18be19f9-6ca5-4fc8-9220-ba43c3e75905");
     }
 
     public void ActivateProbe(string pid)
@@ -194,10 +239,35 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         pid2probe[pid].transform.localScale = Vector3.one;
     }
 
+    public void HighlightProbe(string pid) {
+        UnhighlightProbe();
+        HighlightProbe(pid2probe[pid]);
+    }
+
+    public void HighlightProbe(GameObject probe) {
+        UnhighlightProbe();
+
+        highlightedProbe = probe;
+
+        probe.transform.localScale = new Vector3(5f, 1f, 5f);
+    }
+
+    public void UnhighlightProbe() {
+        if (highlightedProbe != null) {
+            highlightedProbe.transform.localScale = new Vector3(3f, 1f, 3f);
+            highlightedProbe = null;
+        }
+    }
+
     public void SelectProbe(GameObject probe)
     {
         string pid = probe2pid[probe.transform.parent.gameObject];
+        HighlightProbe(probe);
         SelectPID(pid);
         Debug.Log("Sent select message with payload: " + pid);
+    }
+
+    public void SelectCluster(GameObject cluster) {
+        Debug.Log("not implemented");
     }
 }

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.00021291373, g: 0.00043713034, b: 0.00021291373, a: 1}
+  m_IndirectSpecularColor: {r: 0.00021454219, g: 0.00043713034, b: 0.00021454219, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -882,8 +882,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de7e19699c62fef4d8e2f16cfb5e8b22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  addressablesStorageRemotePath: http://data.virtualbrainlab.org/AddressablesStorage
+  addressablesStorageRemotePath: http://data.virtualbrainlab.org
   buildVersion: 0.1.1
+  delayCatalogLoad: 1
 --- !u!114 &1595768705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -923,6 +924,7 @@ MonoBehaviour:
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
+  remoteLoader: {fileID: 0}
   loadDefaults: 1
   colors:
   - {r: 0.18431373, g: 0.6509804, b: 0.98039216, a: 0}
