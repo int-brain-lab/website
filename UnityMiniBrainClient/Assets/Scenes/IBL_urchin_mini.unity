@@ -920,11 +920,11 @@ MonoBehaviour:
   probeLinePrefab: {fileID: 2507564506256405100, guid: bbfd294d9a4375144b5214e4196f5d20, type: 3}
   probeParentT: {fileID: 1878764715}
   probeData:
-    m_AssetGUID: 9555d08e41ee965478cc913bf7989727
+    m_AssetGUID: b126c4f93c61a45c6827afbffbd1aa71
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0
-  remoteLoader: {fileID: 0}
+  remoteLoader: {fileID: 1595768704}
   loadDefaults: 1
   colors:
   - {r: 0.18431373, g: 0.6509804, b: 0.98039216, a: 0}

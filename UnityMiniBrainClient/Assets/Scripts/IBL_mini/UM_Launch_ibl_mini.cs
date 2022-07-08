@@ -88,6 +88,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
 #else
 #endif
+
+        remoteLoader.LoadCatalog();
     }
 
     // Start is called before the first frame update
