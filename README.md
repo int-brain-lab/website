@@ -3,6 +3,7 @@
 ## Development notes
 
 * Install Python requirements
+* Put the data in the `data/` subdirectory. Each session should be in a separate folder which name should be the insertion's uuid.
 * Launch the development server with `python flaskapp.py` (or `./run.sh`)
 * Go to `http://localhost:4321/`
 
