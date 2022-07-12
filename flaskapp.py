@@ -99,6 +99,7 @@ CORS(app, support_credentials=True)
 
 def get_pids():
     pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
+    pids = [pid for pid in pids if not pid.startswith('.')]
     if 'README' in pids:
         pids.remove('README')
     return pids
