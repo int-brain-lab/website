@@ -6,3 +6,4 @@ eventlet
 pypng
 numpy
 matplotlib
+psutil
