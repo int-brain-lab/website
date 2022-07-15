@@ -33,21 +33,23 @@ h2 {
 /*  Left panel                                                                                   */
 /*************************************************************************************************/
 
-/* .container {
-    max-width: 1280px;
-} */
+/*.container {
+    max-width: 2000px;
+}*/
 
 
-
+.flex-container {
+  display: flex;
+  width: 100%;
+}
 
 /*************************************************************************************************/
 /*  Right panel                                                                                  */
 /*************************************************************************************************/
 
 img {
-    width: 100%;
+    width: auto; /* changed this from 100% but now scaling with page doesn't work */
     height: 100%;
-    border: 1px solid #aaa;
     aspect-ratio: 3/2;
 }
 
