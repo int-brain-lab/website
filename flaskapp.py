@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
+import time
 
 from plots.static_plots import *
 
@@ -29,7 +30,7 @@ mpl.use('Agg')
 # -------------------------------------------------------------------------------------------------
 
 logger = logging.getLogger('datoviz')
-mpl.style.use('seaborn')
+#mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -40,7 +41,7 @@ locale.setlocale(locale.LC_ALL, '')
 ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
 PORT = 4321
-
+DATACLASS = DataLoader()
 
 # -------------------------------------------------------------------------------------------------
 # Utils
@@ -78,10 +79,12 @@ def send_image(img):
 
 
 def send_figure(fig):
+    start = time.time()
     buf = io.BytesIO()
-    fig.savefig(buf)
+    fig.savefig(buf)  # , dpi=100)
     plt.close(fig)
     buf.seek(0)
+    print(time.time() - start)
     return send_file(buf, mimetype='image/png')
 
 
@@ -102,6 +105,11 @@ def get_pids():
     pids = [pid for pid in pids if not pid.startswith('.')]
     if 'README' in pids:
         pids.remove('README')
+    # TODO better way
+    if 'session.table.pqt' in pids:
+        pids.remove('session.table.pqt')
+    if 'session.table.csv' in pids:
+        pids.remove('session.table.csv')
     return pids
 
 
@@ -128,7 +136,7 @@ def get_session_object(pid):
         # 'dob': dob,
         # 'probe_count': probe_count,
         'duration': duration,
-        'cluster_ids': [int(_) for _ in metrics['cluster_id']],
+        'cluster_ids': [int(_) for _ in metrics['cluster_id'][metrics['label'] == 1]],
 
         # TODO: return integers and not strings, move the string formatting logic to JS
         'n_clusters': f'{n_clusters:n}',
@@ -138,7 +146,7 @@ def get_session_object(pid):
 
 
 def get_sessions(pids):
-    return [get_session_object(pid) for pid in pids]
+    return [{'pid': pid} for pid in pids]
 
 
 def get_js_context():
@@ -160,31 +168,104 @@ def main():
 
 @app.route('/api/session/<pid>/details')
 def session_details(pid):
-    return get_session_object(pid)
+    DATACLASS.session_init(pid)
+    return DATACLASS.get_session_details()
+
+
+@app.route('/api/session/<pid>/trial_details/<int:trial_idx>')
+def trial_details(pid, trial_idx):
+    return DATACLASS.get_trial_details(trial_idx)
+
+
+@app.route('/api/session/<pid>/cluster_details/<int:cluster_idx>')
+def cluster_details(pid, cluster_idx):
+    return DATACLASS.get_cluster_details(cluster_idx)
 
 
 @app.route('/api/session/<pid>/raster')
 def raster(pid):
-    spikes = load_spikes(pid)
-    fig = plot_session_raster(spikes)
+    fig = DATACLASS.plot_session_raster(DATACLASS.spikes)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/psychometric')
+def psychometric_curve(pid):
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    fig = DATACLASS.plot_psychometric_curve(ax=ax)
+    set_figure_style(fig)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/clusters')
+def cluster_good_bad_plot(pid):
+    fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+    fig = DATACLASS.plot_good_bad_clusters(ax=ax)
+    set_figure_style(fig)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/raster/trial/<int:trial_idx>')
+def raster_with_trial(pid, trial_idx):
+    fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
+    DATACLASS.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
+    DATACLASS.plot_brain_regions(axs[1])
+    set_figure_style(fig)
     return send_figure(fig)
 
 
 @app.route('/api/session/<pid>/trial_raster/<int:trial_idx>')
 def trial_raster(pid, trial_idx):
-    spikes = load_spikes(pid)
-    trials = load_trials(pid)
-    # clusters = load_clusters(pid)
-    fig = plot_trial_raster(spikes, trials, trial_idx)
+    fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
+    DATACLASS.plot_trial_raster(trial_idx=trial_idx, ax=axs[0])
+    DATACLASS.plot_brain_regions(axs[1])
+    set_figure_style(fig)
     return send_figure(fig)
 
 
 @app.route('/api/session/<pid>/cluster/<int:cluster_idx>')
 def cluster_plot(pid, cluster_idx):
-    clusters = load_clusters(pid)
-    fig, axes = plt.subplots(1, 2, figsize=(9, 6))
-    plot_spikes_amp_vs_depth(clusters, cluster_idx, fig=fig, ax=axes[0])
-    plot_spikes_fr_vs_depth(clusters, cluster_idx, fig=fig, ax=axes[1])
+    fig, axs = plt.subplots(1, 3, figsize=(9, 6), gridspec_kw={'width_ratios': [4, 4, 1], 'wspace': 0.05})
+    DATACLASS.plot_spikes_amp_vs_depth(cluster_idx, ax=axs[0])
+    DATACLASS.plot_spikes_fr_vs_depth(cluster_idx, ax=axs[1], ylabel=None)
+    DATACLASS.plot_brain_regions(axs[2])
+    axs[1].get_yaxis().set_visible(False)
+    set_figure_style(fig)
+    return send_figure(fig)
+
+
+@app.route('/api/session/<pid>/cluster_response/<int:cluster_idx>')
+def cluster_response_plot(pid, cluster_idx):
+    fig, axs = plt.subplots(2, 3, figsize=(9, 6), gridspec_kw={
+        'height_ratios': [1, 3], 'hspace': 0, 'wspace': 0.1}, sharex=True)
+    axs = axs.ravel()
+    set_figure_style(fig)
+    DATACLASS.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[axs[0], axs[3]])
+    DATACLASS.plot_left_right_single_cluster_raster(cluster_idx, axs=[axs[1], axs[4]], ylabel0=None, ylabel1=None)
+    DATACLASS.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]],  ylabel0=None, ylabel1=None)
+    axs[1].get_yaxis().set_visible(False)
+    axs[4].get_yaxis().set_visible(False)
+    axs[2].get_yaxis().set_visible(False)
+    axs[5].get_yaxis().set_visible(False)
+
+    axs[1].sharex(axs[0])
+    axs[2].sharex(axs[0])
+
+    return send_figure(fig)
+
+@app.route('/api/session/<pid>/cluster_properties/<int:cluster_idx>')
+def cluster_properties_plot(pid, cluster_idx):
+    axs = []
+    fig = plt.figure(figsize=(9, 6))
+    gs = fig.add_gridspec(2, 2)
+    axs.append(fig.add_subplot(gs[0, 0]))
+    axs.append(fig.add_subplot(gs[1, 0]))
+    axs.append(fig.add_subplot(gs[:, 1]))
+
+    set_figure_style(fig)
+    DATACLASS.plot_autocorrelogram(cluster_idx, ax=axs[0], xlabel=None)
+    DATACLASS.plot_inter_spike_interval(cluster_idx, ax=axs[1])
+    DATACLASS.plot_cluster_waveforms(cluster_idx, ax=axs[2])
+
     return send_figure(fig)
 
 

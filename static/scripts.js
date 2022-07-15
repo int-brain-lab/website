@@ -80,6 +80,21 @@ function show(arrbuf) {
 };
 
 
+function tablefromjson(json, elementID) {
+
+    var table_data = `<table>`
+    for (let key in json)  {
+        var row = `<tr>
+                    <th>${key}</th>
+                    <td>${json[key]}</td>
+                   </tr>`
+        table_data += row
+    }
+    table_data += `</table>`
+
+    document.getElementById(elementID).innerHTML = table_data
+}
+
 
 
 /*************************************************************************************************/
@@ -144,51 +159,82 @@ async function selectSession(pid) {
     var url = `/api/session/${pid}/details`;
     var r = await fetch(url);
     var details = await r.json();
-    document.getElementById('sessionDetails').innerHTML = `
-    <table>
-        <tr>
-            <th>Spike count</th>
-            <td>${details.n_spikes}</td>
-        </tr>
-    </table>
-    `
+    // Pop the cluster ids into a new variable
+    var cluster_ids = details["cluster_ids"]
+    delete details["cluster_ids"];
+
+    // Make table with session details
+    tablefromjson(details, 'sessionDetails')
 
     // Show the raster plot.
-    url = `/api/session/${pid}/raster`;
-    document.getElementById('rasterPlot').src = url;
+    // url = `/api/session/${pid}/raster`;
+    // document.getElementById('rasterPlot').src = url;
+
+    url = `/api/session/${pid}/psychometric`;
+    document.getElementById('psychometricPlot').src = url;
+
+        url = `/api/session/${pid}/clusters`;
+    document.getElementById('clusterGoodBadPlot').src = url;
+
 
     // Set the trial selector.
     var s = document.getElementById('trialSelector');
-    for (var i = 1; i <= details.n_trials; i++) {
+    $('#trialSelector option').remove();
+    for (var i = 0; i < details["N trials"]; i++) {
         s.options[s.options.length] = new Option(`trial #${i}`, i);
     }
 
     // Set the cluster selector.
     var s = document.getElementById('clusterSelector');
-    var cluster_ids = details.cluster_ids;
+    $('#clusterSelector option').remove();
     for (var cluster_id of cluster_ids) {
         s.options[s.options.length] = new Option(`cluster #${cluster_id}`, cluster_id);
     }
 
     // Update the other plots.
-    selectTrial(pid, 1);
-    selectCluster(pid, 0);
+    selectTrial(pid, 0);
+    // Need to make sure first cluster is a good one, otherwise get error
+    selectCluster(pid, cluster_ids[0]);
 }
 
 
 
-function selectTrial(pid, tid) {
+async function selectTrial(pid, tid) {
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_raster/${tid}`;
     document.getElementById('trialRasterPlot').src = url;
 
+    var url = `/api/session/${pid}/raster/trial/${tid}`;
+    document.getElementById('rasterPlot').src = url;
+
+    // Show information about trials in table
+    var url = `/api/session/${pid}/trial_details/${tid}`;
+    var r = await fetch(url).then();
+    var details = await r.json();
+
+    tablefromjson(details, 'trialDetails')
+
 }
 
 
 
-function selectCluster(pid, cid) {
+async function selectCluster(pid, cid) {
+    console.log(cid)
     var url = `/api/session/${pid}/cluster/${cid}`;
     document.getElementById('clusterPlot').src = url;
+
+    var url = `/api/session/${pid}/cluster_response/${cid}`;
+    document.getElementById('clusterResponsePlot').src = url;
+
+    var url = `/api/session/${pid}/cluster_properties/${cid}`;
+    document.getElementById('clusterPropertiesPlot').src = url;
+
+    // Show information about cluster in table
+    var url = `/api/session/${pid}/cluster_details/${cid}`;
+    var r = await fetch(url).then();
+    var details = await r.json();
+
+    tablefromjson(details, 'clusterDetails')
 
 }
 
@@ -213,6 +259,7 @@ function setupDropdowns() {
     // Cluster selector.
     document.getElementById('clusterSelector').onchange = function (e) {
         var cid = e.target.value;
+        console.log(cid)
         if(!cid) return;
         selectCluster(CTX.pid, cid);
     }
