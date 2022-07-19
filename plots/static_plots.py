@@ -107,7 +107,10 @@ def filter_trials_by_trial_idx(trials, trial_idx):
 
 
 def filter_clusters_by_cluster_idx(clusters, cluster_idx):
-    idx = np.where(clusters.cluster_id == cluster_idx)[0][0]
+    try:
+        idx = np.where(clusters.cluster_id == cluster_idx)[0][0]
+    except IndexError:
+        return None
     return _filter(clusters, idx)
 
 
@@ -260,6 +263,8 @@ class DataLoader:
 
     def get_cluster_details(self, cluster_idx):
         cluster = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        if not cluster:
+            return
 
         details = {
             'Cluster #': cluster_idx,
@@ -427,7 +432,8 @@ class DataLoader:
         ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths,
                    facecolors='none', edgecolors='grey')
         clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
-        ax.scatter(clusters.amps * 1e6, clusters.depths, c='r')
+        if clusters is not None:
+            ax.scatter(clusters.amps * 1e6, clusters.depths, c='r')
         ax.set_ylim(0, 4000)
         ax.set_xlim(-10, 800)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
@@ -443,7 +449,8 @@ class DataLoader:
         ax.scatter(self.clusters_good.firing_rate, self.clusters_good.depths,
                    facecolors='none', edgecolors='grey')
         clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
-        ax.scatter(clusters.firing_rate, clusters.depths, c='r')
+        if clusters is not None:
+            ax.scatter(clusters.firing_rate, clusters.depths, c='r')
         ax.set_ylim(0, 4000)
         ax.set_xlim(-5, 100)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
