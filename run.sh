@@ -1,1 +1,1 @@
-python flaskapp.py
+python3 flaskapp.py

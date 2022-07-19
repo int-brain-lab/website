@@ -1,0 +1,41 @@
+This directory should contain (these are just two example sessions):
+
+```
+data/
+├── 18be19f9-6ca5-4fc8-9220-ba43c3e75905
+│   ├── channels.brainLocationIds_ccf_2017.npy
+│   ├── channels.localCoordinates.npy
+│   ├── channels.mlapdv.npy
+│   ├── channels.rawInd.npy
+│   ├── clusters.table.pqt
+│   ├── clusters.waveformsChannels.npy
+│   ├── clusters.waveforms.npy
+│   ├── _ibl_trials.table.pqt
+│   ├── spikes.amps.npy
+│   ├── spikes.clusters.npy
+│   ├── spikes.depths.npy
+│   ├── spikes.good.npy
+│   ├── spikes.sizes.npy
+│   └── spikes.times.npy
+├── 7d999a68-0215-4e45-8e6c-879c6ca2b771
+│   ├── channels.brainLocationIds_ccf_2017.npy
+│   ├── channels.localCoordinates.npy
+│   ├── channels.mlapdv.npy
+│   ├── channels.rawInd.npy
+│   ├── clusters.table.pqt
+│   ├── clusters.waveformsChannels.npy
+│   ├── clusters.waveforms.npy
+│   ├── _ibl_trials.table.pqt
+│   ├── spikes.amps.npy
+│   ├── spikes.clusters.npy
+│   ├── spikes.depths.npy
+│   ├── spikes.good.npy
+│   ├── spikes.sizes.npy
+│   └── spikes.times.npy
+├── README
+├── session.table.csv
+└── session.table.pqt
+
+2 directories, 31 files
+
+```
