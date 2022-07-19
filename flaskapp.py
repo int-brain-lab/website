@@ -208,7 +208,6 @@ def the_app():
 
 
 @app.route('/api/session/<pid>/details')
-@cache.cached()
 def session_details(pid):
     DATACLASS.session_init(pid)
     return DATACLASS.get_session_details()
