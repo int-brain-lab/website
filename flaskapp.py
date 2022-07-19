@@ -198,6 +198,15 @@ def main():
     )
 
 
+@app.route('/app')
+def the_app():
+    return render_template(
+        'app.html',
+        sessions=get_sessions(get_pids()),
+        js_context=get_js_context(),
+    )
+
+
 @app.route('/api/session/<pid>/details')
 @cache.cached()
 def session_details(pid):

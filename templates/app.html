@@ -1,0 +1,115 @@
+{% extends 'template.html' %}
+{% block content %}
+
+<div class="row">
+    <div class="twelve columns">
+        <h2>Session overview</h2>
+    </div>
+</div>
+
+
+<!-- FIRST ROW -->
+<div class="row">
+    <!-- UNITY -->
+    <div class="eight columns">
+        <img src="https://cdn.geekwire.com/wp-content/uploads/2018/06/180620-brain-1260x709.jpg"
+            style="aspect-ratio: 1; object-fit: cover;">
+    </div>
+
+    <!-- SESSION DETAILS -->
+    <div class="four columns">
+
+        <!-- SESSION DROPDOWN -->
+        <div class="nine columns">
+            <select id="sessionSelector" class="u-full-width">
+                {% for session in sessions %}
+                <option value="{{ session.pid }}">PID {{ session.pid }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="sessionDetails">
+        </div>
+    </div>
+</div>
+
+
+<!-- SESSION PLOTS -->
+<div class="row">
+    <!-- Raster -->
+    <div class="five columns">
+        <img id="rasterPlot">
+    </div>
+
+    <!-- Pyschometric plot -->
+    <div class="four columns">
+        <img id="psychometricPlot">
+    </div>
+
+    <!-- Cluster good bad plot -->
+    <div class="three columns">
+        <img id="clusterGoodBadPlot">
+    </div>
+</div>
+
+
+<!-- TRIAL -->
+<div class="row">
+    <div class="twelve columns">
+        <h2>Single trial overview</h2>
+    </div>
+</div>
+<div class="row">
+    <!-- Trial selector -->
+    <div class="two columns">
+        <select size="15" id="trialSelector" class="u-full-width multiple">
+        </select>
+    </div>
+
+    <!-- Trial details -->
+    <div class="two columns" id="trialDetails">
+    </div>
+
+    <!-- Trial raster plot -->
+    <div class="eight columns">
+        <img id="trialRasterPlot">
+    </div>
+</div>
+
+
+<!-- CLUSTER -->
+<div class="row">
+    <div class="twelve columns">
+        <h2>Single cluster overview</h2>
+    </div>
+</div>
+<div class="row">
+    <!-- Cluster selector -->
+    <div class="two columns">
+        <select size="15" id="clusterSelector" class="u-full-width multiple">
+        </select>
+    </div>
+
+    <!-- Cluster details -->
+    <div class="two columns" id="clusterDetails">
+    </div>
+
+    <!-- Cluster plot -->
+    <div class="eight columns">
+        <img id="clusterPlot">
+    </div>
+</div>
+
+
+<!-- CLUSTER PLOTS -->
+<div class="row">
+    <div class="twelve columns">
+        <!-- Cluster response plot -->
+        <img id="clusterResponsePlot">
+        <!-- Cluster properties plot -->
+        <img id="clusterPropertiesPlot">
+    </div>
+</div>
+
+
+{% endblock %}
