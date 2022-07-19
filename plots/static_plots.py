@@ -187,7 +187,11 @@ def set_axis_style(ax, **kwargs):
 # -------------------------------------------------------------------------------------------------
 # Plotting functions
 # -------------------------------------------------------------------------------------------------
+
 class DataLoader:
+
+    # Loading functions
+    # ---------------------------------------------------------------------------------------------
 
     def __init__(self):
         self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
@@ -265,6 +269,9 @@ class DataLoader:
 
         return details
 
+    # Plotting functions
+    # ---------------------------------------------------------------------------------------------
+
     def compute_session_raster(self, t_bin=0.1, d_bin=10):
         """
         Compute raster across whole duration of session
@@ -278,8 +285,6 @@ class DataLoader:
             bincount2D(self.spikes.times[kp_idx], self.spikes.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
 
         self.session_raster = self.session_raster / t_bin
-
-
 
     def plot_brain_regions(self, ax=None, restrict_labels=True):
         fig = ax.get_figure()
@@ -443,7 +448,6 @@ class DataLoader:
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
-
 
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='Time from Stim On (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
@@ -611,7 +615,6 @@ class DataLoader:
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
-
 
 
 if __name__ == '__main__':

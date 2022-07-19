@@ -3,26 +3,26 @@
 # -------------------------------------------------------------------------------------------------
 
 import argparse
-import base64
-from pathlib import Path
-import logging
+# import base64
 import io
-from math import ceil
 import locale
-
-from flask_cors import CORS, cross_origin
-from flask import Flask, render_template, send_file, session, request
-from psutil import pid_exists
+import logging
+# from math import ceil
+from pathlib import Path
 import png
+import time
+from uuid import UUID
+
+from flask_cors import CORS  # , cross_origin
+from flask import Flask, render_template, send_file  # , session, request
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-import time
+# from psutil import pid_exists
 
 from plots.static_plots import *
 
-mpl.use('Agg')
 
 
 # -------------------------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ mpl.use('Agg')
 # -------------------------------------------------------------------------------------------------
 
 logger = logging.getLogger('datoviz')
+mpl.use('Agg')
 #mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
 
@@ -42,6 +43,7 @@ ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
 PORT = 4321
 DATACLASS = DataLoader()
+
 
 # -------------------------------------------------------------------------------------------------
 # Utils
@@ -88,6 +90,36 @@ def send_figure(fig):
     return send_file(buf, mimetype='image/png')
 
 
+def is_valid_uuid(uuid_to_test, version=4):
+    """
+    Check if uuid_to_test is a valid UUID.
+    https://stackoverflow.com/a/33245493/1595060
+
+     Parameters
+    ----------
+    uuid_to_test : str
+    version : {1, 2, 3, 4}
+
+     Returns
+    -------
+    `True` if uuid_to_test is a valid UUID, otherwise `False`.
+
+     Examples
+    --------
+    >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
+    True
+    >>> is_valid_uuid('c9bf9e58')
+    False
+    """
+
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuid_to_test
+
+
+
 # -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
@@ -97,19 +129,12 @@ CORS(app, support_credentials=True)
 
 
 # -------------------------------------------------------------------------------------------------
-# Logic functions
+# Functions
 # -------------------------------------------------------------------------------------------------
 
 def get_pids():
     pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
-    pids = [pid for pid in pids if not pid.startswith('.')]
-    if 'README' in pids:
-        pids.remove('README')
-    # TODO better way
-    if 'session.table.pqt' in pids:
-        pids.remove('session.table.pqt')
-    if 'session.table.csv' in pids:
-        pids.remove('session.table.csv')
+    pids = [pid for pid in pids if is_valid_uuid(pid)]
     return pids
 
 
