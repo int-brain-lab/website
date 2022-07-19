@@ -44,7 +44,14 @@ h2 {
     width: 100%;
 }
 
-.columns {}
+.columns {
+    /* height: 100% !important; */
+}
+
+
+select.multiple {
+    height: 300px !important;
+}
 
 /*
 .fill {
