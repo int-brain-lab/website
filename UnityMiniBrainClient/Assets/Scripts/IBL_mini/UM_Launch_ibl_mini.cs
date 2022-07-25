@@ -7,8 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class UM_Launch_ibl_mini : MonoBehaviour
 {
@@ -17,15 +15,13 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void SelectCluster(int cluster);
 
-    [SerializeField] private CCFModelControl modelControl;
+    //[SerializeField] private CCFModelControl modelControl;
     [SerializeField] private BrainCameraController cameraController;
     [SerializeField] private UM_CameraController umCamera;
 
     [SerializeField] private GameObject probeLinePrefab;
     [SerializeField] private Transform probeParentT;
-    [SerializeField] private AssetReference probeData;
-
-    [SerializeField] private AddressablesRemoteLoader remoteLoader;
+    [SerializeField] private TextAsset probeData;
 
     [SerializeField] private bool loadDefaults;
 
@@ -34,12 +30,15 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     // Neuron materials
     [SerializeField] private Dictionary<string, Material> neuronMaterials;
 
-    private Dictionary<int, CCFTreeNode> visibleNodes;
+    //private Dictionary<int, CCFTreeNode> visibleNodes;
 
     private bool ccfLoaded;
 
     [SerializeField] private List<Color> colors;
     [SerializeField] private Color defaultColor = Color.gray;
+
+    [SerializeField] private List<Color> brainColors;
+    [SerializeField] private List<GameObject> brainAreas;
 
     private Dictionary<string, GameObject> pid2probe;
     private Dictionary<GameObject, string> probe2pid;
@@ -59,47 +58,26 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         probeLabs = new Dictionary<string, int>();
         probe2pid = new Dictionary<GameObject, string>();
 
-        visibleNodes = new Dictionary<int, CCFTreeNode>();
+        //visibleNodes = new Dictionary<int, CCFTreeNode>();
 
         labColors = new Dictionary<string, Color>();
         for (int i = 0; i < labs.Length; i++)
             labColors.Add(labs[i], colors[i]);
 
-#if UNITY_WEBGL
-        // get the url
-        string appURL = Application.absoluteURL;
-        // parse for query strings
-        int queryIdx = appURL.IndexOf("?");
-        if (queryIdx > 0) {
-            Debug.Log("Found query string");
-            string queryString = appURL.Substring(queryIdx);
-            Debug.Log(queryString);
-            NameValueCollection qscoll = System.Web.HttpUtility.ParseQueryString(queryString);
-            foreach (string query in qscoll) {
-                Debug.Log(query);
-                Debug.Log(qscoll[query]);
-                if (query.Equals("server")) {
-                    serverTarget = qscoll[query];
-                    Debug.Log("Found server target in URL querystring, setting to: " + serverTarget);
-                    SetServerTarget();
-                }
-            }
+        for (int i = 0; i < brainAreas.Count; i++)
+        {
+            brainAreas[i].GetComponentInChildren<Renderer>().material.SetColor("_Color", brainColors[i]);
         }
-
-#else
-#endif
-
-        remoteLoader.LoadCatalog();
     }
 
     // Start is called before the first frame update
     void Start()
     {        
-        modelControl.SetBeryl(true);
-        modelControl.LateStart(loadDefaults);
+        //modelControl.SetBeryl(true);
+        //modelControl.LateStart(loadDefaults);
 
-        if (loadDefaults)
-            DelayedStart();
+        //if (loadDefaults)
+        //    DelayedStart();
 
         cameraController.SetBrainAxisAngles(new Vector3(0f, 45f, 135f));
         umCamera.SwitchCameraMode(false);
@@ -107,41 +85,29 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         LoadProbes();
     }
 
-    private void SetServerTarget() {
-        switch (serverTarget)
-        {
-            case "localhost":
-                remoteLoader.ChangeCatalogServer("localhost:4321");
-                break;
-            case "vbl":
-                remoteLoader.ChangeCatalogServer("http://data.virtualbrainlab.org/AddressablesStorage");
-                break;
-        }
-    }
 
+    //private async void DelayedStart()
+    //{
+    //    //await modelControl.GetDefaultLoaded();
+    //    //ccfLoaded = true;
 
-    private async void DelayedStart()
-    {
-        await modelControl.GetDefaultLoaded();
-        ccfLoaded = true;
+    //    //foreach (CCFTreeNode node in modelControl.GetDefaultLoadedNodes())
+    //    //{
+    //    //    FixNodeTransformPosition(node);
 
-        foreach (CCFTreeNode node in modelControl.GetDefaultLoadedNodes())
-        {
-            FixNodeTransformPosition(node);
+    //    //    RegisterNode(node);
+    //    //    node.SetNodeModelVisibility(true);
+    //    //    node.SetShaderProperty("_Alpha", 0.15f);
+    //    //}
+    //}
 
-            RegisterNode(node);
-            node.SetNodeModelVisibility(true);
-            node.SetShaderProperty("_Alpha", 0.15f);
-        }
-    }
-
-    public void FixNodeTransformPosition(CCFTreeNode node)
-    {
-        // I don't know why we have to do this? For some reason when we load the node models their positions are all offset in space in a weird way... 
-        node.GetNodeTransform().localPosition = Vector3.zero;
-        node.GetNodeTransform().localRotation = Quaternion.identity;
-        //node.RightGameObject().transform.localPosition = Vector3.forward * 11.4f;
-    }
+    //public void FixNodeTransformPosition(CCFTreeNode node)
+    //{
+    //    // I don't know why we have to do this? For some reason when we load the node models their positions are all offset in space in a weird way... 
+    //    node.GetNodeTransform().localPosition = Vector3.zero;
+    //    node.GetNodeTransform().localRotation = Quaternion.identity;
+    //    //node.RightGameObject().transform.localPosition = Vector3.forward * 11.4f;
+    //}
 
     // Update is called once per frame
     void Update()
@@ -162,11 +128,11 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         }
     }
 
-    public void RegisterNode(CCFTreeNode node)
-    {
-        if (!visibleNodes.ContainsKey(node.ID))
-            visibleNodes.Add(node.ID, node);
-    }
+    //public void RegisterNode(CCFTreeNode node)
+    //{
+    //    if (!visibleNodes.ContainsKey(node.ID))
+    //        visibleNodes.Add(node.ID, node);
+    //}
 
     private void SetProbePositionAndAngles(Transform probeT, Vector3 pos, Vector3 angles)
     {
@@ -184,16 +150,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         probeT.RotateAround(probeT.position, probeT.up, angles.z);
     }
 
-    private async void LoadProbes()
+    private void LoadProbes()
     {
-        await remoteLoader.GetCatalogLoadedTask();
-        AsyncOperationHandle<TextAsset> probeCSVLoader = Addressables.LoadAssetAsync<TextAsset>(probeData);
-
-        await probeCSVLoader.Task;
-
-        TextAsset probeDataCSV = probeCSVLoader.Result;
-
-        List<Dictionary<string,object>> data = CSVReader.ParseText(probeDataCSV.text);
+        List<Dictionary<string,object>> data = CSVReader.ParseText(probeData.text);
 
         foreach (Dictionary<string,object> row in data)
         {
@@ -228,7 +187,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
-        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
+        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", defaultColor);
+        //pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
         pid2probe[pid].GetComponentInChildren<BoxCollider>().enabled = true;
         pid2probe[pid].GetComponentInChildren<BoxCollider>().isTrigger = true;
         // make it bigger
@@ -242,30 +202,36 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     }
 
     public void HighlightProbe(string pid) {
-        UnhighlightProbe();
-        HighlightProbe(pid2probe[pid]);
+        Debug.Log("Highlighting pid: " + pid);
+        HighlightProbeGO(pid2probe[pid]);
     }
 
-    public void HighlightProbe(GameObject probe) {
+    public void HighlightProbeGO(GameObject probe) {
         UnhighlightProbe();
 
         highlightedProbe = probe;
 
-        probe.transform.localScale = new Vector3(5f, 1f, 5f);
+        probe.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.red);
     }
 
     public void UnhighlightProbe() {
         if (highlightedProbe != null) {
-            highlightedProbe.transform.localScale = new Vector3(3f, 1f, 3f);
-            highlightedProbe = null;
+            highlightedProbe.GetComponentInChildren<Renderer>().material.SetColor("_Color", defaultColor);
         }
+    }
+
+    public void SwitchHighlightedProbeJS(int id)
+    {
+
     }
 
     public void SelectProbe(GameObject probe)
     {
         string pid = probe2pid[probe.transform.parent.gameObject];
-        HighlightProbe(probe);
+        HighlightProbeGO(probe);
+#if UNITY_WEBGL
         SelectPID(pid);
+#endif
         Debug.Log("Sent select message with payload: " + pid);
     }
 
