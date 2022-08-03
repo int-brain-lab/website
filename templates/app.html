@@ -12,8 +12,27 @@
 <div class="row">
     <!-- UNITY -->
     <div class="eight columns">
-        <img src="https://cdn.geekwire.com/wp-content/uploads/2018/06/180620-brain-1260x709.jpg"
-            style="aspect-ratio: 1; object-fit: cover;">
+        <!-- <img src="https://cdn.geekwire.com/wp-content/uploads/2018/06/180620-brain-1260x709.jpg"
+            style="aspect-ratio: 1; object-fit: cover;"> -->
+
+        <canvas id="unity-canvas" style="width: 100%; aspect-ratio: 1; background: #fff"></canvas>
+        <script src="static/Build/IBLMini-webgl.loader.js"></script>
+        <script>
+            createUnityInstance(document.querySelector("#unity-canvas"), {
+                dataUrl: "static/Build/IBLMini-webgl.data.gz",
+                frameworkUrl: "static/Build/IBLMini-webgl.framework.js.gz",
+                codeUrl: "static/Build/IBLMini-webgl.wasm.gz",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "Daniel Birman @ UW",
+                productName: "IBLMini",
+                productVersion: "0.1.1",
+                // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+                // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+            }).then((unityInstance) => {
+                window.myGameInstance = unityInstance;
+            });
+        </script>
+
     </div>
 
     <!-- SESSION DETAILS -->
