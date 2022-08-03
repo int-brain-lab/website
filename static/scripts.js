@@ -154,6 +154,8 @@ function setupSliders() {
 
 
 function selectPID(pid) {
+    // UNITY callback
+    document.getElementById('sessionSelector').value = pid;
     selectSession(pid);
 }
 
