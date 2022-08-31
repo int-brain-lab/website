@@ -6,5 +6,7 @@ gevent-websocket
 eventlet
 pypng
 numpy
+pandas
+arrow
 matplotlib
 psutil
