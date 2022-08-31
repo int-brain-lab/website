@@ -9,6 +9,7 @@ var CTX = {
     pid: null,
     tid: 0,
 };
+var myGameInstance = null;
 
 
 /*************************************************************************************************/
@@ -83,7 +84,7 @@ function show(arrbuf) {
 function tablefromjson(json, elementID) {
 
     var table_data = `<table>`
-    for (let key in json)  {
+    for (let key in json) {
         var row = `<tr>
                     <th>${key}</th>
                     <td>${json[key]}</td>
@@ -152,8 +153,19 @@ function setupSliders() {
 
 
 
+function selectPID(pid) {
+    // UNITY callback
+    document.getElementById('sessionSelector').value = pid;
+    selectSession(pid);
+}
+
+
+
 async function selectSession(pid) {
     CTX.pid = pid;
+
+    if (myGameInstance)
+        myGameInstance.SendMessage("main", "HighlightProbe", pid);
 
     // Show the session details.
     var url = `/api/session/${pid}/details`;
@@ -173,7 +185,7 @@ async function selectSession(pid) {
     url = `/api/session/${pid}/psychometric`;
     document.getElementById('psychometricPlot').src = url;
 
-        url = `/api/session/${pid}/clusters`;
+    url = `/api/session/${pid}/clusters`;
     document.getElementById('clusterGoodBadPlot').src = url;
 
 
@@ -219,7 +231,7 @@ async function selectTrial(pid, tid) {
 
 
 async function selectCluster(pid, cid) {
-    console.log(cid)
+    console.log(`select cluster #${cid}`);
     var url = `/api/session/${pid}/cluster/${cid}`;
     document.getElementById('clusterPlot').src = url;
 
@@ -245,14 +257,14 @@ function setupDropdowns() {
     // Session selector.
     document.getElementById('sessionSelector').onchange = async function (e) {
         var pid = e.target.value;
-        if(!pid) return;
+        if (!pid) return;
         await selectSession(pid);
     }
 
     // Trial selector.
     document.getElementById('trialSelector').onchange = function (e) {
         var tid = e.target.value;
-        if(!tid) return;
+        if (!tid) return;
         selectTrial(CTX.pid, tid);
     }
 
@@ -260,7 +272,7 @@ function setupDropdowns() {
     document.getElementById('clusterSelector').onchange = function (e) {
         var cid = e.target.value;
         console.log(cid)
-        if(!cid) return;
+        if (!cid) return;
         selectCluster(CTX.pid, cid);
     }
 
