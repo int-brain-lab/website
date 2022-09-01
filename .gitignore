@@ -202,3 +202,4 @@ UnityMiniBrainClient/**/ServerData.zip
 Examples/.ipynb_checkpoints/*
 UnityClient/docs/*
 data/*
+.DS_Store
