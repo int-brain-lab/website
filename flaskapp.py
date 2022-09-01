@@ -149,34 +149,6 @@ def open_file(pid, name):
     return np.load(DATA_DIR / pid / name, mmap_mode='r')
 
 
-def get_session_object(pid):
-    spike_times = open_file(pid, 'spikes.times.npy')
-    n_spikes = len(spike_times)
-
-    metrics = pd.read_parquet(DATA_DIR / pid / 'clusters.table.pqt')
-    metrics = metrics.reindex(metrics['cluster_id'])
-    n_clusters = len(metrics)
-
-    trials = pd.read_parquet(DATA_DIR / pid / '_ibl_trials.table.pqt')
-    n_trials = len(trials)
-
-    duration = spike_times[-1] + 1
-    return {
-        'pid': pid,
-        # 'lab': lab,
-        # 'subject_name': subject_name,
-        # 'dob': dob,
-        # 'probe_count': probe_count,
-        'duration': duration,
-        'cluster_ids': [int(_) for _ in metrics['cluster_id'][metrics['label'] == 1]],
-
-        # TODO: return integers and not strings, move the string formatting logic to JS
-        'n_clusters': f'{n_clusters:n}',
-        'n_spikes': f'{n_spikes:n}',
-        'n_trials': f'{n_trials:n}',
-    }
-
-
 def get_sessions(pids):
     return [{'pid': pid} for pid in pids]
 

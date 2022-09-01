@@ -236,7 +236,14 @@ class DataLoader:
         details['N trials'] = f'{self.trials.stimOn_times.size}'
         details['N spikes'] = f'{self.spikes.clusters.size}'
         details['N clusters'] = f'{self.clusters_good.cluster_id.size} good, {self.clusters.cluster_id.size} overall'
-        details['cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id]
+
+        # Sort by cluster depth.
+        idx = np.argsort(self.clusters_good.depths)[::-1]
+
+        # Cluster information.
+        details['cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
+        details['acronyms'] = self.clusters_good.acronym[idx].tolist()
+        details['colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
 
         return details
 
