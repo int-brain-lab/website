@@ -1,4 +1,46 @@
 /*************************************************************************************************/
+/*  Fonts                                                                                        */
+/*************************************************************************************************/
+
+@font-face {
+    font-family: proxima-nova;
+    src: url(https://use.typekit.net/af/efe4a5/00000000000000007735e609/30/l?subset_id=2&fvd=n4&v=3) format("woff2"), url(https://use.typekit.net/af/efe4a5/00000000000000007735e609/30/d?subset_id=2&fvd=n4&v=3) format("woff"), url(https://use.typekit.net/af/efe4a5/00000000000000007735e609/30/a?subset_id=2&fvd=n4&v=3) format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-stretch: normal;
+    font-display: auto;
+}
+
+@font-face {
+    font-family: proxima-nova;
+    src: url(https://use.typekit.net/af/2555e1/00000000000000007735e603/30/l?subset_id=2&fvd=n7&v=3) format("woff2"), url(https://use.typekit.net/af/2555e1/00000000000000007735e603/30/d?subset_id=2&fvd=n7&v=3) format("woff"), url(https://use.typekit.net/af/2555e1/00000000000000007735e603/30/a?subset_id=2&fvd=n7&v=3) format("opentype");
+    font-weight: 700;
+    font-style: normal;
+    font-stretch: normal;
+    font-display: auto;
+}
+
+@font-face {
+    font-family: proxima-nova;
+    src: url(https://use.typekit.net/af/3322cc/00000000000000007735e616/30/l?subset_id=2&fvd=i4&v=3) format("woff2"), url(https://use.typekit.net/af/3322cc/00000000000000007735e616/30/d?subset_id=2&fvd=i4&v=3) format("woff"), url(https://use.typekit.net/af/3322cc/00000000000000007735e616/30/a?subset_id=2&fvd=i4&v=3) format("opentype");
+    font-weight: 400;
+    font-style: italic;
+    font-stretch: normal;
+    font-display: auto;
+}
+
+@font-face {
+    font-family: proxima-nova;
+    src: url(https://use.typekit.net/af/4de20a/00000000000000007735e604/30/l?subset_id=2&fvd=i7&v=3) format("woff2"), url(https://use.typekit.net/af/4de20a/00000000000000007735e604/30/d?subset_id=2&fvd=i7&v=3) format("woff"), url(https://use.typekit.net/af/4de20a/00000000000000007735e604/30/a?subset_id=2&fvd=i7&v=3) format("opentype");
+    font-weight: 700;
+    font-style: italic;
+    font-stretch: normal;
+    font-display: auto;
+}
+
+
+
+/*************************************************************************************************/
 /*  Global                                                                                       */
 /*************************************************************************************************/
 
@@ -9,11 +51,61 @@ html.wait * {
 
 
 
+body {
+    font-family: proxima-nova;
+}
+
+
+
 /*************************************************************************************************/
 /*  Header                                                                                       */
 /*************************************************************************************************/
 
-#titleLinks {
+#header,
+#footer {
+    background-color: white;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: +100;
+
+    font-family: "Roboto Condensed";
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#header a,
+#footer a {
+    text-decoration: none;
+    color: #333;
+}
+
+#header a:hover,
+#footer a:hover {
+    color: #999;
+}
+
+#header img {
+    max-height: 80px;
+    width: auto;
+    height: auto;
+    vertical-align: middle;
+}
+
+#header ul {
+    display: inline-block;
+    margin: 0 40px;
+}
+
+#header ul li {
+    display: inline-block;
+    margin: 0 20px;
+}
+
+
+/* #titleLinks {
     position: relative;
     top: -20px;
 }
@@ -22,10 +114,25 @@ html.wait * {
     padding: 0 10px;
 }
 
+h1 {
+    font-family: "Roboto Condensed";
+}
+
 h2 {
     font-size: 24pt;
     text-align: center;
     margin: 12px 0;
+} */
+
+
+
+/*************************************************************************************************/
+/*  Footer                                                                                       */
+/*************************************************************************************************/
+
+#footer {
+    text-align: center;
+    padding: 20px 0;
 }
 
 

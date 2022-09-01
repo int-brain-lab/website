@@ -57,39 +57,56 @@
         integrity="sha512-igVQ7hyQVijOUlfg3OmcTZLwYJIBXU63xL9RC12xBHNpmGJAktDnzl9Iw0J4yrSaQtDxTTVlwhY730vphoVqJQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <!-- Passing data from Flask to Javascript -->
-    <script>
-        const JS_CONTEXT = {{ js_context| tojson }};
-    </script>
-
-    <!-- Custom Array class -->
-    <script src="{{ url_for('static', filename='array.js') }}"></script>
-
-    <!-- Custom JS code -->
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-
     {% block header %}{% endblock %}
 
 </head>
 
 <body>
-    <form onsubmit="return false;">
+    <!-- .container is main centered wrapper -->
 
-        <!-- .container is main centered wrapper -->
-        <div class="container">
+    <!-- HEADER -->
+    <header id="header">
+        <nav>
+            <div class="container">
+                <div class="twelve columns">
+                    <!-- IBL LOGO -->
+                    <a href="/"><img src="/static/ibl.png"></a>
 
-            <div class="row">
-                <h1>IBL public website prototype</h1>
-                <div id="titleLinks">
-                    <a href="https://github.com/int-brain-lab/website" target="_blank">GitHub</a>
+                    <!-- MENU -->
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/app">App</a></li>
+                        <li><a href="#">Paper</a></li>
+                        <li><a href="https://github.com/int-brain-lab/website">Code</a></li>
+                        <li><a href="https://www.internationalbrainlab.com/">Lab</a></li>
+                    </ul>
                 </div>
             </div>
+        </nav>
+    </header>
 
+
+    <!-- CONTENT -->
+    <form onsubmit="return false;">
+        <!-- .container is main centered wrapper -->
+        <div class="container">
             {% block content %}{% endblock %}
-
         </div>
-
     </form>
+
+
+
+
+    <!-- FOOTER -->
+    <header id="footer">
+        <nav>
+            <div class="container">
+                <div class="twelve columns">
+                    <a href="https://www.internationalbrainlab.com/">International Brain Laboratory</a> — 2022
+                </div>
+            </div>
+        </nav>
+    </header>
 </body>
 
 </html>
