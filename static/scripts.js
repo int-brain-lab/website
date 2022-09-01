@@ -138,6 +138,26 @@ function onSliderChange(id, callback) {
 /*  Setup functions                                                                              */
 /*************************************************************************************************/
 
+function loadUnity() {
+
+    var canvas = document.querySelector("#unity-canvas");
+    createUnityInstance(canvas, {
+        dataUrl: "static/Build/IBLMini-webgl.data.gz",
+        frameworkUrl: "static/Build/IBLMini-webgl.framework.js.gz",
+        codeUrl: "static/Build/IBLMini-webgl.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Daniel Birman @ UW",
+        productName: "IBLMini",
+        productVersion: "0.1.1",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+    }).then((unityInstance) => {
+        window.myGameInstance = unityInstance;
+    });
+}
+
+
+
 function setupSliders() {
 
     // Alpha slider
@@ -345,6 +365,7 @@ function setupPersistence() {
 /*************************************************************************************************/
 
 function load() {
+    loadUnity();
     setupPersistence();
     setupSliders();
     setupDropdowns();
