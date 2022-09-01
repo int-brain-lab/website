@@ -2,6 +2,19 @@
 
 
 {% block header %}
+
+<!-- Passing data from Flask to Javascript -->
+<script>
+    const JS_CONTEXT = {{ js_context| tojson }};
+</script>
+
+<!-- Custom Array class -->
+<script src="{{ url_for('static', filename='array.js') }}"></script>
+
+<!-- Custom JS code -->
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
+
+<!-- Unity loader -->
 <script src="static/Build/IBLMini-webgl.loader.js"></script>
 {% endblock %}
 
