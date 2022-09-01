@@ -204,7 +204,9 @@ async function selectSession(pid) {
     var r = await fetch(url);
     var details = await r.json();
     // Pop the cluster ids into a new variable
-    var cluster_ids = details["cluster_ids"]
+    var cluster_ids = details["cluster_ids"];
+    var acronyms = details["acronyms"];
+    var colors = details["colors"];
     delete details["cluster_ids"];
 
     // Make table with session details
@@ -231,8 +233,16 @@ async function selectSession(pid) {
     // Set the cluster selector.
     var s = document.getElementById('clusterSelector');
     $('#clusterSelector option').remove();
-    for (var cluster_id of cluster_ids) {
-        s.options[s.options.length] = new Option(`cluster #${cluster_id}`, cluster_id);
+    for (var i = 0; i < cluster_ids.length; i++) {
+        var cluster_id = cluster_ids[i];
+        var acronym = acronyms[i];
+        var color = colors[i];
+        var opt = new Option(`${acronym} — #${cluster_id}`, cluster_id);
+        var r = color[0];
+        var g = color[1];
+        var b = color[2];
+        opt.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        s.options[s.options.length] = opt;
     }
 
     // Update the other plots.
@@ -303,7 +313,6 @@ function setupDropdowns() {
     // Cluster selector.
     document.getElementById('clusterSelector').onchange = function (e) {
         var cid = e.target.value;
-        console.log(cid)
         if (!cid) return;
         selectCluster(CTX.pid, cid);
     }
