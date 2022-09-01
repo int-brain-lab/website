@@ -167,6 +167,8 @@ h6 {
     width: 100%;
     font-size: 14pt;
     font-weight: 400;
+    height: auto;
+    padding: 5px;
 }
 
 
