@@ -25,14 +25,13 @@ import pandas as pd
 from plots.static_plots import *
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Settings
 # -------------------------------------------------------------------------------------------------
 
 logger = logging.getLogger('datoviz')
 mpl.use('Agg')
-#mpl.style.use('seaborn')
+# mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -44,7 +43,6 @@ ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
 PORT = 4321
 DATACLASS = DataLoader()
-
 
 
 # -------------------------------------------------------------------------------------------------
@@ -121,11 +119,9 @@ def is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
-
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['CACHE_TYPE'] = 'FileSystemCache'
@@ -264,7 +260,7 @@ def cluster_response_plot(pid, cluster_idx):
     set_figure_style(fig)
     DATACLASS.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[axs[0], axs[3]])
     DATACLASS.plot_left_right_single_cluster_raster(cluster_idx, axs=[axs[1], axs[4]], ylabel0=None, ylabel1=None)
-    DATACLASS.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]],  ylabel0=None, ylabel1=None)
+    DATACLASS.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]], ylabel0=None, ylabel1=None)
     axs[1].get_yaxis().set_visible(False)
     axs[4].get_yaxis().set_visible(False)
     axs[2].get_yaxis().set_visible(False)
