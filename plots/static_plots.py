@@ -202,7 +202,7 @@ class DataLoader:
 
     def session_init(self, pid):
         self.load_session_data(pid)
-        #self.get_session_details()
+        # self.get_session_details()
         self.compute_session_raster()
 
     def load_session_data(self, pid):
@@ -484,7 +484,7 @@ class DataLoader:
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
-                                        ['correct', 'incorrect'], axs=axs)
+                                              ['correct', 'incorrect'], axs=axs)
         # axs[0].set_ylim(0, 100)  # TODO this shouldn't be harcoded here
         axs[1].set_yticklabels([])
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
@@ -501,8 +501,8 @@ class DataLoader:
         dividers = list(np.where(np.diff(np.sort(contrasts)) != 0)[0])
         labels = [str(_ * 100) for _ in np.unique(contrasts)]
         colors = ['0.9', '0.7', '0.5', '0.3', '0.0']
-        fig, axs = self.single_cluster_raster(spikes.times, self.trials['stimOn_times'], trial_idx, dividers, colors,
-                                        labels, axs=axs)
+        fig, axs = self.single_cluster_raster(
+            spikes.times, self.trials['stimOn_times'], trial_idx, dividers, colors, labels, axs=axs)
         # axs[0].set_ylim(0, 100)  # TODO this shouldn't be harcoded here
         axs[1].set_yticklabels([])
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
@@ -534,17 +534,17 @@ class DataLoader:
                 / np.sqrt(dividers[iD + 1] - dividers[iD])
 
             axs[0].fill_between(t_psth, psth_div - std_div,
-                               psth_div + std_div, alpha=0.4, color=colors[iD])
+                                psth_div + std_div, alpha=0.4, color=colors[iD])
             axs[0].plot(t_psth, psth_div, alpha=1, color=colors[iD])
 
         axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
-                     extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
+                      extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
 
         width = raster_bin * 4
         label_pos = []
         for iD in range(len(dividers) - 1):
             axs[1].fill_between([post_time + raster_bin / 2, post_time + raster_bin / 2 + width],
-                               [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
+                                [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
             label_pos.append((dividers[iD + 1] - dividers[iD]) / 2 + dividers[iD])
 
         secax = axs[1].secondary_yaxis('right')
