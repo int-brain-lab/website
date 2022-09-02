@@ -154,6 +154,7 @@ def make_app():
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['CACHE_TYPE'] = 'FileSystemCache'
     app.config['CACHE_DEFAULT_TIMEOUT'] = 0
+    app.config['CACHE_THRESHOLD'] = 0
     app.config['CACHE_DIR'] = DATA_DIR / 'cache'
     CORS(app, support_credentials=True)
     # app.config.from_mapping(aconfig)
@@ -303,7 +304,7 @@ def _get_uri(rule, values):
     try:
         return rule.build(values)[1]
     except Exception as e:
-        print(f"Error: {e}")
+        logger.debug(f"Error: {e}")
 
 
 class CacheGenerator:
@@ -356,8 +357,6 @@ class CacheGenerator:
         uris = list(self.iter_all_uris())
         for uri in tqdm(uris, desc="Generating cache"):
             self.visit_uri(uri)
-        # parallel = Parallel(n_jobs=-2)
-        # parallel(generate_cache_pid(pid) for pid in get_pids())
 
 
 if __name__ == '__main__':
