@@ -4,6 +4,7 @@
 
 import argparse
 import io
+import functools
 import locale
 import logging
 from pathlib import Path
@@ -14,7 +15,7 @@ from uuid import UUID
 
 from flask_cors import CORS
 from flask_caching import Cache
-from flask import Flask, render_template, send_file
+from flask import Flask, render_template, send_file, g
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import numpy as np
@@ -42,7 +43,6 @@ locale.setlocale(locale.LC_ALL, '')
 ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
 PORT = 4321
-DATACLASS = DataLoader()
 
 
 # -------------------------------------------------------------------------------------------------
@@ -81,12 +81,10 @@ def send_image(img):
 
 
 def send_figure(fig):
-    # start = time.time()
     buf = io.BytesIO()
-    fig.savefig(buf)  # , dpi=100)
+    fig.savefig(buf)
     plt.close(fig)
     buf.seek(0)
-    # print(time.time() - start)
     return send_file(buf, mimetype='image/png')
 
 
@@ -120,19 +118,6 @@ def is_valid_uuid(uuid_to_test, version=4):
 
 
 # -------------------------------------------------------------------------------------------------
-# Server
-# -------------------------------------------------------------------------------------------------
-app = Flask(__name__)
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['CACHE_TYPE'] = 'FileSystemCache'
-app.config['CACHE_DEFAULT_TIMEOUT'] = 0
-app.config['CACHE_DIR'] = DATA_DIR / 'cache'
-CORS(app, support_credentials=True)
-# app.config.from_mapping(aconfig)
-cache = Cache(app)
-
-
-# -------------------------------------------------------------------------------------------------
 # Functions
 # -------------------------------------------------------------------------------------------------
 
@@ -152,6 +137,29 @@ def get_sessions(pids):
 
 def get_js_context():
     return {}
+
+
+@functools.cache
+def get_data_loader(pid):
+    # if 'loader' not in g:
+    # return g.loader
+    loader = DataLoader()
+    loader.session_init(pid)
+    return loader
+
+
+# -------------------------------------------------------------------------------------------------
+# Server
+# -------------------------------------------------------------------------------------------------
+
+app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['CACHE_TYPE'] = 'FileSystemCache'
+app.config['CACHE_DEFAULT_TIMEOUT'] = 0
+app.config['CACHE_DIR'] = DATA_DIR / 'cache'
+CORS(app, support_credentials=True)
+# app.config.from_mapping(aconfig)
+cache = Cache(app)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -178,34 +186,38 @@ def the_app():
 
 @app.route('/api/session/<pid>/details')
 def session_details(pid):
-    DATACLASS.session_init(pid)
-    return DATACLASS.get_session_details()
+    loader = get_data_loader(pid)
+    return loader.get_session_details()
 
 
 @app.route('/api/session/<pid>/trial_details/<int:trial_idx>')
 @cache.cached()
 def trial_details(pid, trial_idx):
-    return DATACLASS.get_trial_details(trial_idx)
+    loader = get_data_loader(pid)
+    return loader.get_trial_details(trial_idx)
 
 
 @app.route('/api/session/<pid>/cluster_details/<int:cluster_idx>')
 @cache.cached()
 def cluster_details(pid, cluster_idx):
-    return DATACLASS.get_cluster_details(cluster_idx)
+    loader = get_data_loader(pid)
+    return loader.get_cluster_details(cluster_idx)
 
 
 @app.route('/api/session/<pid>/raster')
 @cache.cached()
 def raster(pid):
-    fig = DATACLASS.plot_session_raster(DATACLASS.spikes)
+    loader = get_data_loader(pid)
+    fig = loader.plot_session_raster(loader.spikes)
     return send_figure(fig)
 
 
 @app.route('/api/session/<pid>/psychometric')
 @cache.cached()
 def psychometric_curve(pid):
+    loader = get_data_loader(pid)
     fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-    fig = DATACLASS.plot_psychometric_curve(ax=ax)
+    fig = loader.plot_psychometric_curve(ax=ax)
     set_figure_style(fig)
     return send_figure(fig)
 
@@ -213,8 +225,9 @@ def psychometric_curve(pid):
 @app.route('/api/session/<pid>/clusters')
 @cache.cached()
 def cluster_good_bad_plot(pid):
+    loader = get_data_loader(pid)
     fig, ax = plt.subplots(1, 1, figsize=(4, 6))
-    fig = DATACLASS.plot_good_bad_clusters(ax=ax)
+    fig = loader.plot_good_bad_clusters(ax=ax)
     set_figure_style(fig)
     return send_figure(fig)
 
@@ -222,9 +235,10 @@ def cluster_good_bad_plot(pid):
 @app.route('/api/session/<pid>/raster/trial/<int:trial_idx>')
 @cache.cached()
 def raster_with_trial(pid, trial_idx):
+    loader = get_data_loader(pid)
     fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
-    DATACLASS.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
-    DATACLASS.plot_brain_regions(axs[1])
+    loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
+    loader.plot_brain_regions(axs[1])
     set_figure_style(fig)
     return send_figure(fig)
 
@@ -232,9 +246,10 @@ def raster_with_trial(pid, trial_idx):
 @app.route('/api/session/<pid>/trial_raster/<int:trial_idx>')
 @cache.cached()
 def trial_raster(pid, trial_idx):
+    loader = get_data_loader(pid)
     fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
-    DATACLASS.plot_trial_raster(trial_idx=trial_idx, ax=axs[0])
-    DATACLASS.plot_brain_regions(axs[1])
+    loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[0])
+    loader.plot_brain_regions(axs[1])
     set_figure_style(fig)
     return send_figure(fig)
 
@@ -242,10 +257,11 @@ def trial_raster(pid, trial_idx):
 @app.route('/api/session/<pid>/cluster/<int:cluster_idx>')
 @cache.cached()
 def cluster_plot(pid, cluster_idx):
+    loader = get_data_loader(pid)
     fig, axs = plt.subplots(1, 3, figsize=(9, 6), gridspec_kw={'width_ratios': [4, 4, 1], 'wspace': 0.05})
-    DATACLASS.plot_spikes_amp_vs_depth(cluster_idx, ax=axs[0])
-    DATACLASS.plot_spikes_fr_vs_depth(cluster_idx, ax=axs[1], ylabel=None)
-    DATACLASS.plot_brain_regions(axs[2])
+    loader.plot_spikes_amp_vs_depth(cluster_idx, ax=axs[0])
+    loader.plot_spikes_fr_vs_depth(cluster_idx, ax=axs[1], ylabel=None)
+    loader.plot_brain_regions(axs[2])
     axs[1].get_yaxis().set_visible(False)
     set_figure_style(fig)
     return send_figure(fig)
@@ -254,13 +270,14 @@ def cluster_plot(pid, cluster_idx):
 @app.route('/api/session/<pid>/cluster_response/<int:cluster_idx>')
 @cache.cached()
 def cluster_response_plot(pid, cluster_idx):
+    loader = get_data_loader(pid)
     fig, axs = plt.subplots(2, 3, figsize=(9, 6), gridspec_kw={
         'height_ratios': [1, 3], 'hspace': 0, 'wspace': 0.1}, sharex=True)
     axs = axs.ravel()
     set_figure_style(fig)
-    DATACLASS.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[axs[0], axs[3]])
-    DATACLASS.plot_left_right_single_cluster_raster(cluster_idx, axs=[axs[1], axs[4]], ylabel0=None, ylabel1=None)
-    DATACLASS.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]], ylabel0=None, ylabel1=None)
+    loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[axs[0], axs[3]])
+    loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[axs[1], axs[4]], ylabel0=None, ylabel1=None)
+    loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]], ylabel0=None, ylabel1=None)
     axs[1].get_yaxis().set_visible(False)
     axs[4].get_yaxis().set_visible(False)
     axs[2].get_yaxis().set_visible(False)
@@ -275,6 +292,7 @@ def cluster_response_plot(pid, cluster_idx):
 @app.route('/api/session/<pid>/cluster_properties/<int:cluster_idx>')
 @cache.cached()
 def cluster_properties_plot(pid, cluster_idx):
+    loader = get_data_loader(pid)
     axs = []
     fig = plt.figure(figsize=(9, 6))
     gs = fig.add_gridspec(2, 2)
@@ -283,27 +301,11 @@ def cluster_properties_plot(pid, cluster_idx):
     axs.append(fig.add_subplot(gs[:, 1]))
 
     set_figure_style(fig)
-    DATACLASS.plot_autocorrelogram(cluster_idx, ax=axs[0], xlabel=None)
-    DATACLASS.plot_inter_spike_interval(cluster_idx, ax=axs[1])
-    DATACLASS.plot_cluster_waveforms(cluster_idx, ax=axs[2])
+    loader.plot_autocorrelogram(cluster_idx, ax=axs[0], xlabel=None)
+    loader.plot_inter_spike_interval(cluster_idx, ax=axs[1])
+    loader.plot_cluster_waveforms(cluster_idx, ax=axs[2])
 
     return send_figure(fig)
-
-
-# -------------------------------------------------------------------------------------------------
-# Raw ephys data server
-# -------------------------------------------------------------------------------------------------
-
-# @app.route('/<eid>')
-# @cross_origin(supports_credentials=True)
-# def cluster_plot(eid):
-#     fig, ax = plt.subplots(1, 1, figsize=(9, 6))
-#     x = np.random.randn(1000)
-#     y = np.random.randn(1000)
-#     ax.plot(x, y, 'o')
-#     out = send_figure(fig)
-#     plt.close(fig)
-#     return out
 
 
 # -------------------------------------------------------------------------------------------------
