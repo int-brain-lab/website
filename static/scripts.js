@@ -86,6 +86,12 @@ function tablefromjson(json, elementID) {
 
     var table_data = `<table>`
     for (let key in json) {
+
+        // NOTE: skip internal fields
+        if (key.startsWith("_")) {
+            continue;
+        }
+
         var row = `<tr>
                     <th>${key}</th>
                     <td>${json[key]}</td>
@@ -203,11 +209,14 @@ async function selectSession(pid) {
     var url = `/api/session/${pid}/details`;
     var r = await fetch(url);
     var details = await r.json();
+
     // Pop the cluster ids into a new variable
-    var cluster_ids = details["cluster_ids"];
-    var acronyms = details["acronyms"];
-    var colors = details["colors"];
-    delete details["cluster_ids"];
+
+    // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
+    // which controls which fields are displayed in the session details box.
+    var cluster_ids = details["_cluster_ids"];
+    var acronyms = details["_acronyms"];
+    var colors = details["_colors"];
 
     // Make table with session details
     tablefromjson(details, 'sessionDetails')

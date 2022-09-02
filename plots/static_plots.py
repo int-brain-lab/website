@@ -240,10 +240,10 @@ class DataLoader:
         # Sort by cluster depth.
         idx = np.argsort(self.clusters_good.depths)[::-1]
 
-        # Cluster information.
-        details['cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
-        details['acronyms'] = self.clusters_good.acronym[idx].tolist()
-        details['colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
+        # Internal fields used by the frontend.
+        details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
+        details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
+        details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
 
         return details
 
