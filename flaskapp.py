@@ -3,24 +3,24 @@
 # -------------------------------------------------------------------------------------------------
 
 import argparse
-# import base64
 import io
 import locale
 import logging
-# from math import ceil
 from pathlib import Path
 import png
+import sys
 import time
 from uuid import UUID
 
-from flask_cors import CORS  # , cross_origin
+from flask_cors import CORS
 from flask_caching import Cache
-from flask import Flask, render_template, send_file  # , session, request
+from flask import Flask, render_template, send_file
+from joblib import Parallel, delayed
+from tqdm import tqdm
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-# from psutil import pid_exists
 
 from plots.static_plots import *
 
@@ -81,12 +81,12 @@ def send_image(img):
 
 
 def send_figure(fig):
-    start = time.time()
+    # start = time.time()
     buf = io.BytesIO()
     fig.savefig(buf)  # , dpi=100)
     plt.close(fig)
     buf.seek(0)
-    print(time.time() - start)
+    # print(time.time() - start)
     return send_file(buf, mimetype='image/png')
 
 
@@ -306,7 +306,75 @@ def cluster_properties_plot(pid, cluster_idx):
 #     return out
 
 
+# -------------------------------------------------------------------------------------------------
+# Cache generator
+# -------------------------------------------------------------------------------------------------
+
+def _get_uri(rule, values):
+    try:
+        return rule.build(values)[1]
+    except Exception as e:
+        print(f"Error: {e}")
+
+
+def iter_uris(pid=None):
+    client = app.test_client()
+    values = {}
+
+    for rule in app.url_map.iter_rules():
+        args = rule.arguments
+
+        # if a pid is specified as an argument: iterate over all rules depending on the pid
+        if pid is not None and 'pid' in args:
+            # for pid in pids:
+            details = client.get(f"api/session/{pid}/details").json
+            cluster_ids = details['_cluster_ids']
+            n_trials = int(details['N trials'])
+            values['pid'] = pid
+            if 'cluster_idx' in args:
+                for cluster_idx in (cluster_ids):
+                    values['cluster_idx'] = cluster_idx
+                    yield _get_uri(rule, values)
+            elif 'trial_idx' in args:
+                for trial_idx in (range(n_trials)):
+                    values['trial_idx'] = trial_idx
+                    yield _get_uri(rule, values)
+            else:
+                yield _get_uri(rule, values)
+
+        # if a pid is not specified as an argument: iterate over all rules NOT depending on the pid
+        if pid is None and 'pid' not in args:
+            yield _get_uri(rule, values)
+
+
+def visit_uri(client, uri):
+    if uri:
+        print(uri)
+        client.get(uri)
+
+
+def generate_cache_pid(pid):
+    client = app.test_client()
+    for uri in iter_uris(pid):
+        visit_uri(client, uri)
+
+
+def generate_cache():
+    client = app.test_client()
+
+    # Single core: all URIs not depending on the pid.
+    for uri in iter_uris():
+        visit_uri(client, uri)
+
+    # Distributed: URIs depending on the pid.
+    parallel = Parallel(n_jobs=-2)
+    parallel(delayed(generate_cache_pid)(pid) for pid in get_pids())
+
+
 if __name__ == '__main__':
+    if 'cache' in sys.argv:
+        generate_cache()
+        exit()
 
     parser = argparse.ArgumentParser(description='Launch the Flask server.')
     parser.add_argument('--port', help='the TCP port')
