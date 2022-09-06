@@ -229,21 +229,12 @@ def make_app():
         loader.plot_lfp_spectrum(ax=ax10, ax_cbar=ax9)
         loader.plot_brain_regions(ax=ax12)
 
-        def remove_all_sides(ax):
-            ax.set_frame_on(False)
-            ax.axes.get_xaxis().set_visible(False)
-            ax.axes.get_yaxis().set_visible(False)
-
         ax4.get_yaxis().set_visible(False)
         ax6.get_yaxis().set_visible(False)
         ax8.get_yaxis().set_visible(False)
         ax10.get_yaxis().set_visible(False)
-        remove_all_sides(ax1)
-        remove_all_sides(ax3)
-        remove_all_sides(ax5)
-        remove_all_sides(ax7)
-        remove_all_sides(ax9)
-        remove_all_sides(ax11)
+        remove_frame(ax5)
+        remove_frame(ax11)
 
         gs1 = gridspec.GridSpecFromSubplotSpec(1, 5, subplot_spec=gs[1], width_ratios=[3, 1, 3, 1, 4], wspace=0.4)
         ax13 = fig.add_subplot(gs1[0, 0])
@@ -254,8 +245,6 @@ def make_app():
         loader.plot_psychometric_curve(ax=ax13, ax_legend=ax14)
         loader.plot_chronometric_curve(ax=ax15, ax_legend=ax16)
         loader.plot_reaction_time(ax=ax17)
-        remove_all_sides(ax14)
-        remove_all_sides(ax16)
 
         set_figure_style(fig)
 

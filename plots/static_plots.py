@@ -179,15 +179,32 @@ def set_figure_style(fig, margin_inches=0.8):
     return fig
 
 
-def set_axis_style(ax, **kwargs):
+def set_axis_style(ax, fontsize=12, **kwargs):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    ax.set_xlabel(kwargs.get('xlabel', None), fontsize=12)
-    ax.set_ylabel(kwargs.get('ylabel', None), fontsize=12)
-    ax.set_title(kwargs.get('title', None), fontsize=12)
+    ax.set_xlabel(kwargs.get('xlabel', None), fontsize=fontsize)
+    ax.set_ylabel(kwargs.get('ylabel', None), fontsize=fontsize)
+    ax.set_title(kwargs.get('title', None), fontsize=fontsize)
 
     return ax
+
+
+def remove_spines(ax, spines=('left', 'right', 'top', 'bottom')):
+    for sp in spines:
+        ax.spines[sp].set_visible(False)
+
+    return ax
+
+
+def remove_frame(ax):
+
+    ax.set_frame_on(False)
+    ax.axes.get_xaxis().set_visible(False)
+    ax.axes.get_yaxis().set_visible(False)
+
+    return ax
+
 
 
 # -------------------------------------------------------------------------------------------------
@@ -307,7 +324,7 @@ class DataLoader:
             plot_brain_regions(channel_ids=atlas_ids, channel_depths=self.channels.localCoordinates[:, 1],
                                brain_regions=BRAIN_REGIONS, display=False)
         if restrict_labels:
-            # Remove any void or root region labels and that are less than 60 um
+            # Remove any void or root region labels and those that are less than 60 um
             reg_idx = np.where(~np.bitwise_or(np.isin(region_labels[:, 1], ['void', 'root']),
                                               (regions[:, 1] - regions[:, 0]) < 150))[0]
             region_labels = region_labels[reg_idx, :]
@@ -315,6 +332,7 @@ class DataLoader:
         return regions, region_labels, region_colours
 
     def plot_brain_regions(self, ax=None, restrict_labels=True):
+
         fig = ax.get_figure()
 
         regions, region_labels, region_colours = self.get_brain_regions(restrict_labels=restrict_labels)
@@ -326,27 +344,31 @@ class DataLoader:
         ax.yaxis.tick_right()
         ax.set_yticks(region_labels[:, 0].astype(int))
         ax.yaxis.set_tick_params(labelsize=10)
-        ax.set_ylim(0, 4000)
-        ax.get_xaxis().set_visible(False)
         ax.set_yticklabels(region_labels[:, 1])
-        ax.spines['left'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
+        ax.set_ylim(0, 4000)
+
+        ax.get_xaxis().set_visible(False)
+
+        remove_spines(ax)
 
         return fig
 
-    def plot_ap_rms(self, ax, ax_cbar=None):
+    def plot_ap_rms(self, ax=None, ax_cbar=None):
 
+        if ax is None:
+            fig, axs = plt.subplots(2, 1, figsize=(9, 6), gridspec_kw={'height_ratios': [1, 10]})
+            ax = axs[1]
+            ax_cbar = axs[0]
+        else:
+            fig = ax.get_figure()
+
+        # TODO use actual data
         rms = np.random.randn(384)
-        pad = True
-        x_offset = 1
         data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
-                                                           pad=pad, x_offset=x_offset)
+                                                           pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='plasma')
-        data.set_labels(ylabel='Distance from probe tip (um)', clabel=f'AP rms (uV)')
-        clim = np.nanquantile(np.concatenate([np.squeeze(np.ravel(d)) for d in data_bank]).ravel(),
-                              [0.1, 0.9])
+        data.set_labels(ylabel='Depth (um)', clabel=f'AP rms (uV)')
+        clim = np.nanquantile(np.concatenate([np.squeeze(np.ravel(d)) for d in data_bank]).ravel(), [0.1, 0.9])
         data.set_clim(clim)
 
         data = data.convert2dict()
@@ -363,23 +385,28 @@ class DataLoader:
         ax.set_title(data['labels']['title'])
 
         ax.get_xaxis().set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
+        remove_spines(ax, spines=['right', 'top', 'bottom'])
 
-        fig = ax.get_figure()
         cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
         cbar.set_label(data['labels']['clabel'])
+        remove_frame(ax_cbar)
 
         return fig
 
-    def plot_lfp_spectrum(self, ax, ax_cbar=None):
+    def plot_lfp_spectrum(self, ax=None, ax_cbar=None):
+
+        if ax is None:
+            fig, axs = plt.subplots(2, 1, figsize=(9, 6), gridspec_kw={'height_ratios': [1, 10]})
+            ax = axs[1]
+            ax_cbar = axs[0]
+        else:
+            fig = ax.get_figure()
 
         rms = np.random.randn(384)
         data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
                                                            pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='viridis')
-        data.set_labels(ylabel='Distance from probe tip (um)', clabel=f'LFP power (dB)')
+        data.set_labels(ylabel='Depth (um)', clabel=f'LFP power (dB)')
         clim = np.nanquantile(np.concatenate([np.squeeze(np.ravel(d)) for d in data_bank]).ravel(),
                               [0.1, 0.9])
         data.set_clim(clim)
@@ -398,13 +425,11 @@ class DataLoader:
         ax.set_title(data['labels']['title'])
 
         ax.get_xaxis().set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
+        remove_spines(ax, spines=['right', 'top', 'bottom'])
 
-        fig = ax.get_figure()
         cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
         cbar.set_label(data['labels']['clabel'])
+        remove_frame(ax_cbar)
 
         return fig
 
@@ -471,7 +496,9 @@ class DataLoader:
     def plot_psychometric_curve(self, ax=None, ax_legend=None):
 
         if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_rations': [3, 1]})
+            ax = axs[0]
+            ax_legend = axs[1]
         else:
             fig = ax.get_figure()
 
@@ -482,13 +509,16 @@ class DataLoader:
         l = [str(x._text) for x in leg.texts]
         ax.get_legend().remove()
         ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+        remove_frame(ax_legend)
 
         return fig
 
     def plot_chronometric_curve(self, ax=None, ax_legend=None):
 
         if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_rations': [3, 1]})
+            ax = axs[0]
+            ax_legend = axs[1]
         else:
             fig = ax.get_figure()
 
@@ -499,6 +529,7 @@ class DataLoader:
         l = [str(x._text) for x in leg.texts]
         ax.get_legend().remove()
         ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+        remove_frame(ax_legend)
 
         return fig
 
@@ -530,24 +561,31 @@ class DataLoader:
 
     def plot_good_bad_clusters(self, ax=None, ax_legend=None, xlabel='Amplitude (uV)', ylabel='Depth (um)'):
         if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+            fig, axs = plt.subplots(2, 1, figsize=(4, 6), gridspec_kw={'height_ratios': [1, 8]})
+            ax = axs[1]
+            ax_legend = axs[0]
         else:
             fig = ax.get_figure()
 
         mua = ax.scatter(self.clusters.amps * 1e6, self.clusters.depths, c='r')
         good = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c='g')
 
-        ax_legend.legend(handles=[mua, good], labels=['mua', 'good'], frameon=False, bbox_to_anchor=(0.8, 0.2))
         ax.set_ylim(0, 4000)
         ax.set_xlim(-10, 800)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+
+        ax_legend.legend(handles=[mua, good], labels=['mua', 'good'], frameon=False, bbox_to_anchor=(0.8, 0.2))
+        remove_frame(ax_legend)
 
         return fig
 
     def plot_spikes_amp_vs_depth_vs_firing_rate(self, cluster_idx=None, ax=None, ax_cbar=None,
                                                 xlabel='Amplitude (uV)', ylabel='Depth (um)'):
+
         if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+            fig, axs = plt.subplots(2, 1, figsize=(4, 6), gridspec_kw={'height_ratios': [1, 8]})
+            ax = axs[1]
+            ax_cbar = axs[0]
         else:
             fig = ax.get_figure()
 
@@ -560,9 +598,11 @@ class DataLoader:
                            linewidths=2, s=80)
         ax.set_ylim(0, 4000)
         ax.set_xlim(-10, 800)
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+
         cbar = fig.colorbar(scat, ax=ax_cbar, orientation="horizontal")
         cbar.set_label('Firing Rate (Hz)')
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        remove_frame(ax_cbar)
 
         return fig
 
@@ -699,10 +739,8 @@ class DataLoader:
         for ic, c in enumerate(colors):
             secax.get_yticklabels()[ic].set_color(c)
 
-        axs[1].spines['right'].set_visible(False)
-        axs[1].spines['top'].set_visible(False)
-        axs[0].spines['top'].set_visible(False)
-        axs[0].spines['right'].set_visible(False)
+        remove_spines(axs[1], spines=['right', 'top'])
+        remove_spines(axs[0], spines=['right', 'top'])
 
         axs[0].axvline(0, *axs[0].get_ylim(), c='k', ls='--', zorder=10)  # TODO this doesn't always work
         axs[1].axvline(0, *axs[1].get_ylim(), c='k', ls='--', zorder=10)
@@ -733,13 +771,7 @@ class DataLoader:
             y = (y * 1e6 + chn[1] * 10)
             ax.plot(x, y, c='grey')
 
-        ax.set_yticklabels([])
-        ax.set_yticks([])
-        ax.set_xticklabels([])
-        ax.set_xticks([])
-        set_axis_style(ax)
-        ax.spines['bottom'].set_visible(False)
-        ax.spines['left'].set_visible(False)
+        remove_frame(ax)
 
         return fig
 
