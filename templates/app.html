@@ -20,9 +20,10 @@
 
 
 {% block content %}
+
 <div class="row">
     <div class="twelve columns">
-        <h2>Session overview</h2>
+        <h2>Session selector</h2>
     </div>
 </div>
 
@@ -37,16 +38,22 @@
     <div class="four columns">
 
         <!-- SESSION DROPDOWN -->
-        <div class="nine columns">
-            <select id="sessionSelector" class="u-full-width">
-                {% for session in sessions %}
-                <option value="{{ session.pid }}">PID {{ session.pid }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <select id="sessionSelector" class="u-full-width">
+            {% for session in sessions %}
+            <option value="{{ session.pid }}">PID {{ session.pid }}</option>
+            {% endfor %}
+        </select>
 
         <div id="sessionDetails">
         </div>
+    </div>
+</div>
+
+
+<!-- SESSION OVERVIEW -->
+<div class="row">
+    <div class="twelve columns">
+        <h2>Session overview</h2>
     </div>
 </div>
 
