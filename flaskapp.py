@@ -21,6 +21,7 @@ from tqdm import tqdm
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 from plots.static_plots import *
 
@@ -197,99 +198,124 @@ def make_app():
         loader = get_data_loader(pid)
         return loader.get_cluster_details(cluster_idx)
 
-    @app.route('/api/session/<pid>/raster')
-    @cache.cached()
-    def raster(pid):
-        loader = get_data_loader(pid)
-        fig = loader.plot_session_raster(loader.spikes)
-        return send_figure(fig)
 
-    @app.route('/api/session/<pid>/psychometric')
+    @app.route('/api/session/<pid>/session_plot')
     @cache.cached()
-    def psychometric_curve(pid):
+    def session_overview_plot(pid):
         loader = get_data_loader(pid)
-        fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-        fig = loader.plot_psychometric_curve(ax=ax)
+
+        fig = plt.figure(figsize=(15, 10))
+        gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[10, 4], wspace=0.2)
+
+        gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[1, 1, 8, 1, 1, 1], height_ratios=[1, 10],
+                                               wspace=0.1)
+        ax1 = fig.add_subplot(gs0[0, 0])
+        ax2 = fig.add_subplot(gs0[1, 0])
+        ax3 = fig.add_subplot(gs0[0, 1])
+        ax4 = fig.add_subplot(gs0[1, 1])
+        ax5 = fig.add_subplot(gs0[0, 2])
+        ax6 = fig.add_subplot(gs0[1, 2])
+        ax7 = fig.add_subplot(gs0[0, 3])
+        ax8 = fig.add_subplot(gs0[1, 3])
+        ax9 = fig.add_subplot(gs0[0, 4])
+        ax10 = fig.add_subplot(gs0[1, 4])
+        ax11 = fig.add_subplot(gs0[0, 5])
+        ax12 = fig.add_subplot(gs0[1, 5])
+
+        loader.plot_good_bad_clusters(ax=ax2, ax_legend=ax1, xlabel='Amp (uV)')
+        loader.plot_spikes_amp_vs_depth_vs_firing_rate(ax=ax4, ax_cbar=ax3, xlabel='Amp (uV)')
+        loader.plot_session_raster(ax=ax6)
+        loader.plot_ap_rms(ax=ax8, ax_cbar=ax7)
+        loader.plot_lfp_spectrum(ax=ax10, ax_cbar=ax9)
+        loader.plot_brain_regions(ax=ax12)
+
+        def remove_all_sides(ax):
+            ax.set_frame_on(False)
+            ax.axes.get_xaxis().set_visible(False)
+            ax.axes.get_yaxis().set_visible(False)
+
+        ax4.get_yaxis().set_visible(False)
+        ax6.get_yaxis().set_visible(False)
+        ax8.get_yaxis().set_visible(False)
+        ax10.get_yaxis().set_visible(False)
+        remove_all_sides(ax1)
+        remove_all_sides(ax3)
+        remove_all_sides(ax5)
+        remove_all_sides(ax7)
+        remove_all_sides(ax9)
+        remove_all_sides(ax11)
+
+        gs1 = gridspec.GridSpecFromSubplotSpec(1, 5, subplot_spec=gs[1], width_ratios=[3, 1, 3, 1, 4], wspace=0.4)
+        ax13 = fig.add_subplot(gs1[0, 0])
+        ax14 = fig.add_subplot(gs1[0, 1])
+        ax15 = fig.add_subplot(gs1[0, 2])
+        ax16 = fig.add_subplot(gs1[0, 3])
+        ax17 = fig.add_subplot(gs1[0, 4])
+        loader.plot_psychometric_curve(ax=ax13, ax_legend=ax14)
+        loader.plot_chronometric_curve(ax=ax15, ax_legend=ax16)
+        loader.plot_reaction_time(ax=ax17)
+        remove_all_sides(ax14)
+        remove_all_sides(ax16)
+
         set_figure_style(fig)
+
         return send_figure(fig)
 
-    @app.route('/api/session/<pid>/clusters')
+    @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     @cache.cached()
-    def cluster_good_bad_plot(pid):
+    def trial_overview_plot(pid, trial_idx):
         loader = get_data_loader(pid)
-        fig, ax = plt.subplots(1, 1, figsize=(4, 6))
-        fig = loader.plot_good_bad_clusters(ax=ax)
-        set_figure_style(fig)
-        return send_figure(fig)
-
-    @app.route('/api/session/<pid>/raster/trial/<int:trial_idx>')
-    @cache.cached()
-    def raster_with_trial(pid, trial_idx):
-        loader = get_data_loader(pid)
-        fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
+        fig, axs = plt.subplots(1, 3, figsize=(8, 4), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
         loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
-        loader.plot_brain_regions(axs[1])
-        set_figure_style(fig)
-        return send_figure(fig)
-
-    @app.route('/api/session/<pid>/trial_raster/<int:trial_idx>')
-    @cache.cached()
-    def trial_raster(pid, trial_idx):
-        loader = get_data_loader(pid)
-        fig, axs = plt.subplots(1, 2, figsize=(9, 6), gridspec_kw={'width_ratios': [10, 1], 'wspace': 0.05})
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[0])
-        loader.plot_brain_regions(axs[1])
-        set_figure_style(fig)
-        return send_figure(fig)
-
-    @app.route('/api/session/<pid>/cluster/<int:cluster_idx>')
-    @cache.cached()
-    def cluster_plot(pid, cluster_idx):
-        loader = get_data_loader(pid)
-        fig, axs = plt.subplots(1, 3, figsize=(9, 6), gridspec_kw={'width_ratios': [4, 4, 1], 'wspace': 0.05})
-        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=axs[0])
-        loader.plot_spikes_fr_vs_depth(cluster_idx, ax=axs[1], ylabel=None)
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1])
+        axs[1].get_yaxis().set_visible(False)
         loader.plot_brain_regions(axs[2])
-        axs[1].get_yaxis().set_visible(False)
         set_figure_style(fig)
         return send_figure(fig)
 
-    @app.route('/api/session/<pid>/cluster_response/<int:cluster_idx>')
+    @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
     @cache.cached()
-    def cluster_response_plot(pid, cluster_idx):
+    def cluster_overview_plot(pid, cluster_idx):
+
         loader = get_data_loader(pid)
-        fig, axs = plt.subplots(2, 3, figsize=(9, 6), gridspec_kw={
-            'height_ratios': [1, 3], 'hspace': 0, 'wspace': 0.1}, sharex=True)
-        axs = axs.ravel()
-        set_figure_style(fig)
-        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[axs[0], axs[3]])
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[axs[1], axs[4]], ylabel0=None, ylabel1=None)
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[axs[2], axs[5]], ylabel0=None, ylabel1=None)
-        axs[1].get_yaxis().set_visible(False)
-        axs[4].get_yaxis().set_visible(False)
-        axs[2].get_yaxis().set_visible(False)
-        axs[5].get_yaxis().set_visible(False)
 
-        axs[1].sharex(axs[0])
-        axs[2].sharex(axs[0])
+        fig = plt.figure(figsize=(12, 5))
 
-        return send_figure(fig)
+        gs = gridspec.GridSpec(1, 3, figure=fig, width_ratios=[2, 10, 2], wspace=0.2)
 
-    @app.route('/api/session/<pid>/cluster_properties/<int:cluster_idx>')
-    @cache.cached()
-    def cluster_properties_plot(pid, cluster_idx):
-        loader = get_data_loader(pid)
-        axs = []
-        fig = plt.figure(figsize=(9, 6))
-        gs = fig.add_gridspec(2, 2)
-        axs.append(fig.add_subplot(gs[0, 0]))
-        axs.append(fig.add_subplot(gs[1, 0]))
-        axs.append(fig.add_subplot(gs[:, 1]))
+        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0])
+        ax1 = fig.add_subplot(gs0[0, 0])
+
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 3, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.2)
+        ax2 = fig.add_subplot(gs1[0, 0])
+        ax3 = fig.add_subplot(gs1[1, 0])
+        ax4 = fig.add_subplot(gs1[0, 1])
+        ax5 = fig.add_subplot(gs1[1, 1])
+        ax6 = fig.add_subplot(gs1[0, 2])
+        ax7 = fig.add_subplot(gs1[1, 2])
+
+        gs2 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs[2], height_ratios=[1, 1, 3], hspace=0.2)
+        ax8 = fig.add_subplot(gs2[0, 0])
+        ax9 = fig.add_subplot(gs2[1, 0])
+        ax10 = fig.add_subplot(gs2[2, 0])
 
         set_figure_style(fig)
-        loader.plot_autocorrelogram(cluster_idx, ax=axs[0], xlabel=None)
-        loader.plot_inter_spike_interval(cluster_idx, ax=axs[1])
-        loader.plot_cluster_waveforms(cluster_idx, ax=axs[2])
+
+        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
+
+        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
+        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
+        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        ax5.get_yaxis().set_visible(False)
+        ax7.get_yaxis().set_visible(False)
+
+        loader.plot_autocorrelogram(cluster_idx, ax=ax8)
+        loader.plot_inter_spike_interval(cluster_idx, ax=ax9, xlabel=None)
+        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+
+        ax2.sharex(ax3)
+        ax4.sharex(ax5)
+        ax6.sharex(ax7)
 
         return send_figure(fig)
 

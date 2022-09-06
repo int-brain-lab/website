@@ -3,6 +3,7 @@
 # -------------------------------------------------------------------------------------------------
 
 import matplotlib.pyplot as plt
+from matplotlib.image import NonUniformImage
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -13,7 +14,8 @@ from brainbox.task.trials import find_trial_ids
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
 from brainbox.ephys_plots import plot_brain_regions
-from brainbox.behavior.training import plot_psychometric
+from brainbox.plot_base import arrange_channels2banks, ProbePlot, plot_probe
+from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
 from ibllib.atlas.regions import BrainRegions
 from iblutil.util import Bunch
 import time
@@ -299,9 +301,8 @@ class DataLoader:
 
         self.session_raster = self.session_raster / t_bin
 
-    def plot_brain_regions(self, ax=None, restrict_labels=True):
-        fig = ax.get_figure()
-        atlas_ids = BRAIN_REGIONS.id2id(self.channels['brainLocationIds_ccf_2017'], mapping='Beryl')
+    def get_brain_regions(self, restrict_labels=True, mapping='Beryl'):
+        atlas_ids = BRAIN_REGIONS.id2id(self.channels['brainLocationIds_ccf_2017'], mapping=mapping)
         regions, region_labels, region_colours = \
             plot_brain_regions(channel_ids=atlas_ids, channel_depths=self.channels.localCoordinates[:, 1],
                                brain_regions=BRAIN_REGIONS, display=False)
@@ -311,14 +312,20 @@ class DataLoader:
                                               (regions[:, 1] - regions[:, 0]) < 150))[0]
             region_labels = region_labels[reg_idx, :]
 
+        return regions, region_labels, region_colours
+
+    def plot_brain_regions(self, ax=None, restrict_labels=True):
+        fig = ax.get_figure()
+
+        regions, region_labels, region_colours = self.get_brain_regions(restrict_labels=restrict_labels)
         for reg, col in zip(regions, region_colours):
             height = np.abs(reg[1] - reg[0])
             color = col / 255
             ax.bar(x=0.5, height=height, width=1, color=color, bottom=reg[0], edgecolor='w')
-        # if labels == 'right':
+
         ax.yaxis.tick_right()
         ax.set_yticks(region_labels[:, 0].astype(int))
-        ax.yaxis.set_tick_params(labelsize=8)
+        ax.yaxis.set_tick_params(labelsize=10)
         ax.set_ylim(0, 4000)
         ax.get_xaxis().set_visible(False)
         ax.set_yticklabels(region_labels[:, 1])
@@ -329,10 +336,82 @@ class DataLoader:
 
         return fig
 
+    def plot_ap_rms(self, ax, ax_cbar=None):
+
+        rms = np.random.randn(384)
+        pad = True
+        x_offset = 1
+        data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
+                                                           pad=pad, x_offset=x_offset)
+        data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='plasma')
+        data.set_labels(ylabel='Distance from probe tip (um)', clabel=f'AP rms (uV)')
+        clim = np.nanquantile(np.concatenate([np.squeeze(np.ravel(d)) for d in data_bank]).ravel(),
+                              [0.1, 0.9])
+        data.set_clim(clim)
+
+        data = data.convert2dict()
+        for (x, y, dat) in zip(data['data']['x'], data['data']['y'], data['data']['c']):
+            im = NonUniformImage(ax, interpolation='nearest', cmap=data['cmap'])
+            im.set_clim(data['clim'][0], data['clim'][1])
+            im.set_data(x, y, dat.T)
+            ax.images.append(im)
+
+        ax.set_xlim(data['xlim'][0], data['xlim'][1])
+        ax.set_ylim(0, 4000)
+        ax.set_xlabel(data['labels']['xlabel'])
+        ax.set_ylabel(data['labels']['ylabel'])
+        ax.set_title(data['labels']['title'])
+
+        ax.get_xaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+
+        fig = ax.get_figure()
+        cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
+        cbar.set_label(data['labels']['clabel'])
+
+        return fig
+
+    def plot_lfp_spectrum(self, ax, ax_cbar=None):
+
+        rms = np.random.randn(384)
+        data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
+                                                           pad=True, x_offset=1)
+        data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='viridis')
+        data.set_labels(ylabel='Distance from probe tip (um)', clabel=f'LFP power (dB)')
+        clim = np.nanquantile(np.concatenate([np.squeeze(np.ravel(d)) for d in data_bank]).ravel(),
+                              [0.1, 0.9])
+        data.set_clim(clim)
+
+        data = data.convert2dict()
+        for (x, y, dat) in zip(data['data']['x'], data['data']['y'], data['data']['c']):
+            im = NonUniformImage(ax, interpolation='nearest', cmap=data['cmap'])
+            im.set_clim(data['clim'][0], data['clim'][1])
+            im.set_data(x, y, dat.T)
+            ax.images.append(im)
+
+        ax.set_xlim(data['xlim'][0], data['xlim'][1])
+        ax.set_ylim(0, 4000)
+        ax.set_xlabel(data['labels']['xlabel'])
+        ax.set_ylabel(data['labels']['ylabel'])
+        ax.set_title(data['labels']['title'])
+
+        ax.get_xaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+
+        fig = ax.get_figure()
+        cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
+        cbar.set_label(data['labels']['clabel'])
+
+        return fig
+
     def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None):
 
         if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(9, 6), xlabel='Time (s)', ylabel='Depth (um)')
+            fig, ax = plt.subplots(1, 1, figsize=(9, 6))
         else:
             fig = ax.get_figure()
 
@@ -389,7 +468,7 @@ class DataLoader:
 
         return fig
 
-    def plot_psychometric_curve(self, ax=None):
+    def plot_psychometric_curve(self, ax=None, ax_legend=None):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(6, 6))
@@ -398,6 +477,40 @@ class DataLoader:
 
         plot_psychometric(self.trials, ax=ax)
         set_axis_style(ax, xlabel='Contrasts', ylabel='Probability Choosing Right')
+        leg = ax.get_legend()
+        h = leg.legendHandles
+        l = [str(x._text) for x in leg.texts]
+        ax.get_legend().remove()
+        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+
+        return fig
+
+    def plot_chronometric_curve(self, ax=None, ax_legend=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        else:
+            fig = ax.get_figure()
+
+        plot_reaction_time(self.trials, ax=ax)
+        set_axis_style(ax, xlabel='Contrasts', ylabel='Reaction time (s)')
+        leg = ax.get_legend()
+        h = leg.legendHandles
+        l = [str(x._text) for x in leg.texts]
+        ax.get_legend().remove()
+        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+
+        return fig
+
+    def plot_reaction_time(self, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+        else:
+            fig = ax.get_figure()
+
+        plot_reaction_time_over_trials(self.trials, ax=ax)
+        set_axis_style(ax, xlabel='Trial number', ylabel='Reaction time (s)')
 
         return fig
 
@@ -415,32 +528,63 @@ class DataLoader:
 
         return ax
 
-    def plot_good_bad_clusters(self, ax=None, xlabel='Amplitude (uV)', ylabel='Depth (um)'):
+    def plot_good_bad_clusters(self, ax=None, ax_legend=None, xlabel='Amplitude (uV)', ylabel='Depth (um)'):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(4, 6))
         else:
             fig = ax.get_figure()
 
-        ax.scatter(self.clusters.amps * 1e6, self.clusters.depths, c='r')
-        ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c='g')
+        mua = ax.scatter(self.clusters.amps * 1e6, self.clusters.depths, c='r')
+        good = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c='g')
 
+        ax_legend.legend(handles=[mua, good], labels=['mua', 'good'], frameon=False, bbox_to_anchor=(0.8, 0.2))
         ax.set_ylim(0, 4000)
         ax.set_xlim(-10, 800)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
 
-    def plot_spikes_amp_vs_depth(self, cluster_idx, ax=None, xlabel='Amplitude (uV)', ylabel='Depth (um)'):
+    def plot_spikes_amp_vs_depth_vs_firing_rate(self, cluster_idx=None, ax=None, ax_cbar=None,
+                                                xlabel='Amplitude (uV)', ylabel='Depth (um)'):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(4, 6))
         else:
             fig = ax.get_figure()
 
-        ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths,
-                   facecolors='none', edgecolors='grey')
+        scat = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c=self.clusters_good.firing_rate, cmap='hot',
+                          edgecolors='grey')
+        if cluster_idx is not None:
+            clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
+            if clusters is not None:
+                ax.scatter(clusters.amps * 1e6, clusters.depths, c=clusters.firing_rate, cmap='hot', edgecolors='grey',
+                           linewidths=2, s=80)
+        ax.set_ylim(0, 4000)
+        ax.set_xlim(-10, 800)
+        cbar = fig.colorbar(scat, ax=ax_cbar, orientation="horizontal")
+        cbar.set_label('Firing Rate (Hz)')
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+
+        return fig
+
+    def plot_spikes_amp_vs_depth(self, cluster_idx, ax=None, xlabel='Amplitude (uV)', ylabel=None):
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+        else:
+            fig = ax.get_figure()
+
+        col = (BRAIN_REGIONS.get(self.clusters_good.atlas_id).rgb / 255).tolist()
+        ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c=col, edgecolors='grey')
         clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
+        col_clus = (BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
         if clusters is not None:
-            ax.scatter(clusters.amps * 1e6, clusters.depths, c='r')
+            ax.scatter(clusters.amps * 1e6, clusters.depths, c=col_clus, edgecolors='black',
+                       linewidths=2, s=80)
+
+        _, region_labels, _ = self.get_brain_regions()
+        ax.set_yticks(region_labels[:, 0].astype(int))
+        ax.yaxis.set_tick_params(labelsize=10)
+        ax.set_yticklabels(region_labels[:, 1])
+
         ax.set_ylim(0, 4000)
         ax.set_xlim(-10, 800)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
@@ -464,21 +608,20 @@ class DataLoader:
 
         return fig
 
-    def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='Time from Stim On (s)',
+    def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
         fig, ax = self.single_cluster_raster(
             spikes.times, self.trials['stimOn_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
-        # axs[0].set_ylim(0, 100)  # TODO this shouldn't be harcoded here
         axs[1].set_yticklabels([])
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
 
-    def plot_correct_incorrect_single_cluster_raster(self, cluster_idx, axs=None, xlabel='Time from Feedback (s)',
+    def plot_correct_incorrect_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Feedback (s)',
                                                      ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
@@ -492,7 +635,7 @@ class DataLoader:
 
         return fig
 
-    def plot_contrast_single_cluster_raster(self, cluster_idx, axs=None, xlabel='Time from Stim On (s)',
+    def plot_contrast_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                             ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
@@ -591,12 +734,16 @@ class DataLoader:
             ax.plot(x, y, c='grey')
 
         ax.set_yticklabels([])
+        ax.set_yticks([])
         ax.set_xticklabels([])
+        ax.set_xticks([])
         set_axis_style(ax)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
 
         return fig
 
-    def plot_autocorrelogram(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='Autocorrolelogram'):
+    def plot_autocorrelogram(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='AutoCorr'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -610,11 +757,17 @@ class DataLoader:
         corr = corr / np.max(corr)  # normalise
 
         ax.bar(np.arange(corr.size), height=corr, width=0.8, color='grey')
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
+
+        ax.xaxis.set_label_position("top")
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        ax.spines['right'].set_visible(True)
+        ax.spines['left'].set_visible(False)
 
         return fig
 
-    def plot_inter_spike_interval(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='Inter Spike Interval'):
+    def plot_inter_spike_interval(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='ISI'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -627,7 +780,11 @@ class DataLoader:
         bins = bins * 1e3
         m_isi = np.max(isi)
         ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        ax.spines['right'].set_visible(True)
+        ax.spines['left'].set_visible(False)
 
         return fig
 
