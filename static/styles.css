@@ -160,7 +160,23 @@ h6 {
     /* font-variant: small-caps; */
 }
 
+h2 {
+    text-align: center;
+    border-style: solid;
+    border-width: 2px 0;
+    border-color: #eee;
+    font-weight: 300;
+    padding: 20px 0;
+    margin: 60px 0 40px 0;
+    color: #999;
+    background-color: #fcfcfc;
+}
 
+
+
+/*************************************************************************************************/
+/*  Controls                                                                                     */
+/*************************************************************************************************/
 
 .button.button-primary {
     background-color: #005292;
