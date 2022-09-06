@@ -81,8 +81,7 @@ function show(arrbuf) {
 };
 
 
-
-function tablefromjson(json, elementID) {
+function verticaltablefromjson(json, elementID) {
 
     var table_data = `<table>`
     for (let key in json) {
@@ -98,6 +97,39 @@ function tablefromjson(json, elementID) {
                    </tr>`
         table_data += row
     }
+    table_data += `</table>`
+
+    document.getElementById(elementID).innerHTML = table_data
+}
+
+
+function horizontaltablefromjson(json, elementID) {
+
+    var table_data = `<table>`
+    table_data += `<tr>`
+    for (let key in json) {
+
+        // NOTE: skip internal fields
+        if (key.startsWith("_")) {
+            continue;
+        }
+
+        var row = `<th>${key}</th>`
+        table_data += row
+    }
+    table_data += `</tr>`
+    table_data += `<tr>`
+    for (let key in json) {
+
+        // NOTE: skip internal fields
+        if (key.startsWith("_")) {
+            continue;
+        }
+
+        var row = `<td>${json[key]}</td>`
+        table_data += row
+    }
+    table_data += `</tr>`
     table_data += `</table>`
 
     document.getElementById(elementID).innerHTML = table_data
@@ -219,17 +251,12 @@ async function selectSession(pid) {
     var colors = details["_colors"];
 
     // Make table with session details
-    tablefromjson(details, 'sessionDetails')
+    verticaltablefromjson(details, 'sessionDetails')
 
-    // Show the raster plot.
-    // url = `/api/session/${pid}/raster`;
-    // document.getElementById('rasterPlot').src = url;
 
-    url = `/api/session/${pid}/psychometric`;
-    document.getElementById('psychometricPlot').src = url;
-
-    url = `/api/session/${pid}/clusters`;
-    document.getElementById('clusterGoodBadPlot').src = url;
+    // Show the session overview plot
+    url = `/api/session/${pid}/session_plot`;
+    document.getElementById('sessionPlot').src = url;
 
 
     // Set the trial selector.
@@ -264,18 +291,16 @@ async function selectSession(pid) {
 
 async function selectTrial(pid, tid) {
     // Show the trial raster plot.
-    var url = `/api/session/${pid}/trial_raster/${tid}`;
-    document.getElementById('trialRasterPlot').src = url;
+    var url = `/api/session/${pid}/trial_plot/${tid}`;
+    document.getElementById('trialPlot').src = url;
 
-    var url = `/api/session/${pid}/raster/trial/${tid}`;
-    document.getElementById('rasterPlot').src = url;
 
     // Show information about trials in table
     var url = `/api/session/${pid}/trial_details/${tid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
-    tablefromjson(details, 'trialDetails')
+    horizontaltablefromjson(details, 'trialDetails')
 
 }
 
@@ -283,21 +308,16 @@ async function selectTrial(pid, tid) {
 
 async function selectCluster(pid, cid) {
     console.log(`select cluster #${cid}`);
-    var url = `/api/session/${pid}/cluster/${cid}`;
+
+    var url = `/api/session/${pid}/cluster_plot/${cid}`;
     document.getElementById('clusterPlot').src = url;
-
-    var url = `/api/session/${pid}/cluster_response/${cid}`;
-    document.getElementById('clusterResponsePlot').src = url;
-
-    var url = `/api/session/${pid}/cluster_properties/${cid}`;
-    document.getElementById('clusterPropertiesPlot').src = url;
 
     // Show information about cluster in table
     var url = `/api/session/${pid}/cluster_details/${cid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
-    tablefromjson(details, 'clusterDetails')
+    horizontaltablefromjson(details, 'clusterDetails')
 
 }
 
