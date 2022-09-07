@@ -40,7 +40,7 @@
         <!-- SESSION DROPDOWN -->
         <select id="sessionSelector" class="u-full-width">
             {% for session in sessions %}
-            <option value="{{ session.pid }}">PID {{ session.pid }}</option>
+            <option value="{{ session.pid }}">PID {{ session.pid[:8] }}</option>
             {% endfor %}
         </select>
 
@@ -76,13 +76,23 @@
 
 <div class="row">
     <!-- Trial selector -->
-    <div class="two columns">
+    <div class="three columns">
+
+        <!-- Select -->
         <select size="15" id="trialSelector" class="u-full-width multiple">
         </select>
+
+        <!-- Arrow button for navigation -->
+        <div class="buttonNav">
+            <div>
+                <button class="trialLeft" onclick="arrowButton('trialSelector', -1);">&#11164;</button>
+                <button class="trialRight" onclick="arrowButton('trialSelector', +1);">&#11166;</button>
+            </div>
+        </div>
     </div>
 
     <!-- Trial details -->
-    <div class="two columns" id="trialDetails">
+    <div class="nine columns" id="trialDetails">
     </div>
 </div>
 
@@ -106,15 +116,26 @@
         <h2>Single cluster overview</h2>
     </div>
 </div>
+
 <div class="row">
     <!-- Cluster selector -->
-    <div class="two columns">
+    <div class="three columns">
+
+        <!-- Select -->
         <select size="15" id="clusterSelector" class="u-full-width multiple">
         </select>
+
+        <!-- Arrow button for navigation -->
+        <div class="buttonNav">
+            <div>
+                <button class="clusterLeft" onclick="arrowButton('clusterSelector', -1);">&#11164;</button>
+                <button class="clusterRight" onclick="arrowButton('clusterSelector', +1);">&#11166;</button>
+            </div>
+        </div>
     </div>
 
     <!-- Cluster details -->
-    <div class="two columns" id="clusterDetails">
+    <div class="nine columns" id="clusterDetails">
     </div>
 
 </div>
