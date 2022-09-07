@@ -49,6 +49,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     private Dictionary<string, Color> labColors;
 
     private GameObject highlightedProbe;
+    private GameObject hoveredProbe;
 
     private string serverTarget;
 
@@ -66,73 +67,57 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
         for (int i = 0; i < brainAreas.Count; i++)
         {
-            brainAreas[i].GetComponentInChildren<Renderer>().material.SetColor("_Color", brainColors[i]);
+            brainAreas[i].GetComponentInChildren<Renderer>().material.color = brainColors[i];
         }
+
+#if !UNITY_EDITOR && UNITY_WEBGL
+        // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
+        WebGLInput.captureAllKeyboardInput = false;
+#endif
     }
 
     // Start is called before the first frame update
     void Start()
     {        
-        //modelControl.SetBeryl(true);
-        //modelControl.LateStart(loadDefaults);
-
-        //if (loadDefaults)
-        //    DelayedStart();
-
         cameraController.SetBrainAxisAngles(new Vector3(0f, 45f, 135f));
         umCamera.SwitchCameraMode(false);
 
         LoadProbes();
     }
 
-
-    //private async void DelayedStart()
-    //{
-    //    //await modelControl.GetDefaultLoaded();
-    //    //ccfLoaded = true;
-
-    //    //foreach (CCFTreeNode node in modelControl.GetDefaultLoadedNodes())
-    //    //{
-    //    //    FixNodeTransformPosition(node);
-
-    //    //    RegisterNode(node);
-    //    //    node.SetNodeModelVisibility(true);
-    //    //    node.SetShaderProperty("_Alpha", 0.15f);
-    //    //}
-    //}
-
-    //public void FixNodeTransformPosition(CCFTreeNode node)
-    //{
-    //    // I don't know why we have to do this? For some reason when we load the node models their positions are all offset in space in a weird way... 
-    //    node.GetNodeTransform().localPosition = Vector3.zero;
-    //    node.GetNodeTransform().localRotation = Quaternion.identity;
-    //    //node.RightGameObject().transform.localPosition = Vector3.forward * 11.4f;
-    //}
-
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
 
-                //Select stage    
-                if (hit.transform.gameObject.layer == 10)
+            //Select stage    
+            if (hit.transform.gameObject.layer == 10)
+            {
+                GameObject target = hit.transform.gameObject;
+                if (Input.GetMouseButtonDown(0))
+                    SelectProbe(target);
+                else
                 {
-                    SelectProbe(hit.transform.gameObject);
+                    if (target != null && target != hoveredProbe)
+                    {
+                        UnhoverProbe(hoveredProbe);
+                        HoverProbe(hit.transform.gameObject);
+                    }
                 }
             }
+            else
+            {
+                UnhoverProbe(hoveredProbe);
+            }
+        }
+        else
+        {
+            UnhoverProbe(hoveredProbe);
         }
     }
-
-    //public void RegisterNode(CCFTreeNode node)
-    //{
-    //    if (!visibleNodes.ContainsKey(node.ID))
-    //        visibleNodes.Add(node.ID, node);
-    //}
 
     private void SetProbePositionAndAngles(Transform probeT, Vector3 pos, Vector3 angles)
     {
@@ -187,18 +172,40 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
-        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", defaultColor);
+        Debug.Log("Activate: " + pid);
+        pid2probe[pid].GetComponentInChildren<Renderer>().material.color = defaultColor;
         //pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
         pid2probe[pid].GetComponentInChildren<BoxCollider>().enabled = true;
         pid2probe[pid].GetComponentInChildren<BoxCollider>().isTrigger = true;
         // make it bigger
-        pid2probe[pid].transform.localScale = new Vector3(3f, 1f, 3f);
+        pid2probe[pid].transform.localScale = new Vector3(5f, 1f, 5f);
+        // actiate track
+        pid2probe[pid].GetComponentInChildren<ProbeComponent>().SetTrackActive(true);
     }
 
     public void DeactivateProbe(string pid)
     {
-        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", defaultColor);
+        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
         pid2probe[pid].transform.localScale = Vector3.one;
+        // de-activate track
+        pid2probe[pid].GetComponentInChildren<ProbeComponent>().SetTrackActive(false);
+    }
+
+    public void HoverProbe(GameObject probe)
+    {
+        probe.GetComponent<ProbeComponent>().SetTrackHighlight(true);
+        probe.GetComponent<Renderer>().material.color = Color.red;
+        hoveredProbe = probe;
+    }
+
+    public void UnhoverProbe(GameObject probe)
+    {
+        if (probe != null)
+        {
+            probe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
+            probe.GetComponent<Renderer>().material.color = defaultColor;
+        }
+        hoveredProbe = null;
     }
 
     public void HighlightProbe(string pid) {
@@ -211,25 +218,20 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
         highlightedProbe = probe;
 
-        probe.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.red);
+        probe.GetComponentInChildren<Renderer>().material.color = Color.red;
     }
 
     public void UnhighlightProbe() {
         if (highlightedProbe != null) {
-            highlightedProbe.GetComponentInChildren<Renderer>().material.SetColor("_Color", defaultColor);
+            highlightedProbe.GetComponentInChildren<Renderer>().material.color = defaultColor;
         }
-    }
-
-    public void SwitchHighlightedProbeJS(int id)
-    {
-
     }
 
     public void SelectProbe(GameObject probe)
     {
         string pid = probe2pid[probe.transform.parent.gameObject];
         HighlightProbeGO(probe);
-#if UNITY_WEBGL
+#if !UNITY_EDITOR && UNITY_WEBGL
         SelectPID(pid);
 #endif
         Debug.Log("Sent select message with payload: " + pid);
