@@ -206,7 +206,6 @@ def remove_frame(ax):
     return ax
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Plotting functions
 # -------------------------------------------------------------------------------------------------
@@ -220,6 +219,7 @@ class DataLoader:
         self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
 
     def session_init(self, pid):
+        self.pid = pid
         self.load_session_data(pid)
         # self.get_session_details()
         self.compute_session_raster()
@@ -245,6 +245,7 @@ class DataLoader:
         """
         # TODO this isn't ordered after the request sent (on js side)
         details = OrderedDict()
+        details['ID'] = self.pid
         details['Subject'] = self.session_info['subject']
         details['Lab'] = self.session_info['lab']
         details['DOB'] = self.session_info['dob']
@@ -280,10 +281,10 @@ class DataLoader:
         details = OrderedDict()
         details['Trial #'] = trial_idx
         details['Contrast'] = np.nanmean([trials.contrastLeft, trials.contrastRight]) * 100
-        details['Stimulus side'] = 'left' if np.isnan(trials.contrastRight) else 'right'
-        details['Block probability'] = _get_block_probability(trials.probabilityLeft)
-        details['Response type'] = 'correct' if trials.feedbackType == 1 else 'incorrect'
-        details['Response time'] = f'{np.round((trials.feedback_times - trials.stimOn_times) * 1e3, 0)} ms'
+        details['Stim side'] = 'left' if np.isnan(trials.contrastRight) else 'right'
+        details['Block proba'] = _get_block_probability(trials.probabilityLeft)
+        details['Resp type'] = 'correct' if trials.feedbackType == 1 else 'incorrect'
+        details['Resp time'] = f'{np.round((trials.feedback_times - trials.stimOn_times) * 1e3, 0)} ms'
 
         return details
 

@@ -133,7 +133,7 @@ caption {
 
 
 select.multiple {
-    height: 300px !important;
+    height: 100px !important;
 }
 
 
@@ -175,6 +175,16 @@ h2 {
 
 
 /*************************************************************************************************/
+/*  Dropdowns                                                                                    */
+/*************************************************************************************************/
+
+#clusterSelector:not(:focus) option:checked {
+    background: linear-gradient(#cecece, #cecece);
+}
+
+
+
+/*************************************************************************************************/
 /*  Controls                                                                                     */
 /*************************************************************************************************/
 
@@ -185,6 +195,38 @@ h2 {
     font-weight: 400;
     height: auto;
     padding: 5px;
+}
+
+
+
+.buttonNav {
+    margin: 0 auto;
+}
+
+.buttonNav>div {
+    margin: 0 auto;
+    width: 90px;
+}
+
+.buttonNav button {
+    border: 0;
+    padding: 0 12px;
+    font-size: 18px;
+    font-weight: bold;
+    display: inline;
+    margin: 0 auto;
+}
+
+.buttonNav button:hover {
+    background-color: #eee;
+}
+
+.buttonNav button:active {
+    background-color: #ddd;
+}
+
+.buttonNav .trialLeft {
+    margin-right: 5px;
 }
 
 

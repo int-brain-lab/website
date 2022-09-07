@@ -81,6 +81,7 @@ function show(arrbuf) {
 };
 
 
+
 function verticaltablefromjson(json, elementID) {
 
     var table_data = `<table>`
@@ -100,7 +101,8 @@ function verticaltablefromjson(json, elementID) {
     table_data += `</table>`
 
     document.getElementById(elementID).innerHTML = table_data
-}
+};
+
 
 
 function horizontaltablefromjson(json, elementID) {
@@ -133,7 +135,7 @@ function horizontaltablefromjson(json, elementID) {
     table_data += `</table>`
 
     document.getElementById(elementID).innerHTML = table_data
-}
+};
 
 
 
@@ -182,6 +184,26 @@ function onSliderChange(id, callback) {
 
 
 /*************************************************************************************************/
+/*  Button callbacks                                                                             */
+/*************************************************************************************************/
+
+function arrowButton(name, dir) {
+    var select = document.getElementById(name);
+    if (dir > 0)
+        select.selectedIndex++;
+    else
+        select.selectedIndex--;
+
+    if (select.selectedIndex < 0)
+        select.selectedIndex = 0;
+
+    select.dispatchEvent(new Event('change'));
+
+}
+
+
+
+/*************************************************************************************************/
 /*  Setup functions                                                                              */
 /*************************************************************************************************/
 
@@ -204,7 +226,7 @@ function loadUnity() {
     }).then((unityInstance) => {
         window.myGameInstance = unityInstance;
     });
-}
+};
 
 
 
@@ -227,7 +249,7 @@ function selectPID(pid) {
     // UNITY callback
     document.getElementById('sessionSelector').value = pid;
     selectSession(pid);
-}
+};
 
 
 
@@ -262,8 +284,12 @@ async function selectSession(pid) {
     // Set the trial selector.
     var s = document.getElementById('trialSelector');
     $('#trialSelector option').remove();
+    var option = null;
     for (var i = 0; i < details["N trials"]; i++) {
-        s.options[s.options.length] = new Option(`trial #${i}`, i);
+        option = new Option(`trial #${i.toString().padStart(3, "0")}`, i);
+        if (i == 0)
+            option.selected = true;
+        s.options[s.options.length] = option;
     }
 
     // Set the cluster selector.
@@ -273,19 +299,21 @@ async function selectSession(pid) {
         var cluster_id = cluster_ids[i];
         var acronym = acronyms[i];
         var color = colors[i];
-        var opt = new Option(`${acronym} — #${cluster_id}`, cluster_id);
+        option = new Option(`${acronym} — #${cluster_id}`, cluster_id);
         var r = color[0];
         var g = color[1];
         var b = color[2];
-        opt.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        s.options[s.options.length] = opt;
+        option.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        if (i == 0)
+            option.selected = true;
+        s.options[s.options.length] = option;
     }
 
     // Update the other plots.
     selectTrial(pid, 0);
     // Need to make sure first cluster is a good one, otherwise get error
     selectCluster(pid, cluster_ids[0]);
-}
+};
 
 
 
@@ -302,7 +330,7 @@ async function selectTrial(pid, tid) {
 
     horizontaltablefromjson(details, 'trialDetails')
 
-}
+};
 
 
 
@@ -350,16 +378,6 @@ function setupDropdowns() {
     document.getElementById('sessionSelector').selectedIndex = 0;
     var pid = document.getElementById('sessionSelector').value;
     selectSession(pid);
-};
-
-
-
-function setupInputs() {
-
-    // document.getElementById('clusterInput').onchange = function (e) {
-    //     var cl = parseInt(e.target.value);
-    // };
-
 };
 
 
@@ -419,7 +437,6 @@ function load() {
     setupPersistence();
     setupSliders();
     setupDropdowns();
-    setupInputs();
     setupButtons();
 };
 

@@ -152,6 +152,7 @@ def get_data_loader(pid):
 
 def make_app():
     app = Flask(__name__)
+    app.config['JSON_SORT_KEYS'] = False
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.config['CACHE_TYPE'] = 'FileSystemCache'
     app.config['CACHE_DEFAULT_TIMEOUT'] = 0
@@ -197,7 +198,6 @@ def make_app():
     def cluster_details(pid, cluster_idx):
         loader = get_data_loader(pid)
         return loader.get_cluster_details(cluster_idx)
-
 
     @app.route('/api/session/<pid>/session_plot')
     @cache.cached()
