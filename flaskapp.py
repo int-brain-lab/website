@@ -200,7 +200,7 @@ def make_app():
         return loader.get_cluster_details(cluster_idx)
 
     @app.route('/api/session/<pid>/session_plot')
-    @cache.cached()
+    #@cache.cached()
     def session_overview_plot(pid):
         loader = get_data_loader(pid)
 
@@ -247,6 +247,8 @@ def make_app():
         loader.plot_reaction_time(ax=ax17)
 
         set_figure_style(fig)
+        plt.subplots_adjust(top=1.02, bottom=0.05)
+        plt.margins(0, 0)
 
         return send_figure(fig)
 
