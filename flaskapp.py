@@ -200,7 +200,7 @@ def make_app():
         return loader.get_cluster_details(cluster_idx)
 
     @app.route('/api/session/<pid>/session_plot')
-    #@cache.cached()
+    @cache.cached()
     def session_overview_plot(pid):
         loader = get_data_loader(pid)
 
