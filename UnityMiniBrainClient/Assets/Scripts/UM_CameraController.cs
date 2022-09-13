@@ -9,13 +9,7 @@ public class UM_CameraController : MonoBehaviour
     [SerializeField] Camera orthoCamera;
     [SerializeField] Camera perspectiveCamera;
 
-    private GameObject uiGO;
-    
-    private void Awake()
-    {
-
-        uiGO = GameObject.Find("UI");
-    }
+    [SerializeField] private GameObject uiGO;
 
     public void CameraContinuousRotationButton()
     {
