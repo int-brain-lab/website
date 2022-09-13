@@ -139,7 +139,7 @@ def get_js_context():
     return {}
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_data_loader(pid):
     loader = DataLoader()
     loader.session_init(pid)
