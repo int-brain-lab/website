@@ -88,6 +88,38 @@ def send_figure(fig):
     return send_file(buf, mimetype='image/png')
 
 
+def send_png_bytes(btes):
+    buf = io.BytesIO(btes)
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+
+
+def fig2bytes(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def wrap_fig2bytes(f):  # f should be a function returning a matplotlib Figure
+    # the wrapped function returns PNG bytes
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        fig = f(*args, **kwargs)
+        return fig2bytes(fig)
+    return wrapped
+
+
+def wrap_bytes(f):  # f should be a function returning PNG bytes
+    # wrapped returns a flask response object
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        btes = f(*args, **kwargs)
+        return send_png_bytes(btes)
+    return wrapped
+
+
 def is_valid_uuid(uuid_to_test, version=4):
     """
     Check if uuid_to_test is a valid UUID.
@@ -139,7 +171,7 @@ def get_js_context():
     return {}
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def get_data_loader(pid):
     loader = DataLoader()
     loader.session_init(pid)
@@ -162,6 +194,9 @@ def make_app():
     # app.config.from_mapping(aconfig)
     cache = Cache(app)
 
+    def cache_fig(f):
+        return wrap_bytes(cache.cached()(wrap_fig2bytes(f)))
+
     # ---------------------------------------------------------------------------------------------
     # Entry points
     # ---------------------------------------------------------------------------------------------
@@ -182,6 +217,9 @@ def make_app():
             js_context=get_js_context(),
         )
 
+    # JSON details
+    # ---------------------------------------------------------------------------------------------
+
     @app.route('/api/session/<pid>/details')
     def session_details(pid):
         loader = get_data_loader(pid)
@@ -199,8 +237,11 @@ def make_app():
         loader = get_data_loader(pid)
         return loader.get_cluster_details(cluster_idx)
 
+    # Figures
+    # ---------------------------------------------------------------------------------------------
+
     @app.route('/api/session/<pid>/session_plot')
-    @cache.cached()
+    @cache_fig
     def session_overview_plot(pid):
         loader = get_data_loader(pid)
 
@@ -247,13 +288,12 @@ def make_app():
         loader.plot_reaction_time(ax=ax17)
 
         set_figure_style(fig)
-        plt.subplots_adjust(top=1.02, bottom=0.05)
-        plt.margins(0, 0)
+        fig.subplots_adjust(top=1.02, bottom=0.05)
 
-        return send_figure(fig)
+        return fig
 
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
-    @cache.cached()
+    @cache_fig
     def trial_overview_plot(pid, trial_idx):
         loader = get_data_loader(pid)
         fig, axs = plt.subplots(1, 3, figsize=(8, 4), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
@@ -262,10 +302,10 @@ def make_app():
         axs[1].get_yaxis().set_visible(False)
         loader.plot_brain_regions(axs[2])
         set_figure_style(fig)
-        return send_figure(fig)
+        return fig
 
     @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
-    @cache.cached()
+    @cache_fig
     def cluster_overview_plot(pid, cluster_idx):
 
         loader = get_data_loader(pid)
@@ -308,7 +348,7 @@ def make_app():
         ax4.sharex(ax5)
         ax6.sharex(ax7)
 
-        return send_figure(fig)
+        return fig
 
     return app
 
