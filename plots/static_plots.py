@@ -799,7 +799,10 @@ class DataLoader:
 
         x_corr = xcorr(spikes.times, spikes.clusters, 1 / 1e3, 50 / 1e3)
         corr = x_corr[0, 0, :]
-        corr = corr / np.max(corr)  # normalise
+        m_corr = np.max(corr)
+        if m_corr == 0:
+            m_corr = 1
+        corr = corr / m_corr  # normalise
 
         ax.bar(np.arange(corr.size), height=corr, width=0.8, color='grey')
         ax.yaxis.set_label_position("right")
@@ -824,6 +827,8 @@ class DataLoader:
         isi, bins = _compute_histogram(np.diff(spikes.times), 0.01, 0, 50)
         bins = bins * 1e3
         m_isi = np.max(isi)
+        if m_isi == 0:
+            m_isi = 1
         ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
         ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
