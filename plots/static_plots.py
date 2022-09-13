@@ -121,6 +121,12 @@ def filter_wfs_by_cluster_idx(waveforms, waveform_channels, clusters, cluster_id
     return waveforms[idx], waveform_channels[idx]
 
 
+def filter_features_by_pid(features, pid, column):
+    feat = features[features['pid'] == pid]
+    return feat[column].values
+
+
+
 # -------------------------------------------------------------------------------------------------
 # Processing functions
 # -------------------------------------------------------------------------------------------------
@@ -217,6 +223,11 @@ class DataLoader:
 
     def __init__(self):
         self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
+        self.session_df = self.session_df.set_index('pid')
+
+        # load in the waveform tables
+        self.features = pd.read_parquet(DATA_DIR.joinpath('raw_ephys_features.pqt'))
+        self.features = self.features.reset_index()
 
     def session_init(self, pid):
         self.pid = pid
@@ -237,6 +248,8 @@ class DataLoader:
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
         self.channels = load_channels(pid)
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
+        self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
+        self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
 
     def get_session_details(self):
         """
@@ -365,8 +378,7 @@ class DataLoader:
             fig = ax.get_figure()
 
         # TODO use actual data
-        rms = np.random.randn(384)
-        data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
+        data_bank, x_bank, y_bank = arrange_channels2banks(self.rms_ap * 1e6, self.channels.localCoordinates, depth=None,
                                                            pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='plasma')
         data.set_labels(ylabel='Depth (um)', clabel=f'AP rms (uV)')
@@ -404,8 +416,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        rms = np.random.randn(384)
-        data_bank, x_bank, y_bank = arrange_channels2banks(rms, self.channels.localCoordinates, depth=None,
+        data_bank, x_bank, y_bank = arrange_channels2banks(self.lfp, self.channels.localCoordinates, depth=None,
                                                            pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='viridis')
         data.set_labels(ylabel='Depth (um)', clabel=f'LFP power (dB)')
