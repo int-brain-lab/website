@@ -43,8 +43,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     [SerializeField] private List<GameObject> brainAreas;
 
     private Dictionary<string, GameObject> pid2probe;
-    private Dictionary<GameObject, string> probe2pid;
-    private Dictionary<GameObject, (int, string, string)> probeInfo;
     private string[] labs = {"angelakilab", "churchlandlab", "churchlandlab_ucla", "cortexlab",
        "danlab", "hoferlab", "mainenlab", "mrsicflogellab",
        "steinmetzlab", "wittenlab", "zadorlab" };
@@ -60,8 +58,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         Debug.Log("v0.1.0");
 
         pid2probe = new Dictionary<string, GameObject>();
-        probeInfo = new Dictionary<GameObject, (int, string, string)>();
-        probe2pid = new Dictionary<GameObject, string>();
 
         //visibleNodes = new Dictionary<int, CCFTreeNode>();
 
@@ -175,8 +171,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             newProbe.GetComponentInChildren<BoxCollider>().enabled = false;
 
             pid2probe.Add(pid, newProbe);
-            probe2pid.Add(newProbe, pid);
-            probeInfo.Add(newProbe, (labIdx, subject, date));
+            newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(pid, lab, subject, date);
+
             SetProbePositionAndAngles(newProbe.transform, pos, angles);
 
             if (selectable.Equals("TRUE"))
@@ -205,7 +201,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     {
         probe.GetComponent<ProbeComponent>().SetTrackActive(true);
         probe.GetComponent<ProbeComponent>().SetTrackHighlight(true);
-        if (!highlightedProbe==probe)
+        if (!(highlightedProbe==probe))
             probe.GetComponent<Renderer>().material.color = Color.red;
         hoveredProbe = probe;
     }
@@ -216,7 +212,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         {
             probe.GetComponent<ProbeComponent>().SetTrackActive(false);
             probe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
-            if (!highlightedProbe==probe)
+            if (!(highlightedProbe==probe))
                 probe.GetComponent<Renderer>().material.color = defaultColor;
         }
         hoveredProbe = null;
@@ -233,8 +229,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         highlightedProbe = probe;
 
         // also set the lab information
-        (int labIdx, string subj, string date) = probeInfo[probe.transform.parent.gameObject];
-        string lab = labs[labIdx];
+        (_, string lab, string subj, string date) = probe.GetComponent<ProbeComponent>().GetInfo();
         infoText.SetText(lab, subj, date, labColors[lab]);
 
         probe.GetComponent<Renderer>().material.color = labColors[lab];
@@ -248,7 +243,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void SelectProbe(GameObject probe)
     {
-        string pid = probe2pid[probe.transform.parent.gameObject];
+        (string pid, _, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
         HighlightProbeGO(probe);
 #if !UNITY_EDITOR && UNITY_WEBGL
         SelectPID(pid);
