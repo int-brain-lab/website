@@ -23,6 +23,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     [SerializeField] private Transform probeParentT;
     [SerializeField] private TextAsset probeData;
 
+    [SerializeField] private InfoText infoText;
+
     [SerializeField] private bool loadDefaults;
 
     private Vector3 center = new Vector3(5.7f, 4f, -6.6f);
@@ -42,7 +44,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private Dictionary<string, GameObject> pid2probe;
     private Dictionary<GameObject, string> probe2pid;
-    private Dictionary<string, int> probeLabs;
+    private Dictionary<GameObject, (int, string, string)> probeInfo;
     private string[] labs = {"angelakilab", "churchlandlab", "churchlandlab_ucla", "cortexlab",
        "danlab", "hoferlab", "mainenlab", "mrsicflogellab",
        "steinmetzlab", "wittenlab", "zadorlab" };
@@ -55,8 +57,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("v0.1.0");
+
         pid2probe = new Dictionary<string, GameObject>();
-        probeLabs = new Dictionary<string, int>();
+        probeInfo = new Dictionary<GameObject, (int, string, string)>();
         probe2pid = new Dictionary<GameObject, string>();
 
         //visibleNodes = new Dictionary<int, CCFTreeNode>();
@@ -133,6 +137,15 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         probeT.RotateAround(probeT.position, probeT.right, angles.y);
         // then spin
         probeT.RotateAround(probeT.position, probeT.up, angles.z);
+
+        if (angles.z < 3840)
+        {
+            //resize the probe object
+            Vector3 scale = probeT.GetChild(0).transform.localScale;
+            scale.y = angles.z / 1000f;
+            probeT.GetChild(0).transform.localScale = scale;
+            probeT.Translate(probeT.up * -(scale.y / 2f));
+        }
     }
 
     private void LoadProbes()
@@ -144,6 +157,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             GameObject newProbe = Instantiate(probeLinePrefab, probeParentT);
             string pid = (string)row["pid"];
             string lab = (string)row["lab"];
+            string subject = (string)row["subject"];
+            string date = (string)row["date"];
+            string selectable = (string)row["selectable"];
 
             int labIdx = 0;
             for (int i = 0; i < labs.Length; i++)
@@ -153,21 +169,19 @@ public class UM_Launch_ibl_mini : MonoBehaviour
                     break;
                 }
 
-            Vector3 pos = new Vector3((float)row["ml"], (float)row["ap"], (float)row["dv"]);
+            Vector3 pos = new Vector3((float)row["ml_ccf_tip"], (float)row["ap_ccf_tip"], (float)row["dv_ccf_tip"]);
             Vector3 angles = new Vector3((float)row["phi"], (float)row["theta"], (float)row["depth"]);
 
             newProbe.GetComponentInChildren<BoxCollider>().enabled = false;
 
             pid2probe.Add(pid, newProbe);
             probe2pid.Add(newProbe, pid);
-            probeLabs.Add(pid, labIdx);
+            probeInfo.Add(newProbe, (labIdx, subject, date));
             SetProbePositionAndAngles(newProbe.transform, pos, angles);
-        }
 
-        // activate a few probes for testing
-        ActivateProbe("7d999a68-0215-4e45-8e6c-879c6ca2b771");
-        ActivateProbe("3eb6e6e0-8a57-49d6-b7c9-f39d5834e682");
-        ActivateProbe("18be19f9-6ca5-4fc8-9220-ba43c3e75905");
+            if (selectable.Equals("TRUE"))
+                ActivateProbe(pid);
+        }
     }
 
     public void ActivateProbe(string pid)
@@ -179,22 +193,20 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         pid2probe[pid].GetComponentInChildren<BoxCollider>().isTrigger = true;
         // make it bigger
         pid2probe[pid].transform.localScale = new Vector3(5f, 1f, 5f);
-        // actiate track
-        pid2probe[pid].GetComponentInChildren<ProbeComponent>().SetTrackActive(true);
     }
 
     public void DeactivateProbe(string pid)
     {
         pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
         pid2probe[pid].transform.localScale = Vector3.one;
-        // de-activate track
-        pid2probe[pid].GetComponentInChildren<ProbeComponent>().SetTrackActive(false);
     }
 
     public void HoverProbe(GameObject probe)
     {
+        probe.GetComponent<ProbeComponent>().SetTrackActive(true);
         probe.GetComponent<ProbeComponent>().SetTrackHighlight(true);
-        probe.GetComponent<Renderer>().material.color = Color.red;
+        if (!highlightedProbe==probe)
+            probe.GetComponent<Renderer>().material.color = Color.red;
         hoveredProbe = probe;
     }
 
@@ -202,8 +214,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     {
         if (probe != null)
         {
+            probe.GetComponent<ProbeComponent>().SetTrackActive(false);
             probe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
-            probe.GetComponent<Renderer>().material.color = defaultColor;
+            if (!highlightedProbe==probe)
+                probe.GetComponent<Renderer>().material.color = defaultColor;
         }
         hoveredProbe = null;
     }
@@ -218,12 +232,17 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
         highlightedProbe = probe;
 
-        probe.GetComponentInChildren<Renderer>().material.color = Color.red;
+        // also set the lab information
+        (int labIdx, string subj, string date) = probeInfo[probe.transform.parent.gameObject];
+        string lab = labs[labIdx];
+        infoText.SetText(lab, subj, date, labColors[lab]);
+
+        probe.GetComponent<Renderer>().material.color = labColors[lab];
     }
 
     public void UnhighlightProbe() {
         if (highlightedProbe != null) {
-            highlightedProbe.GetComponentInChildren<Renderer>().material.color = defaultColor;
+            highlightedProbe.GetComponent<Renderer>().material.color = defaultColor;
         }
     }
 
