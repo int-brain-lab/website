@@ -483,11 +483,17 @@ class DataLoader:
             fig = ax.get_figure()
 
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-        spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['feedback_times'] + 0.5)
+        if np.isnan(trials['feedback_times']):
+            spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['stimOn_times'] + 1)
+        elif np.isnan(trials['stimOn_times']):
+            spikes = filter_spikes_by_trial(self.spikes, trials['feeback_times'] - 1, trials['feedback_times'] + 0.5)
+        else:
+            spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['feedback_times'] + 0.5)
 
         t_bin = 0.005
         d_bin = 5
         kp_idx = ~np.isnan(spikes.depths)
+
         raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
         raster = raster / t_bin
 
