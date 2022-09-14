@@ -23,18 +23,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     [SerializeField] private Transform probeParentT;
     [SerializeField] private TextAsset probeData;
 
-    [SerializeField] private InfoText infoText;
-
     [SerializeField] private bool loadDefaults;
-
-    private Vector3 center = new Vector3(5.7f, 4f, -6.6f);
 
     // Neuron materials
     [SerializeField] private Dictionary<string, Material> neuronMaterials;
-
-    //private Dictionary<int, CCFTreeNode> visibleNodes;
-
-    private bool ccfLoaded;
 
     [SerializeField] private List<Color> colors;
     [SerializeField] private Color defaultColor = Color.gray;
@@ -53,13 +45,13 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private string serverTarget;
 
+    bool IsMouseOverGameWindow { get { return !(0 > Input.mousePosition.x || 0 > Input.mousePosition.y || Screen.width < Input.mousePosition.x || Screen.height < Input.mousePosition.y); } }
+
     private void Awake()
     {
         Debug.Log("v0.1.0");
 
         pid2probe = new Dictionary<string, GameObject>();
-
-        //visibleNodes = new Dictionary<int, CCFTreeNode>();
 
         labColors = new Dictionary<string, Color>();
         for (int i = 0; i < labs.Length; i++)
@@ -69,6 +61,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         {
             brainAreas[i].GetComponentInChildren<Renderer>().material.color = brainColors[i];
         }
+
+        LoadProbes();
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
@@ -82,40 +76,42 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         cameraController.SetBrainAxisAngles(new Vector3(0f, 45f, 135f));
         umCamera.SwitchCameraMode(false);
 
-        LoadProbes();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        if (IsMouseOverGameWindow)
         {
-
-            //Select stage    
-            if (hit.transform.gameObject.layer == 10)
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
             {
-                GameObject target = hit.transform.gameObject;
-                if (Input.GetMouseButtonDown(0))
-                    SelectProbe(target);
+
+                //Select stage    
+                if (hit.transform.gameObject.layer == 10)
+                {
+                    GameObject target = hit.transform.gameObject;
+                    if (Input.GetMouseButtonDown(0))
+                        SelectProbe(target);
+                    else
+                    {
+                        if (target != null && target != hoveredProbe)
+                        {
+                            UnhoverProbe();
+                            HoverProbe(hit.transform.gameObject);
+                        }
+                    }
+                }
                 else
                 {
-                    if (target != null && target != hoveredProbe)
-                    {
-                        UnhoverProbe(hoveredProbe);
-                        HoverProbe(hit.transform.gameObject);
-                    }
+                    UnhoverProbe();
                 }
             }
             else
             {
-                UnhoverProbe(hoveredProbe);
+                UnhoverProbe();
             }
-        }
-        else
-        {
-            UnhoverProbe(hoveredProbe);
         }
     }
 
@@ -156,14 +152,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             string subject = (string)row["subject"];
             string date = (string)row["date"];
             string selectable = (string)row["selectable"];
-
-            int labIdx = 0;
-            for (int i = 0; i < labs.Length; i++)
-                if (labs[i].Equals(lab))
-                {
-                    labIdx = i;
-                    break;
-                }
 
             Vector3 pos = new Vector3((float)row["ml_ccf_tip"], (float)row["ap_ccf_tip"], (float)row["dv_ccf_tip"]);
             Vector3 angles = new Vector3((float)row["phi"], (float)row["theta"], (float)row["depth"]);
@@ -206,14 +194,14 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         hoveredProbe = probe;
     }
 
-    public void UnhoverProbe(GameObject probe)
+    public void UnhoverProbe()
     {
-        if (probe != null)
+        if (hoveredProbe != null)
         {
-            probe.GetComponent<ProbeComponent>().SetTrackActive(false);
-            probe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
-            if (!(highlightedProbe==probe))
-                probe.GetComponent<Renderer>().material.color = defaultColor;
+            hoveredProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
+            hoveredProbe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
+            if (!(highlightedProbe== hoveredProbe))
+                hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
         }
         hoveredProbe = null;
     }
@@ -229,8 +217,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         highlightedProbe = probe;
 
         // also set the lab information
-        (_, string lab, string subj, string date) = probe.GetComponent<ProbeComponent>().GetInfo();
-        infoText.SetText(lab, subj, date, labColors[lab]);
+        (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
+        //infoText.SetText(lab, subj, date, labColors[lab]);
 
         probe.GetComponent<Renderer>().material.color = labColors[lab];
     }
