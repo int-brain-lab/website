@@ -117,6 +117,9 @@ def save_json(path, dct):
 
 
 def load_json(path):
+    if not path.exists():
+        logger.error(f"file {path} doesn't exist")
+        return {}
     with open(path, 'r') as f:
         return json.load(f)
 
@@ -206,7 +209,7 @@ class Generator:
         yield from range(DEBUG)  # self.n_trials)
 
     def iter_cluster(self):
-        yield from self.cluster_idxs[:DEBUG]
+        yield from sorted(self.cluster_idxs)[:DEBUG]
 
     # Saving JSON details
     # -------------------------------------------------------------------------------------------------
@@ -360,6 +363,7 @@ class Generator:
             self.make_cluster_plot(cluster_idx)
 
     def make_all_session_plots(self):
+        logger.info(f"Making all session plots for session {self.pid}")
         self.make_session_plot()
         self.make_all_trial_plots()
         self.make_all_cluster_plots()
