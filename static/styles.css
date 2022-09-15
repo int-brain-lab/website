@@ -250,6 +250,7 @@ h2 {
     width: 100%;
     background-image: url('/static/fallback.png');
     background-size: contain;
+    background-repeat: no-repeat;
     aspect-ratio: 1;
 }
 
