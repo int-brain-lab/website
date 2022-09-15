@@ -178,9 +178,6 @@ def iter_session():
 # Plot and JSON generator
 # -------------------------------------------------------------------------------------------------
 
-DEBUG = 5
-
-
 class Generator:
     def __init__(self, pid):
         self.dl = DataLoader()
@@ -206,10 +203,10 @@ class Generator:
     # -------------------------------------------------------------------------------------------------
 
     def iter_trial(self):
-        yield from range(DEBUG)  # self.n_trials)
+        yield from range(self.n_trials)
 
     def iter_cluster(self):
-        yield from sorted(self.cluster_idxs)[:DEBUG]
+        yield from sorted(self.cluster_idxs)
 
     # Saving JSON details
     # -------------------------------------------------------------------------------------------------
