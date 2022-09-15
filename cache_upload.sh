@@ -1,4 +1,6 @@
 #python generator.py # for all sessions
-# python generator.py <pid> # for 1 session
+#python generator.py <pid> # for 1 session
 
-scp -r cache iblviz:/mnt/data/cache
+zip -r cache.zip cache/
+scp -r cache.zip iblviz:~/
+ssh iblviz "mv ~/cache.zip /var/www/ibl_website/website && cd /var/www/ibl_website/website && unzip cache.zip"
