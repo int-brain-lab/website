@@ -3,20 +3,18 @@
 # -------------------------------------------------------------------------------------------------
 
 import argparse
-import io
+from datetime import datetime, date
 import functools
+import io
+import json
 import locale
 import logging
 from pathlib import Path
 import png
 import sys
-# import time
 from uuid import UUID
 
-from flask_cors import CORS
-from flask_caching import Cache
-from flask import Flask, render_template, send_file, g
-# from joblib import Parallel, delayed
+from joblib import Parallel, delayed
 from tqdm import tqdm
 import numpy as np
 import matplotlib as mpl
@@ -42,6 +40,7 @@ locale.setlocale(locale.LC_ALL, '')
 
 ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
+CACHE_DIR = ROOT_DIR / 'cache'
 PORT = 4321
 
 
@@ -53,6 +52,13 @@ class Bunch(dict):
     def __init__(self, *args, **kwargs):
         self.__dict__ = self
         super().__init__(*args, **kwargs)
+
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, (datetime, date)):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
 
 
 def normalize(x, target='float'):
@@ -74,50 +80,6 @@ def to_png(arr):
     p.write(b)
     b.seek(0)
     return b
-
-
-def send_image(img):
-    return send_file(to_png(img), mimetype='image/png')
-
-
-def send_figure(fig):
-    buf = io.BytesIO()
-    fig.savefig(buf)
-    plt.close(fig)
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
-
-
-def send_png_bytes(btes):
-    buf = io.BytesIO(btes)
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
-
-
-def fig2bytes(fig):
-    buf = io.BytesIO()
-    fig.savefig(buf)
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
-
-
-def wrap_fig2bytes(f):  # f should be a function returning a matplotlib Figure
-    # the wrapped function returns PNG bytes
-    @functools.wraps(f)
-    def wrapped(*args, **kwargs):
-        fig = f(*args, **kwargs)
-        return fig2bytes(fig)
-    return wrapped
-
-
-def wrap_bytes(f):  # f should be a function returning PNG bytes
-    # wrapped returns a flask response object
-    @functools.wraps(f)
-    def wrapped(*args, **kwargs):
-        btes = f(*args, **kwargs)
-        return send_png_bytes(btes)
-    return wrapped
 
 
 def is_valid_uuid(uuid_to_test, version=4):
@@ -149,8 +111,54 @@ def is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
+def save_json(path, dct):
+    with open(path, 'w') as f:
+        json.dump(dct, f, sort_keys=True, cls=DateTimeEncoder)
+
+
+def load_json(path):
+    with open(path, 'r') as f:
+        return json.load(f)
+
+
 # -------------------------------------------------------------------------------------------------
-# Functions
+# Path functions
+# -------------------------------------------------------------------------------------------------
+
+def session_data_path(pid):
+    return DATA_DIR / pid
+
+
+def session_cache_path(pid):
+    return CACHE_DIR / pid
+
+
+def session_details_path(pid):
+    return session_cache_path(pid) / 'session.json'
+
+
+def trial_details_path(pid, trial_idx):
+    return session_cache_path(pid) / f'trial-{trial_idx:04d}.json'
+
+
+def cluster_details_path(pid, cluster_idx):
+    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.json'
+
+
+def session_overview_path(pid):
+    return session_cache_path(pid) / 'overview.png'
+
+
+def trial_overview_path(pid, trial_idx):
+    return session_cache_path(pid) / f'trial-{trial_idx:04d}.png'
+
+
+def cluster_overview_path(pid, cluster_idx):
+    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.png'
+
+
+# -------------------------------------------------------------------------------------------------
+# Session iterator
 # -------------------------------------------------------------------------------------------------
 
 def get_pids():
@@ -159,91 +167,71 @@ def get_pids():
     return pids
 
 
-def open_file(pid, name):
-    return np.load(DATA_DIR / pid / name, mmap_mode='r')
-
-
-def get_sessions(pids):
-    return [{'pid': pid} for pid in pids]
-
-
-def get_js_context():
-    return {}
-
-
-@functools.lru_cache(maxsize=None)
-def get_data_loader(pid):
-    loader = DataLoader()
-    loader.session_init(pid)
-    return loader
+def iter_session():
+    yield from get_pids()
 
 
 # -------------------------------------------------------------------------------------------------
-# Server
+# Plot and JSON generator
 # -------------------------------------------------------------------------------------------------
 
-def make_app():
-    app = Flask(__name__)
-    app.config['JSON_SORT_KEYS'] = False
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
-    app.config['CACHE_TYPE'] = 'FileSystemCache'
-    app.config['CACHE_DEFAULT_TIMEOUT'] = 0
-    app.config['CACHE_THRESHOLD'] = 0
-    app.config['CACHE_DIR'] = DATA_DIR / 'cache'
-    CORS(app, support_credentials=True)
-    # app.config.from_mapping(aconfig)
-    cache = Cache(app)
+DEBUG = 5
 
-    def cache_fig(f):
-        return wrap_bytes(cache.cached()(wrap_fig2bytes(f)))
 
-    # ---------------------------------------------------------------------------------------------
-    # Entry points
-    # ---------------------------------------------------------------------------------------------
+class Generator:
+    def __init__(self, pid):
+        self.dl = DataLoader()
+        self.dl.session_init(pid)
+        self.pid = pid
 
-    @app.route('/')
-    def main():
-        return render_template(
-            'index.html',
-            sessions=get_sessions(get_pids()),
-            js_context=get_js_context(),
-        )
+        # Ensure the session cache folder exists.
+        session_cache_path(pid).mkdir(exist_ok=True, parents=True)
 
-    @app.route('/app')
-    def the_app():
-        return render_template(
-            'app.html',
-            sessions=get_sessions(get_pids()),
-            js_context=get_js_context(),
-        )
+        # Load the session details.
+        path = session_details_path(pid)
+        self.session_details = self.dl.get_session_details()
 
-    # JSON details
-    # ---------------------------------------------------------------------------------------------
+        # Save the session details to a JSON file.
+        logger.debug(f"saving session details for session {pid}")
+        save_json(path, self.session_details)
 
-    @app.route('/api/session/<pid>/details')
-    def session_details(pid):
-        loader = get_data_loader(pid)
-        return loader.get_session_details()
+        self.n_trials = int(self.session_details['N trials'])
+        self.cluster_idxs = self.session_details['_cluster_ids']
+        self.n_clusters = len(self.cluster_idxs)
 
-    @app.route('/api/session/<pid>/trial_details/<int:trial_idx>')
-    @cache.cached()
-    def trial_details(pid, trial_idx):
-        loader = get_data_loader(pid)
-        return loader.get_trial_details(trial_idx)
+    # Iterators
+    # -------------------------------------------------------------------------------------------------
 
-    @app.route('/api/session/<pid>/cluster_details/<int:cluster_idx>')
-    @cache.cached()
-    def cluster_details(pid, cluster_idx):
-        loader = get_data_loader(pid)
-        return loader.get_cluster_details(cluster_idx)
+    def iter_trial(self):
+        yield from range(DEBUG)  # self.n_trials)
 
-    # Figures
-    # ---------------------------------------------------------------------------------------------
+    def iter_cluster(self):
+        yield from self.cluster_idxs[:DEBUG]
 
-    @app.route('/api/session/<pid>/session_plot')
-    @cache_fig
-    def session_overview_plot(pid):
-        loader = get_data_loader(pid)
+    # Saving JSON details
+    # -------------------------------------------------------------------------------------------------
+
+    def save_trial_details(self, trial_idx):
+        logger.debug(f"saving trial details for session {self.pid}")
+        details = self.dl.get_trial_details(trial_idx)
+        path = trial_details_path(self.pid)
+        save_json(path, details)
+
+    def save_cluster_details(self, cluster_idx):
+        logger.debug(f"saving cluster details for session {self.pid}")
+        details = self.dl.get_cluster_details(cluster_idx)
+        path = cluster_details_path(self.pid)
+        save_json(path, details)
+
+    # Plot functions
+    # -------------------------------------------------------------------------------------------------
+
+    def make_session_plot(self):
+        path = session_overview_path(self.pid)
+        if path.exists():
+            return
+        logger.debug(f"making session overview plot for session {self.pid}")
+        loader = self.dl
 
         fig = plt.figure(figsize=(15, 10))
         gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[10, 4], wspace=0.2)
@@ -290,25 +278,32 @@ def make_app():
         set_figure_style(fig)
         fig.subplots_adjust(top=1.02, bottom=0.05)
 
-        return fig
+        fig.savefig(path)
+        plt.close(fig)
 
-    @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
-    @cache_fig
-    def trial_overview_plot(pid, trial_idx):
-        loader = get_data_loader(pid)
+    def make_trial_plot(self, trial_idx):
+        path = trial_overview_path(self.pid, trial_idx)
+        if path.exists():
+            return
+        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
+        loader = self.dl
+
         fig, axs = plt.subplots(1, 3, figsize=(8, 4), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
         loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
         loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1])
         axs[1].get_yaxis().set_visible(False)
         loader.plot_brain_regions(axs[2])
         set_figure_style(fig)
-        return fig
 
-    @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
-    @cache_fig
-    def cluster_overview_plot(pid, cluster_idx):
+        fig.savefig(path)
+        plt.close(fig)
 
-        loader = get_data_loader(pid)
+    def make_cluster_plot(self, cluster_idx):
+        path = cluster_overview_path(self.pid, cluster_idx)
+        if path.exists():
+            return
+        logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
+        loader = self.dl
 
         fig = plt.figure(figsize=(12, 5))
 
@@ -348,86 +343,42 @@ def make_app():
         ax4.sharex(ax5)
         ax6.sharex(ax7)
 
-        return fig
+        fig.savefig(path)
+        plt.close(fig)
 
-    return app
+    # Plot generator functions
+    # -------------------------------------------------------------------------------------------------
+
+    def make_all_trial_plots(self):
+        desc = "Making all trial plots  "
+        for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
+            self.make_trial_plot(trial_idx)
+
+    def make_all_cluster_plots(self):
+        desc = "Making all cluster plots"
+        for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
+            self.make_cluster_plot(cluster_idx)
+
+    def make_all_session_plots(self):
+        self.make_session_plot()
+        self.make_all_trial_plots()
+        self.make_all_cluster_plots()
 
 
-# -------------------------------------------------------------------------------------------------
-# Cache generator
-# -------------------------------------------------------------------------------------------------
-
-def _get_uri(rule, values):
-    try:
-        return rule.build(values)[1]
-    except Exception as e:
-        logger.debug(f"Error: {e}")
+def make_session_plots(pid):
+    Generator(pid).make_all_session_plots()
 
 
-class CacheGenerator:
-    def __init__(self):
-        self.app = make_app()
-        self.client = self.app.test_client()
-
-    def iter_uris(self, pid=None):
-        values = {}
-
-        for rule in self.app.url_map.iter_rules():
-            args = rule.arguments
-
-            # if a pid is specified as an argument: iterate over all rules depending on the pid
-            if pid is not None and 'pid' in args:
-                # for pid in pids:
-                details = self.client.get(f"api/session/{pid}/details").json
-                cluster_ids = details['_cluster_ids']
-                n_trials = int(details['N trials'])
-                values['pid'] = pid
-                if 'cluster_idx' in args:
-                    for cluster_idx in (cluster_ids):
-                        values['cluster_idx'] = cluster_idx
-                        yield _get_uri(rule, values)
-                elif 'trial_idx' in args:
-                    for trial_idx in (range(n_trials)):
-                        values['trial_idx'] = trial_idx
-                        yield _get_uri(rule, values)
-                else:
-                    yield _get_uri(rule, values)
-
-            # if a pid is not specified as an argument: iterate over all rules NOT depending on the pid
-            if pid is None and 'pid' not in args:
-                yield _get_uri(rule, values)
-
-    def visit_uri(self, uri):
-        if uri:
-            self.client.get(uri)
-
-    def iter_all_uris(self):
-        # URIs not depending on the pid.
-        for uri in self.iter_uris():
-            yield uri
-
-        # URIs depending on the pid.
-        for pid in get_pids():
-            yield from self.iter_uris(pid=pid)
-
-    def generate_cache(self):
-        uris = list(self.iter_all_uris())
-        for uri in tqdm(uris, desc="Generating cache"):
-            self.visit_uri(uri)
+def make_all_plots():
+    Parallel(n_jobs=-2)(delayed(make_session_plots)(pid) for pid in iter_session())
 
 
 if __name__ == '__main__':
-    if 'cache' in sys.argv:
-        gen = CacheGenerator()
-        gen.generate_cache()
-        exit()
-
-    parser = argparse.ArgumentParser(description='Launch the Flask server.')
-    parser.add_argument('--port', help='the TCP port')
-    args = parser.parse_args()
-
-    port = args.port or PORT
-    logger.info(f"Serving the Flask application on port {port}")
-
-    app = make_app()
-    app.run('0.0.0.0', port=port)
+    if len(sys.argv) == 1:
+        make_all_plots()
+    elif len(sys.argv) == 2:
+        pid = sys.argv[1]
+        if not is_valid_uuid(pid):
+            raise ValueError(f"{pid} not a valid insertion UUID")
+        gen = Generator(pid)
+        gen.make_all_session_plots()
