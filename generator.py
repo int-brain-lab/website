@@ -214,13 +214,13 @@ class Generator:
     def save_trial_details(self, trial_idx):
         logger.debug(f"saving trial details for session {self.pid}")
         details = self.dl.get_trial_details(trial_idx)
-        path = trial_details_path(self.pid)
+        path = trial_details_path(self.pid, trial_idx)
         save_json(path, details)
 
     def save_cluster_details(self, cluster_idx):
         logger.debug(f"saving cluster details for session {self.pid}")
         details = self.dl.get_cluster_details(cluster_idx)
-        path = cluster_details_path(self.pid)
+        path = cluster_details_path(self.pid, cluster_idx)
         save_json(path, details)
 
     # Plot functions
@@ -355,6 +355,7 @@ class Generator:
     def make_all_trial_plots(self):
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
+            self.save_trial_details(trial_idx)
             try:
                 self.make_trial_plot(trial_idx)
             except Exception as e:
@@ -363,6 +364,7 @@ class Generator:
     def make_all_cluster_plots(self):
         desc = "Making all cluster plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
+            self.save_cluster_details(cluster_idx)
             try:
                 self.make_cluster_plot(cluster_idx)
             except Exception as e:
