@@ -6,9 +6,10 @@ import argparse
 import io
 import locale
 import logging
+import os.path as op
 from pathlib import Path
-import png
 
+import png
 from flask_cors import CORS
 from flask_caching import Cache
 from flask import Flask, render_template, send_file, Response
@@ -20,10 +21,43 @@ from generator import *
 # Settings
 # -------------------------------------------------------------------------------------------------
 
-logger = logging.getLogger('ibl_website')
 mpl.use('Agg')
 # mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
+
+
+# -------------------------------------------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------------------------------------------
+
+_logger_fmt = '%(asctime)s.%(msecs)03d [%(levelname)s] %(caller)s %(message)s'
+_logger_date_fmt = '%H:%M:%S'
+
+
+class _Formatter(logging.Formatter):
+    def format(self, record):
+        # Only keep the first character in the level name.
+        record.levelname = record.levelname[0]
+        filename = op.splitext(op.basename(record.pathname))[0]
+        record.caller = '{:s}:{:d}'.format(filename, record.lineno).ljust(20)
+        message = super(_Formatter, self).format(record)
+        color_code = {'D': '90', 'I': '0', 'W': '33', 'E': '31'}.get(record.levelname, '7')
+        message = '\33[%sm%s\33[0m' % (color_code, message)
+        return message
+
+
+logger = logging.getLogger('ibl_website')
+logger.setLevel(logging.DEBUG)
+
+
+def add_default_handler(level='DEBUG', logger=logger):
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
+
+    formatter = _Formatter(fmt=_logger_fmt, datefmt=_logger_date_fmt)
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
 
 
 # -------------------------------------------------------------------------------------------------

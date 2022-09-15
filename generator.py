@@ -352,12 +352,18 @@ class Generator:
     def make_all_trial_plots(self):
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
-            self.make_trial_plot(trial_idx)
+            try:
+                self.make_trial_plot(trial_idx)
+            except Exception as e:
+                print(f"error with session {self.pid} trial  # {trial_idx}: {str(e)}")
 
     def make_all_cluster_plots(self):
         desc = "Making all cluster plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
-            self.make_cluster_plot(cluster_idx)
+            try:
+                self.make_cluster_plot(cluster_idx)
+            except Exception as e:
+                print(f"error with session {self.pid} cluster  # {cluster_idx}: {str(e)}")
 
     def make_all_session_plots(self):
         logger.info(f"Making all session plots for session {self.pid}")
@@ -371,7 +377,7 @@ def make_session_plots(pid):
 
 
 def make_all_plots():
-    Parallel(n_jobs=-2)(delayed(make_session_plots)(pid) for pid in iter_session())
+    Parallel(n_jobs=-3)(delayed(make_session_plots)(pid) for pid in iter_session())
 
 
 if __name__ == '__main__':
