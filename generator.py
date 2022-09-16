@@ -291,7 +291,7 @@ class Generator:
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
         loader = self.dl
 
-        fig, axs = plt.subplots(1, 3, figsize=(8, 4), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
+        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
         loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
         loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1])
         axs[1].get_yaxis().set_visible(False)
