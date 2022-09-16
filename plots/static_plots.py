@@ -469,8 +469,8 @@ class DataLoader:
 
         if trial_idx is not None:
             trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-            ax.axvline(trials['goCue_times'], *ax.get_ylim(), c='k', ls='--')
-            ax.text(trials['goCue_times'], 1.01, f'Trial {trial_idx}', c='k', rotation=45,
+            ax.axvline(trials['intervals'][0], *ax.get_ylim(), c='k', ls='--')
+            ax.text(trials['intervals'][0], 1.01, f'Trial {trial_idx}', c='k', rotation=45,
                     rotation_mode='anchor', ha='left', transform=ax.get_xaxis_transform())
 
         return fig
@@ -483,7 +483,9 @@ class DataLoader:
             fig = ax.get_figure()
 
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-        if np.isnan(trials['feedback_times']):
+        if np.isnan(trials['feedback_times']) and np.isnan(trials['stimOn_times']):
+            spikes = filter_spikes_by_trial(self.spikes, trials['intervals'][0], trials['intervals'][1])
+        elif np.isnan(trials['feedback_times']):
             spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['stimOn_times'] + 1)
         elif np.isnan(trials['stimOn_times']):
             spikes = filter_spikes_by_trial(self.spikes, trials['feeback_times'] - 1, trials['feedback_times'] + 0.5)
