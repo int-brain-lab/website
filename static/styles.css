@@ -104,6 +104,11 @@ body {
     margin: 0 20px;
 }
 
+#header .menu-explore {
+    font-weight: 500;
+    color: #0898d4;
+}
+
 
 
 /*************************************************************************************************/
@@ -189,10 +194,10 @@ h2 {
 /*************************************************************************************************/
 
 .button.button-primary {
-    background-color: #005292;
+    background-color: #0898d4;
     width: 100%;
     font-size: 14pt;
-    font-weight: 400;
+    font-weight: 600;
     height: auto;
     padding: 5px;
 }
