@@ -10,7 +10,9 @@ public class ProbeComponent : MonoBehaviour
     private string lab;
     private string mouse;
     private string date;
+    private bool _highlighted;
 
+    public bool Highlighted { get { return _highlighted; } set { _highlighted = value; } }
 
     public void SetTrackHighlight(Color color)
     {
