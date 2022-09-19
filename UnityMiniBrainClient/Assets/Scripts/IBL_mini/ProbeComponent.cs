@@ -13,12 +13,9 @@ public class ProbeComponent : MonoBehaviour
 
     private GameObject probeTrack;
 
-    public void SetTrackHighlight(bool state)
+    public void SetTrackHighlight(Color color)
     {
-        if (state)
-            probeTrack.GetComponent<Renderer>().material.color = Color.red;
-        else
-            probeTrack.GetComponent<Renderer>().material.color = Color.cyan;
+        probeTrack.GetComponent<Renderer>().material.color = color;
     }
 
     public void SetTrackActive(bool state)

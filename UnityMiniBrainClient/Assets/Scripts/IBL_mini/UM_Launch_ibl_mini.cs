@@ -148,6 +148,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         {
             GameObject newProbe = Instantiate(probeLinePrefab, probeParentT);
             string pid = (string)row["pid"];
+            pid = pid.ToLower();
             string lab = (string)row["lab"];
             string subject = (string)row["subject"];
             string date = (string)row["date"];
@@ -162,7 +163,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(pid, lab, subject, date);
 
             SetProbePositionAndAngles(newProbe.transform, pos, angles);
-
+            
             if (selectable.Equals("TRUE"))
                 ActivateProbe(pid);
         }
@@ -170,13 +171,14 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
+        GameObject probe = pid2probe[pid];
         Debug.Log("Activate: " + pid);
-        pid2probe[pid].GetComponentInChildren<Renderer>().material.color = defaultColor;
+        probe.GetComponentInChildren<Renderer>().material.color = defaultColor;
         //pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
-        pid2probe[pid].GetComponentInChildren<BoxCollider>().enabled = true;
-        pid2probe[pid].GetComponentInChildren<BoxCollider>().isTrigger = true;
+        probe.GetComponentInChildren<BoxCollider>().enabled = true;
+        probe.GetComponentInChildren<BoxCollider>().isTrigger = true;
         // make it bigger
-        pid2probe[pid].transform.localScale = new Vector3(5f, 1f, 5f);
+        probe.transform.localScale = new Vector3(5f, 1f, 5f);
     }
 
     public void DeactivateProbe(string pid)
@@ -187,28 +189,34 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void HoverProbe(GameObject probe)
     {
-        probe.GetComponent<ProbeComponent>().SetTrackActive(true);
-        probe.GetComponent<ProbeComponent>().SetTrackHighlight(true);
-        if (!(highlightedProbe==probe))
+        (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
+
+        if (highlightedProbe!=probe)
+        {
+            probe.GetComponent<ProbeComponent>().SetTrackActive(true);
+            probe.GetComponent<ProbeComponent>().SetTrackHighlight(Color.red);
             probe.GetComponent<Renderer>().material.color = Color.red;
+        }
         hoveredProbe = probe;
     }
 
     public void UnhoverProbe()
     {
-        if (hoveredProbe != null)
+        if (hoveredProbe != null && !(highlightedProbe==hoveredProbe))
         {
-            hoveredProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
-            hoveredProbe.GetComponent<ProbeComponent>().SetTrackHighlight(false);
-            if (!(highlightedProbe== hoveredProbe))
-                hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
+            if (highlightedProbe != hoveredProbe)
+                hoveredProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
+            hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
         }
         hoveredProbe = null;
     }
 
     public void HighlightProbe(string pid) {
-        Debug.Log("Highlighting pid: " + pid);
-        HighlightProbeGO(pid2probe[pid]);
+        pid = pid.ToLower();
+        if (pid2probe.ContainsKey(pid))
+            HighlightProbeGO(pid2probe[pid]);
+        else
+            Debug.Log(string.Format("{0} does not exist in pid list", pid));
     }
 
     public void HighlightProbeGO(GameObject probe) {
@@ -216,17 +224,22 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
         highlightedProbe = probe;
 
+
         // also set the lab information
         (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
         //infoText.SetText(lab, subj, date, labColors[lab]);
 
+        probe.GetComponent<ProbeComponent>().SetTrackActive(true);
+        probe.GetComponent<ProbeComponent>().SetTrackHighlight(labColors[lab]);
         probe.GetComponent<Renderer>().material.color = labColors[lab];
     }
 
     public void UnhighlightProbe() {
         if (highlightedProbe != null) {
             highlightedProbe.GetComponent<Renderer>().material.color = defaultColor;
+            highlightedProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
         }
+        highlightedProbe = null;
     }
 
     public void SelectProbe(GameObject probe)
