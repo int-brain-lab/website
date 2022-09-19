@@ -27,6 +27,14 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="twelve columns">
+        <p>Select to view one example probe insertion (gray) out of the hundreds recorded across all mice (white),
+            either by clicking on the brain or by selecting its unique identifier (PID).
+        </p>
+    </div>
+</div>
+
 <!-- FIRST ROW -->
 <div class="row">
     <!-- UNITY -->
@@ -57,12 +65,40 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="twelve columns">
+        <p>Glimpse over example informative features computed on either the electrophysiology or behavior signals
+            throughout the whole session duration.</p>
+
+        <p> Observe the differences in the raw ephys signals (e.g. RMS of the high-frequency AP signal ; or power in the
+            delta band of the LFP) recorded across the depth of the probe, whose recording channels span multiple brain
+            regions.
+        </p>
+
+        <p>
+            Similarly, assess the distribution of multi-units versus single good clusters, or properties of single
+            clusters along the probe (e.g. firing rate).
+        </p>
+    </div>
+</div>
+
+
+
 
 <!-- SESSION PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
     <div class="twelve columns">
         <img id="sessionPlot">
+        <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+            class="loading">
+    </div>
+</div>
+
+<div class="row">
+    <div class="twelve columns">
+        <p>Get insights on the behavior performance thanks to psychometric curves, chronometric functions or reaction
+            time distribution across the recording session.</p>
     </div>
 </div>
 
@@ -73,6 +109,14 @@
         <h2>Single trial overview</h2>
     </div>
 </div>
+
+<div class="row">
+    <div class="twelve columns">
+        <p>Select a trial from the dropdown menu to see its associated parameters and outcome. Notice its position
+            within the recording, and the pattern of ephys activity around important behavioral events.</p>
+    </div>
+</div>
+
 
 <div class="row">
     <!-- Trial selector -->
@@ -99,13 +143,20 @@
 
 <!-- TRIAL PLOTS -->
 <div>
-    <!-- Placeholder for unity -->
-    <div class="six columns">
-        <canvas id="placeholder-canvas"></canvas>
-    </div>
     <!-- Trial raster plot -->
-    <div class="six columns">
-        <img id="trialPlot">
+    <div class="row">
+        <div class="twelve columns">
+            <img id="trialPlot">
+            <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
+        </div>
+    </div>
+
+    <!-- Placeholder for unity -->
+    <div class="row">
+        <div class="twelve columns">
+            <canvas id="placeholder-canvas"></canvas>
+        </div>
     </div>
 </div>
 
@@ -116,6 +167,13 @@
         <h2>Single cluster overview</h2>
     </div>
 </div>
+
+<div class="row">
+    <div class="twelve columns">
+        <p>Select a good cluster from the dropdown menu to visualize its properties.</p>
+    </div>
+</div>
+
 
 <div class="row">
     <!-- Cluster selector -->
@@ -146,6 +204,8 @@
     <div class="twelve columns">
         <!-- Cluster overview plot -->
         <img id="clusterPlot">
+        <img id="clusterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+            class="loading">
     </div>
 </div>
 

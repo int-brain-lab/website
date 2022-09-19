@@ -204,3 +204,5 @@ UnityClient/docs/*
 data/*
 .DS_Store
 *~
+cache
+cache.zip
