@@ -167,6 +167,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             if (selectable.Equals("TRUE"))
                 ActivateProbe(pid);
         }
+
+        HighlightProbe("1841cf1f-725d-499e-ab8e-7f6fc8c308b6");
     }
 
     public void ActivateProbe(string pid)
@@ -189,12 +191,14 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void HoverProbe(GameObject probe)
     {
-        (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
+        ProbeComponent probeComponent = probe.GetComponent<ProbeComponent>();
 
-        if (highlightedProbe!=probe)
+        (_, string lab, _, _) = probeComponent.GetInfo();
+
+        if (!probeComponent.Highlighted)
         {
-            probe.GetComponent<ProbeComponent>().SetTrackActive(true);
-            probe.GetComponent<ProbeComponent>().SetTrackHighlight(Color.red);
+            probeComponent.SetTrackActive(true);
+            probeComponent.SetTrackHighlight(Color.red);
             probe.GetComponent<Renderer>().material.color = Color.red;
         }
         hoveredProbe = probe;
@@ -202,18 +206,21 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void UnhoverProbe()
     {
-        if (hoveredProbe != null && !(highlightedProbe==hoveredProbe))
+        if (hoveredProbe != null)
         {
-            if (highlightedProbe != hoveredProbe)
-                hoveredProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
-            hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
+            ProbeComponent probeComponent = hoveredProbe.GetComponent<ProbeComponent>();
+            if (!probeComponent.Highlighted)
+            {
+                probeComponent.SetTrackActive(false);
+                hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
+            }
         }
         hoveredProbe = null;
     }
 
     public void HighlightProbe(string pid) {
-        pid = StripSpecialChars(pid);
-        Debug.Log(pid2probe);
+        //pid = StripSpecialChars(pid);
+        //Debug.Log(pid2probe);
         if (pid2probe.ContainsKey(pid))
             HighlightProbeGO(pid2probe[pid]);
         else
@@ -235,13 +242,13 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     /// <param name="probe"></param>
     public void HighlightProbeGO(GameObject probe) {
         UnhighlightProbe();
+        ProbeComponent probeComponent = probe.GetComponentInChildren<ProbeComponent>();
 
         highlightedProbe = probe;
+        probeComponent.Highlighted = true;
 
-        // also set the lab information
-        ProbeComponent probeComponent = probe.GetComponentInChildren<ProbeComponent>();
+        // also get the lab information
         (_, string lab, _, _) = probeComponent.GetInfo();
-        //infoText.SetText(lab, subj, date, labColors[lab]);
 
         probeComponent.SetTrackActive(true);
         probeComponent.SetTrackHighlight(labColors[lab]);
@@ -250,9 +257,13 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void UnhighlightProbe()
     {
-        if (highlightedProbe != null) {
+        if (highlightedProbe != null)
+        {
+            ProbeComponent probeComponent = highlightedProbe.GetComponentInChildren<ProbeComponent>();
+
             highlightedProbe.GetComponentInChildren<Renderer>().material.color = defaultColor;
-            highlightedProbe.GetComponentInChildren<ProbeComponent>().SetTrackActive(false);
+            probeComponent.SetTrackActive(false);
+            probeComponent.Highlighted = false; 
         }
         highlightedProbe = null;
     }
