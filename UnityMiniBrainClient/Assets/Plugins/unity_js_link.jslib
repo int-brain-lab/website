@@ -4,6 +4,10 @@ mergeInto(LibraryManager.library, {
     selectPID(UTF8ToString(pid));
   },
 
+  UnityLoaded: function() {
+    unityLoaded();
+  },
+
   SelectCluster: function (cluster) {
     selectCluster(cluster);
   },
