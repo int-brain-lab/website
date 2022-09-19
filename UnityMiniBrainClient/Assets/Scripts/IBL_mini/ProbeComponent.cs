@@ -20,10 +20,10 @@ public class ProbeComponent : MonoBehaviour
 
     public void SetTrackActive(bool state)
     {
+        if (probeTrack == null)
+            probeTrack = Instantiate(probeTrackPrefab, transform);
         if (state)
         {
-            if (probeTrack == null)
-                probeTrack = Instantiate(probeTrackPrefab, transform);
             probeTrack.SetActive(true);
         }
         else
