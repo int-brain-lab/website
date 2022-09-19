@@ -270,7 +270,7 @@ async function selectSession(pid) {
     CTX.pid = pid;
 
     if (myGameInstance)
-        myGameInstance.SendMessage("main", "HighlightProbe", pid);
+        myGameInstance.SendMessage("main", "HighlightProbeGO", pid);
 
     // Show the session details.
     var url = `/api/session/${pid}/details`;
