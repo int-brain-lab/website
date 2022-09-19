@@ -212,40 +212,60 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     }
 
     public void HighlightProbe(string pid) {
-        pid = pid.ToLower();
+        pid = StripSpecialChars(pid);
+        Debug.Log(pid2probe);
         if (pid2probe.ContainsKey(pid))
             HighlightProbeGO(pid2probe[pid]);
         else
             Debug.Log(string.Format("{0} does not exist in pid list", pid));
     }
 
+    private string StripSpecialChars(string input)
+    {
+        string[] chars = new string[] { ",", ".", "/", "!", "@", "#", "$", "%", "^", "&", "*", "'", "\"", ";", "_", "(", ")", ":", "|", "[", "]" };
+        foreach (string checkStr in chars)
+            if (input.Contains(checkStr))
+                input.Replace(checkStr, "");
+        return input;
+    }
+
     public void HighlightProbeGO(GameObject probe) {
+        Debug.Log(1);
         UnhighlightProbe();
+        Debug.Log(2);
 
         highlightedProbe = probe;
+        Debug.Log(3);
 
 
         // also set the lab information
         (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
         //infoText.SetText(lab, subj, date, labColors[lab]);
 
+        Debug.Log(4);
         probe.GetComponent<ProbeComponent>().SetTrackActive(true);
+        Debug.Log(5);
         probe.GetComponent<ProbeComponent>().SetTrackHighlight(labColors[lab]);
+        Debug.Log(6);
         probe.GetComponent<Renderer>().material.color = labColors[lab];
+        Debug.Log(7);
     }
 
-    public void UnhighlightProbe() {
+    public void UnhighlightProbe()
+    {
+        Debug.Log(00);
         if (highlightedProbe != null) {
             highlightedProbe.GetComponent<Renderer>().material.color = defaultColor;
             highlightedProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
         }
+        Debug.Log(000);
         highlightedProbe = null;
     }
 
     public void SelectProbe(GameObject probe)
     {
         (string pid, _, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
-        HighlightProbeGO(probe);
+
 #if !UNITY_EDITOR && UNITY_WEBGL
         SelectPID(pid);
 #endif

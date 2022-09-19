@@ -261,15 +261,15 @@ function setupSliders() {
 function selectPID(pid) {
     // UNITY callback
     document.getElementById('sessionSelector').value = pid;
-    selectSession(pid, true);
+    selectSession(pid);
 };
 
 
 
-async function selectSession(pid, fromUnity = false) {
+async function selectSession(pid) {
     CTX.pid = pid;
 
-    if (myGameInstance && !fromUnity)
+    if (myGameInstance)
         myGameInstance.SendMessage("main", "HighlightProbe", pid);
 
     // Show the session details.
