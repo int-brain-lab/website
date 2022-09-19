@@ -1,11 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 
 public class UM_Launch_ibl_mini : MonoBehaviour
@@ -14,6 +8,8 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     private static extern void SelectPID(string pid);
     [DllImport("__Internal")]
     private static extern void SelectCluster(int cluster);
+    [DllImport("__Internal")]
+    private static extern void UnityLoaded();
 
     //[SerializeField] private CCFModelControl modelControl;
     [SerializeField] private BrainCameraController cameraController;
@@ -49,7 +45,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("v0.1.0");
+        Debug.Log("v0.2.0");
 
         pid2probe = new Dictionary<string, GameObject>();
 
@@ -76,6 +72,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         cameraController.SetBrainAxisAngles(new Vector3(0f, 45f, 135f));
         umCamera.SwitchCameraMode(false);
 
+#if !UNITY_EDITOR && UNITY_WEBGL
+        UnityLoaded();
+#endif
     }
 
     // Update is called once per frame
@@ -167,8 +166,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             if (selectable.Equals("TRUE"))
                 ActivateProbe(pid);
         }
-
-        HighlightProbe("1841cf1f-725d-499e-ab8e-7f6fc8c308b6");
     }
 
     public void ActivateProbe(string pid)

@@ -233,7 +233,7 @@ function loadUnity() {
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Daniel Birman @ UW",
         productName: "IBLMini",
-        productVersion: "0.1.1",
+        productVersion: "0.2.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
@@ -257,13 +257,17 @@ function setupSliders() {
 };
 
 
-
 function selectPID(pid) {
     // UNITY callback
     document.getElementById('sessionSelector').value = pid;
     selectSession(pid);
 };
 
+function unityLoaded() {
+    /// Unity loaded callback event, update the current highlighted probe
+    if (myGameInstance)
+        myGameInstance.SendMessage("main", "HighlightProbe", CTX.pid);
+}
 
 
 async function selectSession(pid) {
