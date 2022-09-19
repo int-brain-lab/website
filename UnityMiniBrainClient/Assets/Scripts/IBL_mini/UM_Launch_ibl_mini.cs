@@ -229,36 +229,31 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         return input;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="probe"></param>
     public void HighlightProbeGO(GameObject probe) {
-        Debug.Log(1);
         UnhighlightProbe();
-        Debug.Log(2);
 
         highlightedProbe = probe;
-        Debug.Log(3);
-
 
         // also set the lab information
-        (_, string lab, _, _) = probe.GetComponent<ProbeComponent>().GetInfo();
+        ProbeComponent probeComponent = probe.GetComponentInChildren<ProbeComponent>();
+        (_, string lab, _, _) = probeComponent.GetInfo();
         //infoText.SetText(lab, subj, date, labColors[lab]);
 
-        Debug.Log(4);
-        probe.GetComponent<ProbeComponent>().SetTrackActive(true);
-        Debug.Log(5);
-        probe.GetComponent<ProbeComponent>().SetTrackHighlight(labColors[lab]);
-        Debug.Log(6);
-        probe.GetComponent<Renderer>().material.color = labColors[lab];
-        Debug.Log(7);
+        probeComponent.SetTrackActive(true);
+        probeComponent.SetTrackHighlight(labColors[lab]);
+        probe.GetComponentInChildren<Renderer>().material.color = labColors[lab];
     }
 
     public void UnhighlightProbe()
     {
-        Debug.Log(00);
         if (highlightedProbe != null) {
-            highlightedProbe.GetComponent<Renderer>().material.color = defaultColor;
-            highlightedProbe.GetComponent<ProbeComponent>().SetTrackActive(false);
+            highlightedProbe.GetComponentInChildren<Renderer>().material.color = defaultColor;
+            highlightedProbe.GetComponentInChildren<ProbeComponent>().SetTrackActive(false);
         }
-        Debug.Log(000);
         highlightedProbe = null;
     }
 

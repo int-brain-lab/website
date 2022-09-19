@@ -29,7 +29,6 @@ public class CSVReader
 				string value = values[j];
 				value = value.TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
 				object finalvalue = value;
-				int n;
 				float f;
 				if (float.TryParse(value, out f))
 				{
