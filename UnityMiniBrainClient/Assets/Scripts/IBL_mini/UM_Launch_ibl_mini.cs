@@ -45,7 +45,12 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("v0.2.0");
+        Debug.Log("v0.2.1");
+
+#if !UNITY_EDITOR && UNITY_WEBGL
+        // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
+        WebGLInput.captureAllKeyboardInput = false;
+#endif
 
         pid2probe = new Dictionary<string, GameObject>();
 
@@ -59,11 +64,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         }
 
         LoadProbes();
-
-#if !UNITY_EDITOR && UNITY_WEBGL
-        // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
-        WebGLInput.captureAllKeyboardInput = false;
-#endif
     }
 
     // Start is called before the first frame update
