@@ -67,6 +67,7 @@ def add_default_handler(level='DEBUG', logger=logger):
 ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'data'
 PORT = 4321
+DEFAULT_PID = '7d999a68-0215-4e45-8e6c-879c6ca2b771'
 
 
 # -------------------------------------------------------------------------------------------------
@@ -143,6 +144,7 @@ def make_app():
         return render_template(
             fn,
             sessions=get_sessions(),
+            default_pid=DEFAULT_PID,
             js_context=get_js_context(),
         )
 

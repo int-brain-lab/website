@@ -392,7 +392,7 @@ function setupDropdowns() {
     }
 
     // Initial selection.
-    document.getElementById('sessionSelector').selectedIndex = 0;
+    // document.getElementById('sessionSelector').selectedIndex = 0;
     var pid = document.getElementById('sessionSelector').value;
     selectSession(pid);
 };
