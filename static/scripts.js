@@ -230,7 +230,7 @@ function arrowButton(name, dir) {
 
 function loadAutoComplete() {
 
-    autocomplete({
+    autoCompleteJS = autocomplete({
         container: '#sessionSelector',
         placeholder: 'search for session',
         openOnFocus: true,
@@ -288,8 +288,6 @@ function loadAutoComplete() {
 
 
 function loadUnity() {
-    // return;
-
     // Disable Unity widget on smartphones.
     if (isOnMobile()) return;
 
@@ -328,8 +326,9 @@ function setupSliders() {
 
 function selectPID(pid) {
     // UNITY callback
-    document.getElementById('sessionSelector').value = pid;
+    // document.getElementById('sessionSelector').value = pid;
     selectSession(pid);
+    autoCompleteJS.setQuery(pid);
 };
 
 function unityLoaded() {
