@@ -288,7 +288,7 @@ function loadAutoComplete() {
 
 
 function loadUnity() {
-    return;
+    // return;
 
     // Disable Unity widget on smartphones.
     if (isOnMobile()) return;
