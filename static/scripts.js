@@ -9,7 +9,9 @@ var CTX = {
     pid: null,
     tid: 0,
 };
+const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var myGameInstance = null;
+var autoCompleteJS = null;
 
 
 /*************************************************************************************************/
@@ -20,6 +22,12 @@ function isEmpty(obj) {
     // https://stackoverflow.com/a/679937/1595060
     return Object.keys(obj).length === 0;
 };
+
+
+
+function isValidUUID(pid) {
+    return regexExp.test(pid);
+}
 
 
 
@@ -84,7 +92,7 @@ function verticaltablefromjson(json, elementID) {
     for (let key in json) {
 
         // NOTE: skip internal fields
-        if (key.startsWith("_")) {
+        if (key.startsWith("_") || key == "ID") {
             continue;
         }
 
@@ -220,7 +228,67 @@ function arrowButton(name, dir) {
 /*  Setup functions                                                                              */
 /*************************************************************************************************/
 
+function loadAutoComplete() {
+
+    autocomplete({
+        container: '#sessionSelector',
+        placeholder: 'search for session',
+        openOnFocus: true,
+        initialState: { query: DEFAULT_PID },
+        onStateChange({ state }) {
+            var pid = state.query;
+
+            // We only proceed if a new valid UUID has been selected.
+            if (state.isOpen) return;
+            if (!pid) return;
+            if (pid == CTX.pid) return;
+            if (!isValidUUID(pid)) return;
+            CTX.pid = pid;
+
+            console.log("select " + pid);
+            selectSession(pid);
+        },
+        getSources({ query }) {
+            query_ = query.toLowerCase();
+            return [
+                {
+                    sourceId: 'sessions',
+                    getItemInputValue: ({ item }) => item.ID,
+                    getItems() {
+                        // If 1 session is already selected, show all of them.
+                        if (isValidUUID(query)) return AUTOCOMPLETE;
+
+                        return AUTOCOMPLETE.filter(({ Lab, Subject, ID }) =>
+                            Lab.toLowerCase().includes(query_) ||
+                            Subject.toLowerCase().includes(query_) ||
+                            ID.toLowerCase().includes(query_)
+                        );
+                    },
+                    templates: {
+                        item({ item, html }) {
+                            return html`
+                            <div class="item-container">
+                            <div class="item item-lab">${item.Lab}</div>
+                            <div class="item item-subject">${item.Subject}</div>
+                            <div class="item item-date">${item['Recording date']}</div>
+                            <div class="item item-ID">${item.ID}</div>
+                            </div >`
+                                ;
+                        },
+                        noResults() {
+                            return 'No results.';
+                        },
+                    },
+                },
+            ];
+        },
+    });
+}
+
+
+
 function loadUnity() {
+    return;
 
     // Disable Unity widget on smartphones.
     if (isOnMobile()) return;
@@ -257,6 +325,7 @@ function setupSliders() {
 };
 
 
+
 function selectPID(pid) {
     // UNITY callback
     document.getElementById('sessionSelector').value = pid;
@@ -270,7 +339,9 @@ function unityLoaded() {
 }
 
 
+
 async function selectSession(pid) {
+    if (!pid) return;
     CTX.pid = pid;
 
     if (myGameInstance)
@@ -369,14 +440,6 @@ async function selectCluster(pid, cid) {
 
 
 function setupDropdowns() {
-
-    // Session selector.
-    document.getElementById('sessionSelector').onchange = async function (e) {
-        var pid = e.target.value;
-        if (!pid) return;
-        await selectSession(pid);
-    }
-
     // Trial selector.
     document.getElementById('trialSelector').onchange = function (e) {
         var tid = e.target.value;
@@ -392,9 +455,7 @@ function setupDropdowns() {
     }
 
     // Initial selection.
-    // document.getElementById('sessionSelector').selectedIndex = 0;
-    var pid = document.getElementById('sessionSelector').value;
-    selectSession(pid);
+    selectSession(DEFAULT_PID);
 };
 
 
@@ -450,6 +511,7 @@ function setupPersistence() {
 /*************************************************************************************************/
 
 function load() {
+    loadAutoComplete();
     loadUnity();
     setupPersistence();
     setupSliders();

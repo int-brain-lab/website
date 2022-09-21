@@ -7,11 +7,13 @@ import io
 import locale
 import logging
 import os.path as op
+from operator import itemgetter
 from pathlib import Path
+from pprint import pprint
 
 import png
 from flask_cors import CORS
-from flask_caching import Cache
+# from flask_caching import Cache
 from flask import Flask, render_template, send_file, Response
 
 from generator import *
@@ -118,12 +120,10 @@ def send(path):
 # Functions
 # -------------------------------------------------------------------------------------------------
 
-def get_sessions():
-    return [{'pid': pid} for pid in get_pids()]
-
-
-def get_js_context():
-    return {}
+def autocomplete():
+    sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
+    sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
+    return sessions
 
 
 # -------------------------------------------------------------------------------------------------
@@ -143,9 +143,8 @@ def make_app():
     def _render(fn):
         return render_template(
             fn,
-            sessions=get_sessions(),
+            autocomplete=autocomplete(),
             default_pid=DEFAULT_PID,
-            js_context=get_js_context(),
         )
 
     @app.route('/')

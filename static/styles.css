@@ -194,6 +194,59 @@ h2 {
 /*  Dropdowns                                                                                    */
 /*************************************************************************************************/
 
+#sessionSelector {}
+
+.aa-Panel {
+    height: 300px;
+}
+
+.aa-Panel .item-container {
+    display: inline-block;
+}
+
+.aa-Panel .item {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.aa-Panel .item-lab {
+    width: 120px;
+}
+
+.aa-Panel .item-subject {
+    width: 120px;
+}
+
+.aa-Panel .item-date {
+    width: 80px;
+    font-size: 8pt;
+    color: #555;
+}
+
+.aa-Panel .item-ID {
+    font-size: 8pt;
+    color: #aaa;
+}
+
+
+
+#sessionSelector input.aa-Input {
+    border: 0;
+    margin: auto 0;
+}
+
+#sessionSelector .aa-SubmitButton {
+    margin-top: 8px;
+}
+
+#sessionSelector .aa-SubmitIcon {
+    color: #0898d4;
+}
+
+#sessionSelector .aa-Form {}
+
+
+
 #clusterSelector:not(:focus) option:checked {
     background: linear-gradient(#cecece, #cecece);
 }
