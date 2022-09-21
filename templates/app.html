@@ -48,7 +48,8 @@
         <!-- SESSION DROPDOWN -->
         <select id="sessionSelector" class="u-full-width">
             {% for session in sessions %}
-            <option value="{{ session.pid }}">PID {{ session.pid[:8] }}</option>
+            <option value="{{ session.pid }}" {% if session.pid==default_pid %} selected {% endif %}>PID {{
+                session.pid[:8] }}</option>
             {% endfor %}
         </select>
 
