@@ -190,12 +190,10 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
-UnityMiniBrainClient/Assets/Resources/*
-UnityMiniBrainClient/Assets/Best HTTP/*
-UnityMiniBrainClient/Assets/UXIcons/*
-UnityMiniBrainClient/Assets/vbl-core/Planet Earth Free/*
-UnityMiniBrainClient/ServerData/*
-UnityMiniBrainClient/**/ServerData.zip
+**/Assets/Resources/*
+**/Assets/Best HTTP/*
+**/Assets/UXIcons/*
+**/ServerData/*
 
 **/Server/node_modules/
 *.pyc
