@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 public class CSVReader
 {
@@ -30,7 +31,7 @@ public class CSVReader
 				value = value.TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
 				object finalvalue = value;
 				float f;
-				if (float.TryParse(value, out f))
+				if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out f))
 				{
 					finalvalue = f;
 				}
