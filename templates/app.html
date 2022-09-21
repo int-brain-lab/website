@@ -5,7 +5,8 @@
 
 <!-- Passing data from Flask to Javascript -->
 <script>
-    const JS_CONTEXT = {{ js_context| tojson }};
+    const AUTOCOMPLETE = {{ autocomplete | tojson }};
+    const DEFAULT_PID = {{ default_pid | tojson }};
 </script>
 
 <!-- Custom Array class -->
@@ -16,6 +17,19 @@
 
 <!-- Unity loader -->
 <script src="static/Build/IBLMini-webgl.loader.js"></script>
+
+<!-- autoComplete -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>
+<link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/css/autoComplete.01.min.css">
+ -->
+<script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-js"></script>
+<script>
+    const { autocomplete } = window['@algolia/autocomplete-js'];
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-theme-classic" />
+
+
 {% endblock %}
 
 
@@ -35,7 +49,16 @@
     </div>
 </div>
 
-<!-- FIRST ROW -->
+
+<!-- SESSION DROPDOWN -->
+<div class="row">
+    <div id="sessionSelector" class="u-full-width"></div>
+    <!-- onClick="this.select();"> -->
+    <!-- value="{{ default_pid }}"> -->
+</div>
+
+
+<!-- ROW WITH UNITY AND SESSION DETAILS -->
 <div class="row">
     <!-- UNITY -->
     <div class="eight columns">
@@ -44,17 +67,7 @@
 
     <!-- SESSION DETAILS -->
     <div class="four columns">
-
-        <!-- SESSION DROPDOWN -->
-        <select id="sessionSelector" class="u-full-width">
-            {% for session in sessions %}
-            <option value="{{ session.pid }}" {% if session.pid==default_pid %} selected {% endif %}>PID {{
-                session.pid[:8] }}</option>
-            {% endfor %}
-        </select>
-
-        <div id="sessionDetails">
-        </div>
+        <div id="sessionDetails"></div>
     </div>
 </div>
 
