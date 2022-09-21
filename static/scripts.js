@@ -468,7 +468,24 @@ function setupButtons() {
 
 
 
+/*************************************************************************************************/
+/*  Trial viewer                                                                                 */
+/*************************************************************************************************/
 
+function updateTrialTime(time) {
+    // takes a float time and renders a red vertical line on the trial plot showing the current position
+}
+
+
+function changeTrial(trialIncrement) {
+    // trialIncrement will either be +1 or -1 to go forward or back
+}
+
+function trialViewerLoaded() {
+    // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
+    // call SetSession(pid)
+    // and SetTrial(int)
+}
 
 /*************************************************************************************************/
 /*  Params browser persistence                                                                   */
