@@ -1,7 +1,12 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 public class TrialViewerManager : MonoBehaviour
 {
@@ -12,12 +17,56 @@ public class TrialViewerManager : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void TrialViewerLoaded();
 
+    #region exposed fields
     [SerializeField] private Button prevTrialButton;
     [SerializeField] private Button nextTrialButton;
     [SerializeField] private Button playButton;
     [SerializeField] private Button stopButton;
 
-    private List<(float start, float stimOn, float feedback, bool right, float contrast, bool correct)> trialData;
+    [SerializeField] private Image infoImage;
+    [SerializeField] private Color defaultColor;
+    [SerializeField] private Sprite defaultSprite;
+    [SerializeField] private Sprite goSprite;
+    [SerializeField] private Sprite correctSprite;
+    [SerializeField] private Sprite wrongSprite;
+
+    [SerializeField] private VideoPlayer leftVideoPlayer;
+    [SerializeField] private VideoPlayer bodyVideoPlayer;
+    [SerializeField] private VideoPlayer rightVideoPlayer;
+
+    [SerializeField] private DLCPoint pawLcamR;
+    [SerializeField] private DLCPoint pawRcamR;
+    [SerializeField] private DLCPoint pawLcamL;
+    [SerializeField] private DLCPoint pawRcamL;
+
+    [SerializeField] private GaborStimulus stimulus;
+
+    [SerializeField] private AssetReferenceT<TextAsset> timestampTextAsset;
+    [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
+    #endregion
+
+    #region data
+    private List<(float time, int leftIdx, int bodyIdx,
+                float cr_pawlx, float cr_pawly, float cr_pawrx, float cr_pawry,
+                float cl_pawlx, float cl_pawly, float cl_pawrx, float cl_pawry,
+                float wheel)> timestampData;
+    private List<(int start, int stimOn, int feedback, bool right, float contrast, bool correct)> trialData;
+    private (int start, int stimOn, int feedback, bool right, float contrast, bool correct) currentTrialData;
+    private (int start, int stimOn, int feedback, bool right, float contrast, bool correct) nextTrialData;
+    #endregion
+
+    #region local vars
+    private float time; // the current time referenced from 0 across the entire session
+    private int trial;
+    private bool playing;
+    private Coroutine infoCoroutine;
+    #endregion
+
+    #region trial vars
+    private bool playedGo;
+    private bool playedFeedback;
+    private float sideFlip;
+    #endregion
 
     private void Awake()
     {
@@ -27,44 +76,198 @@ public class TrialViewerManager : MonoBehaviour
 #endif
 
         LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c");
+        leftVideoPlayer.Prepare();
+        rightVideoPlayer.Prepare();
+        bodyVideoPlayer.Prepare();
+
+        Stop();
     }
 
-    public void LoadData(string pid)
+    #region data loading
+    public async void LoadData(string pid)
     {
+        // for now we ignore the PID and just load the referenced assets
+        AsyncOperationHandle<TextAsset> timestampHandle = timestampTextAsset.LoadAssetAsync();
+        AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
+        await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task });
 
+        // parse timestamp data
+        timestampData = CSVReader.ParseTimestampData(timestampHandle.Result.text);
+
+        // parse trial data
+        trialData = CSVReader.ParseTrialData(trialHandle.Result.text);
+
+        Debug.Log(timestampData.Count);
+        Debug.Log(trialData.Count);
+
+        trial = 1;
+        UpdateTrial();
+    }
+    #endregion 
+
+    private void Update()
+    {
+        if (playing)
+        {
+            time += Time.deltaTime;
+
+            if (leftVideoPlayer.isPrepared)
+            {
+                // find the next frame
+                int frameIdx;
+                for (frameIdx = currentTrialData.start; frameIdx < nextTrialData.start; frameIdx++)
+                    if (timestampData[frameIdx].time >= time)
+                        break;
+
+                if (frameIdx >= nextTrialData.start)
+                    NextTrial();
+
+                // stimulus properties
+                if (frameIdx >= currentTrialData.stimOn && frameIdx < currentTrialData.feedback)
+                {
+                    stimulus.gameObject.SetActive(true);
+                    float perc = 1 - ((float) (frameIdx - currentTrialData.stimOn) / (currentTrialData.feedback - currentTrialData.stimOn));
+                    stimulus.SetPosition(sideFlip * perc);
+                }
+                else
+                    stimulus.gameObject.SetActive(false);
+
+
+                if (frameIdx >= currentTrialData.stimOn && !playedGo)
+                {
+                    Debug.Log(frameIdx);
+                    // stim on
+                    playedGo = true;
+                    infoImage.sprite = goSprite;
+                    infoImage.color = Color.yellow;
+
+                    if (infoCoroutine != null)
+                        StopCoroutine(infoCoroutine);
+                    infoCoroutine = StartCoroutine(ClearSprite(0.2f));
+                }
+
+                if (frameIdx >= currentTrialData.feedback && !playedFeedback)
+                {
+                    playedFeedback = true;
+                    if (currentTrialData.correct)
+                    {
+                        infoImage.sprite = goSprite;
+                        infoImage.color = Color.green;
+
+                        if (infoCoroutine != null)
+                            StopCoroutine(infoCoroutine);
+                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
+                    }
+                    else
+                    {
+                        infoImage.sprite = wrongSprite;
+                        infoImage.color = Color.red;
+
+                        if (infoCoroutine != null)
+                            StopCoroutine(infoCoroutine);
+                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
+                    }
+                }
+
+                // Set DLC points
+                pawLcamR.SetPosition(timestampData[frameIdx].cr_pawlx, timestampData[frameIdx].cr_pawly);
+                pawRcamR.SetPosition(timestampData[frameIdx].cr_pawrx, timestampData[frameIdx].cr_pawry);
+                pawLcamL.SetPosition(timestampData[frameIdx].cl_pawlx, timestampData[frameIdx].cl_pawly);
+                pawRcamL.SetPosition(timestampData[frameIdx].cl_pawrx, timestampData[frameIdx].cl_pawry);
+
+                // Set videos
+                rightVideoPlayer.frame = frameIdx;
+                rightVideoPlayer.Play();
+                bodyVideoPlayer.frame = timestampData[frameIdx].bodyIdx;
+                bodyVideoPlayer.Play();
+                leftVideoPlayer.frame = timestampData[frameIdx].leftIdx;
+                leftVideoPlayer.Play();
+            }
+        }
     }
 
+    public IEnumerator ClearSprite(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        infoImage.sprite = defaultSprite;
+        infoImage.color = defaultColor;
+    }
+
+
+    public void UpdateTrial()
+    {
+        //reset trial variables
+        playedGo = false;
+        playedFeedback = false;
+
+        currentTrialData = trialData[trial];
+        nextTrialData = trialData[trial + 1];
+        time = timestampData[currentTrialData.start].time; // get the starting time for the trial
+        Debug.Log(string.Format("Starting trial {0}: start {1} end {2} right {3} correct {4}", trial,
+            currentTrialData.start, nextTrialData.start, currentTrialData.right, currentTrialData.correct));
+
+        // set the stimulus properties
+        stimulus.SetContrast(currentTrialData.contrast);
+        sideFlip = currentTrialData.right ? 1 : -1;
+    }
+
+    #region webpage callbacks
     public void SetSession(string pid)
     {
-
+        Debug.LogWarning("Session cannot be changed until additional sessions are created");
     }
 
     public void SetTrial(int newTrial)
     {
-
+        trial = newTrial;
+        UpdateTrial();
+        
         if (newTrial == 0)
             prevTrialButton.enabled = false;
         if (newTrial == trialData.Count)
             nextTrialButton.enabled = false;
     }
+    #endregion
+
+    #region button controls
 
     public void PrevTrial()
     {
+        trial -= 1;
+        UpdateTrial();
 
+#if !UNITY_EDITOR && UNITY_WEBGL
+        ChangeTrial(trial);
+#endif
     }
 
     public void NextTrial()
     {
+        trial += 1;
+        UpdateTrial();
 
+#if !UNITY_EDITOR && UNITY_WEBGL
+        ChangeTrial(trial);
+#endif
     }
 
     public void Play()
     {
-
+        playing = true;
+        pawLcamL.enabled = true;
+        pawRcamL.enabled = true;
+        pawLcamR.enabled = true;
+        pawRcamL.enabled = true;
     }
 
     public void Stop()
     {
-
+        playing = false;
+        pawLcamL.enabled = false;
+        pawRcamL.enabled = false;
+        pawLcamR.enabled = false;
+        pawRcamL.enabled = false;
     }
+    #endregion
 }
