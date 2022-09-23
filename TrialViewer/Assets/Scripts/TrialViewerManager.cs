@@ -41,6 +41,8 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private GaborStimulus stimulus;
 
+    [SerializeField] private WheelComponent wheel;
+
     [SerializeField] private AssetReferenceT<TextAsset> timestampTextAsset;
     [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
     #endregion
@@ -66,6 +68,8 @@ public class TrialViewerManager : MonoBehaviour
     private bool playedGo;
     private bool playedFeedback;
     private float sideFlip;
+    private float initDeg;
+    private float endDeg;
     #endregion
 
     private void Awake()
@@ -122,16 +126,47 @@ public class TrialViewerManager : MonoBehaviour
                 if (frameIdx >= nextTrialData.start)
                     NextTrial();
 
+                // wheel properties
+                wheel.SetRotation(timestampData[frameIdx].wheel);
+
+
                 // stimulus properties
-                if (frameIdx >= currentTrialData.stimOn && frameIdx < currentTrialData.feedback)
+                if (currentTrialData.correct)
                 {
-                    stimulus.gameObject.SetActive(true);
-                    float perc = 1 - ((float) (frameIdx - currentTrialData.stimOn) / (currentTrialData.feedback - currentTrialData.stimOn));
-                    stimulus.SetPosition(sideFlip * perc);
+                    if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
+                    {
+                        stimulus.gameObject.SetActive(true);
+
+                        float deg = wheel.Degrees();
+                        Mathf.InverseLerp(initDeg, endDeg, deg);
+                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                    }
+                    else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
+                    {
+                        stimulus.gameObject.SetActive(true);
+                        stimulus.SetPosition(0f);
+                    }
+                    else
+                        stimulus.gameObject.SetActive(false);
                 }
                 else
-                    stimulus.gameObject.SetActive(false);
+                {
+                    if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
+                    {
+                        stimulus.gameObject.SetActive(true);
 
+                        float deg = wheel.Degrees();
+                        Mathf.InverseLerp(initDeg, endDeg, deg);
+                        stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                    }
+                    else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
+                    {
+                        stimulus.gameObject.SetActive(true);
+                        stimulus.SetPosition(2f);
+                    }
+                    else
+                        stimulus.gameObject.SetActive(false);
+                }
 
                 if (frameIdx >= currentTrialData.stimOn && !playedGo)
                 {
@@ -210,6 +245,10 @@ public class TrialViewerManager : MonoBehaviour
         // set the stimulus properties
         stimulus.SetContrast(currentTrialData.contrast);
         sideFlip = currentTrialData.right ? 1 : -1;
+
+        // set the wheel properties
+        initDeg = wheel.CalculateDegrees(timestampData[currentTrialData.stimOn].wheel);
+        endDeg = wheel.CalculateDegrees(timestampData[currentTrialData.feedback].wheel);
     }
 
     #region webpage callbacks
