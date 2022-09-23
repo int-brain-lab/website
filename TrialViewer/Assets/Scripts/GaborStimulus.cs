@@ -5,6 +5,7 @@ using UnityEngine;
 public class GaborStimulus : MonoBehaviour
 {
     [SerializeField] private float maxX;
+    [SerializeField] private float offX;
 
     private Vector3 origPosition;
 
