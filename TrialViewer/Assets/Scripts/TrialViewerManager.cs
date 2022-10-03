@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -136,9 +138,18 @@ public class TrialViewerManager : MonoBehaviour
             "wheel"};
         foreach (string type in dataTypes)
         {
-            Task<float[]> handle = NPYReader.LoadBinaryFloatHelper(string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes",pid, type));
-            await handle;
-            timestampData[type] = handle.Result;
+            string path = string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type);
+            AsyncOperationHandle<TextAsset> dataHandle = Addressables.LoadAssetAsync<TextAsset>(path);
+            await dataHandle.Task;
+
+            int nBytes = dataHandle.Result.bytes.Length;
+            Debug.Log(string.Format("Loading {0} with {1} bytes", path, nBytes));
+            float[] data = new float[nBytes / 4];
+
+            Buffer.BlockCopy(dataHandle.Result.bytes, 0, data, 0, nBytes);
+            Debug.LogFormat("Found {0} floats", data.Length);
+
+            timestampData[type] = data;
         }
 
 
