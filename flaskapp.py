@@ -170,12 +170,23 @@ def make_app():
     def cluster_details(pid, cluster_idx):
         return load_json(cluster_details_path(pid, cluster_idx))
 
+    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float:x>_<float:y>')
+    def cluster_from_xy(pid, cluster_idx, x, y):
+        cluster_idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y)
+        return {
+            "cluster_idx": int(cluster_idx),
+        }
+
     # Figures
     # ---------------------------------------------------------------------------------------------
 
     @app.route('/api/session/<pid>/session_plot')
     def session_overview_plot(pid):
         return send(session_overview_path(pid))
+
+    @app.route('/api/session/<pid>/trial_event_plot')
+    def trial_event_overview_plot(pid):
+        return send(trial_event_overview_path(pid))
 
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     def trial_overview_plot(pid, trial_idx):

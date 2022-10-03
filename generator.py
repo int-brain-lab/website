@@ -16,7 +16,7 @@ from uuid import UUID
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
-import numpy as np
+import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -124,6 +124,15 @@ def load_json(path):
         return json.load(f)
 
 
+def get_cluster_idx_from_xy(pid, cluster_idx, x, y):
+    df = pd.read_parquet(cluster_pixels_path(pid))
+    norm_dist = np.sqrt(np.sum(np.c_[(df.x.values - x) ** 2, (df.y.values - y) ** 2], axis=1))
+    min_idx = np.argmin(norm_dist)
+    if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
+        return df.iloc[min_idx].cluster_id
+    else:
+        return cluster_idx
+
 # -------------------------------------------------------------------------------------------------
 # Path functions
 # -------------------------------------------------------------------------------------------------
@@ -152,12 +161,20 @@ def session_overview_path(pid):
     return session_cache_path(pid) / 'overview.png'
 
 
+def trial_event_overview_path(pid):
+    return session_cache_path(pid) / 'trial_overview.png'
+
+
 def trial_overview_path(pid, trial_idx):
     return session_cache_path(pid) / f'trial-{trial_idx:04d}.png'
 
 
 def cluster_overview_path(pid, cluster_idx):
     return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.png'
+
+
+def cluster_pixels_path(pid):
+    return session_cache_path(pid) / 'cluster_pixels.pqt'
 
 
 # -------------------------------------------------------------------------------------------------
@@ -301,6 +318,31 @@ class Generator:
         fig.savefig(path)
         plt.close(fig)
 
+    def make_trial_event_plot(self):
+
+        path = trial_event_overview_path(self.pid)
+        if path.exists():
+            return
+        logger.debug(f"making trial event plot for session {self.pid}")
+        loader = self.dl
+
+        fig = plt.figure(figsize=(12, 5))
+        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[4, 4, 4, 1], wspace=0.1)
+
+        ax1 = fig.add_subplot(gs[0, 0:3])
+        ax2 = fig.add_subplot(gs[1, 0])
+        ax3 = fig.add_subplot(gs[1, 1])
+        ax4 = fig.add_subplot(gs[1, 2])
+        ax5 = fig.add_subplot(gs[1, 3])
+
+        loader.plot_event_aligned_activity(axs=[ax2, ax3, ax4], ax_cbar=ax1)
+        loader.plot_brain_regions(ax=ax5)
+        set_figure_style(fig)
+        fig.subplots_adjust(top=1.02)
+
+        fig.savefig(path)
+        plt.close(fig)
+
     def make_cluster_plot(self, cluster_idx):
         path = cluster_overview_path(self.pid, cluster_idx)
         if path.exists():
@@ -308,9 +350,9 @@ class Generator:
         logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
         loader = self.dl
 
-        fig = plt.figure(figsize=(12, 5))
+        fig = plt.figure(figsize=(15, 10))
 
-        gs = gridspec.GridSpec(1, 3, figure=fig, width_ratios=[2, 10, 2], wspace=0.2)
+        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2], wspace=0.2)
 
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0])
         ax1 = fig.add_subplot(gs0[0, 0])
@@ -323,10 +365,13 @@ class Generator:
         ax6 = fig.add_subplot(gs1[0, 2])
         ax7 = fig.add_subplot(gs1[1, 2])
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs[2], height_ratios=[1, 1, 3], hspace=0.2)
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[2])
         ax8 = fig.add_subplot(gs2[0, 0])
-        ax9 = fig.add_subplot(gs2[1, 0])
-        ax10 = fig.add_subplot(gs2[2, 0])
+
+        gs3 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[3:])
+        ax9 = fig.add_subplot(gs3[0, 0])
+        ax10 = fig.add_subplot(gs3[0, 1])
+        ax11 = fig.add_subplot(gs3[0, 2])
 
         set_figure_style(fig)
 
@@ -335,18 +380,37 @@ class Generator:
         loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
         loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
         loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        ax2.get_xaxis().set_visible(False)
+        ax4.get_xaxis().set_visible(False)
+        ax6.get_xaxis().set_visible(False)
         ax5.get_yaxis().set_visible(False)
         ax7.get_yaxis().set_visible(False)
 
-        loader.plot_autocorrelogram(cluster_idx, ax=ax8)
-        loader.plot_inter_spike_interval(cluster_idx, ax=ax9, xlabel=None)
-        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+        loader.plot_cluster_waveforms(cluster_idx, ax=ax8)
+
+        loader.plot_autocorrelogram(cluster_idx, ax=ax9)
+        loader.plot_inter_spike_interval(cluster_idx, ax=ax10)
+        loader.plot_cluster_amplitude(cluster_idx, ax=ax11)
 
         ax2.sharex(ax3)
         ax4.sharex(ax5)
         ax6.sharex(ax7)
 
         fig.savefig(path)
+
+        path_scat = cluster_pixels_path(self.pid)
+        if not path_scat.exists():
+            pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps.astype(np.float64) * 1e6,
+                                                        loader.clusters_good.depths.astype(np.float64)]).T)
+            width, height = fig.canvas.get_width_height()
+            pixels[:, 0] /= width
+            pixels[:, 1] /= height
+            df = pd.DataFrame()
+            df['cluster_id'] = loader.clusters_good.cluster_id.astype(np.int32)
+            df['x'] = pixels[:, 0]
+            df['y'] = pixels[:, 1]
+            df.to_parquet(path_scat)
+
         plt.close(fig)
 
     # Plot generator functions
@@ -373,12 +437,13 @@ class Generator:
     def make_all_session_plots(self):
         logger.info(f"Making all session plots for session {self.pid}")
         self.make_session_plot()
+        self.make_trial_event_plot()
         self.make_all_trial_plots()
         self.make_all_cluster_plots()
 
 
 def make_session_plots(pid):
-    Generator(pid).make_all_session_plots()
+    Generator(pid) .make_all_session_plots()
 
 
 def make_all_plots():
