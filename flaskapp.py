@@ -157,6 +157,10 @@ def make_app():
     @app.route('/WebGL/<path:path>')
     def trial_viewer(path):
         return send_from_directory('WebGL', path)
+        
+    @app.route('/StreamingAssets/<path:path>')
+    def streaming_assets(path):
+        return send_from_directory('StreamingAssets', path)
 
     # JSON details
     # ---------------------------------------------------------------------------------------------
