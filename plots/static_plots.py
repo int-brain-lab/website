@@ -11,6 +11,7 @@ import copy
 from collections import OrderedDict
 
 from brainbox.task.trials import find_trial_ids
+from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
 from brainbox.ephys_plots import plot_brain_regions
@@ -634,7 +635,7 @@ class DataLoader:
             fig = ax.get_figure()
 
         col = (BRAIN_REGIONS.get(self.clusters_good.atlas_id).rgb / 255).tolist()
-        ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c=col, edgecolors='grey')
+        scat = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c=col, edgecolors='grey')
         clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
         col_clus = (BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
         if clusters is not None:
@@ -669,6 +670,41 @@ class DataLoader:
 
         return fig
 
+    def plot_event_aligned_activity(self, axs=None, ax_cbar=None, ylabel='Depth (um)'):
+
+        if axs is None:
+            fig, axs = plt.subplots(1, 4, figsize=(4, 6), gridspec_kw={'width_ratios': [4, 4, 4, 1]})
+            ax_cbar = axs[-1]
+        else:
+            fig = axs[0].get_figure()
+
+        stim_events = {'go cue ': self.trials['goCue_times'],
+                       'first movement': self.trials['firstMovement_times'],
+                       'feedback': self.trials['feedback_times']}
+        kp_idx = ~np.isnan(self.spikes.depths)
+        pre_stim = 0.4
+        post_stim = 1
+        data = get_stim_aligned_activity(stim_events, self.spikes.times[kp_idx], self.spikes.depths[kp_idx], pre_stim=pre_stim,
+                                         post_stim=post_stim, y_lim=[0, 3840])
+
+        for i, (key, d) in enumerate(data.items()):
+            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10)
+            if i == 0:
+                set_axis_style(axs[i], xlabel=f'T from {key} time', ylabel=ylabel)
+            else:
+                axs[i].set_yticklabels([])
+                set_axis_style(axs[i], xlabel=f'T from {key} time')
+
+            axs[i].set_ylim(0, 4000)
+            axs[i].set_xlim(-1 * pre_stim, post_stim)
+            axs[i].axvline(0, *axs[i].get_ylim(), c='k', ls='--', zorder=10)
+
+        cbar = fig.colorbar(im, ax=ax_cbar, orientation="horizontal", fraction=0.8)
+        cbar.set_label('Firing Rate (Z-score)')
+        remove_frame(ax_cbar)
+
+        return fig
+
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
@@ -676,7 +712,7 @@ class DataLoader:
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
         fig, ax = self.single_cluster_raster(
             spikes.times, self.trials['stimOn_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
-        axs[1].set_yticklabels([])
+
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
 
@@ -689,8 +725,7 @@ class DataLoader:
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
-        # axs[0].set_ylim(0, 100)  # TODO this shouldn't be harcoded here
-        axs[1].set_yticklabels([])
+
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
 
@@ -707,8 +742,7 @@ class DataLoader:
         colors = ['0.9', '0.7', '0.5', '0.3', '0.0']
         fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['stimOn_times'], trial_idx, dividers, colors, labels, axs=axs)
-        # axs[0].set_ylim(0, 100)  # TODO this shouldn't be harcoded here
-        axs[1].set_yticklabels([])
+
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
 
@@ -741,6 +775,7 @@ class DataLoader:
                                 psth_div + std_div, alpha=0.4, color=colors[iD])
             axs[0].plot(t_psth, psth_div, alpha=1, color=colors[iD])
 
+
         axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
                       extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
 
@@ -751,12 +786,12 @@ class DataLoader:
                                 [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
             label_pos.append((dividers[iD + 1] - dividers[iD]) / 2 + dividers[iD])
 
+        axs[1].set_xlim([-1 * pre_time, post_time + raster_bin / 2 + width])
         secax = axs[1].secondary_yaxis('right')
 
         secax.set_yticks(label_pos)
         secax.set_yticklabels(labels, rotation=90,
                               rotation_mode='anchor', ha='center')
-        axs[1].set_xlim([-1 * pre_time, post_time + raster_bin / 2 + width])
         for ic, c in enumerate(colors):
             secax.get_yticklabels()[ic].set_color(c)
 
@@ -781,16 +816,45 @@ class DataLoader:
         wf_chn_pos = np.c_[self.channels['localCoordinates'][:, 0]
                            [wf_chns], self.channels['localCoordinates'][:, 1][wf_chns]]
 
-        wf_chn_pos[:, 0] = wf_chn_pos[:, 0] - np.min(wf_chn_pos[:, 0])
-        wf_chn_pos[:, 1] = wf_chn_pos[:, 1] - np.min(wf_chn_pos[:, 1])
+        x_max = np.max(wf_chn_pos[:, 0])
+        x_min = np.min(wf_chn_pos[:, 0])
 
-        # TODO some kind of scale bar, these are currently in absolute units, if we want them in uV we will have to use phylib
+        y_max = np.max(wf_chn_pos[:, 1])
+        y_min = np.min(wf_chn_pos[:, 1])
 
-        for ichn, chn in enumerate(wf_chn_pos):
-            x = (np.arange(wfs.shape[0]) / 5 + chn[0])
-            y = (wfs[:, ichn])
-            y = (y * 1e6 + chn[1] * 10)
-            ax.plot(x, y, c='grey')
+        n_xpos = np.unique(wf_chn_pos[:, 0]).size
+        n_ypos = np.unique(wf_chn_pos[:, 1]).size
+        time_len = wfs.shape[0]
+
+        # Taken from dj code
+        # https://github.com/int-brain-lab/IBL-pipeline/blob/master/ibl_pipeline/plotting/ephys_plotting.py#L252
+        # time (in ms) * x_scale (in um/ms) + x_start(coord[0]) = position
+        # the waveform takes 0.9 of each x interval between adjacent channels
+        dt = 1 / 30
+        x_scale = (x_max - x_min) / (n_xpos - 1) * 0.9 / (dt * time_len)
+
+        wf_peak = np.max(np.abs(wfs)) * 1e6
+        if wf_peak < 100:
+            wf_peak = 100
+
+        # peak waveform takes 2 times of each y interval between adjacent channels
+        y_scale = (y_max - y_min) / (n_ypos - 1) / wf_peak * 2
+
+        time = np.arange(time_len) * dt
+
+        for wf, pos in zip(wfs.T * 1e6, wf_chn_pos):
+            ax.plot(time * x_scale + pos[0], wf * y_scale + pos[1], color='grey')
+
+        # Scale bar
+        x0 = x_min - 6
+        y0 = y_min + 10
+        ax.text(x0, y0 - 10, '1ms')
+        ax.text(x0 - 6, y0, '100uV', rotation='vertical')
+        ax.plot([x0, x0 + x_scale], [y0, y0], color='black')
+        ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='black')
+
+        ax.set_xlim([x_min - 10, x_max + 15])
+        ax.set_ylim([y_min - 20, y_max + 20])
 
         remove_frame(ax)
 
@@ -813,13 +877,7 @@ class DataLoader:
         corr = corr / m_corr  # normalise
 
         ax.bar(np.arange(corr.size), height=corr, width=0.8, color='grey')
-        ax.yaxis.set_label_position("right")
-        ax.yaxis.tick_right()
-
-        ax.xaxis.set_label_position("top")
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
-        ax.spines['right'].set_visible(True)
-        ax.spines['left'].set_visible(False)
 
         return fig
 
@@ -838,13 +896,26 @@ class DataLoader:
         if m_isi == 0:
             m_isi = 1
         ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
-        ax.yaxis.set_label_position("right")
-        ax.yaxis.tick_right()
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
-        ax.spines['right'].set_visible(True)
-        ax.spines['left'].set_visible(False)
+
 
         return fig
+
+    def plot_cluster_amplitude(self, cluster_idx, ax=None, xlabel='T (s)', ylabel='Amp (uV)'):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        else:
+            fig = ax.get_figure()
+
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+
+        ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+
+        return fig
+
+
 
 
 if __name__ == '__main__':
