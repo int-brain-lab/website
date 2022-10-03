@@ -12,19 +12,27 @@ public class DLCPoint : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(GetScaleDelayed());
+    }
+
+    private IEnumerator GetScaleDelayed()
+    {
+        yield return new WaitForEndOfFrame();
         scale = Vector2.one;
         scale = new Vector2(parentTexture.GetComponent<RectTransform>().rect.width, parentTexture.GetComponent<RectTransform>().rect.height);
+
+        gameObject.SetActive(false);
     }
 
     public void SetPosition(float originalX, float originalY)
     {
         if (originalX == -1 || originalY == -1)
         {
-            enabled = false;
+            gameObject.SetActive(false);
             return;
         }
 
-        enabled = true;
+        gameObject.SetActive(true);
         // Rescale the pixel position to match the screen position
         float x = (originalX / originalScale.x) * scale.x - scale.x/2;
         float y = (originalY / originalScale.y) * scale.y - scale.y/2;

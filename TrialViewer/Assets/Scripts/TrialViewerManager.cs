@@ -53,10 +53,12 @@ public class TrialViewerManager : MonoBehaviour
     #endregion
 
     #region data
-    private List<(float time, int leftIdx, int bodyIdx,
-                float cr_pawlx, float cr_pawly, float cr_pawrx, float cr_pawry,
-                float cl_pawlx, float cl_pawly, float cl_pawrx, float cl_pawry,
-                float wheel)> timestampData;
+    //private List<(float time, int leftIdx, int bodyIdx,
+    //            float cr_pawlx, float cr_pawly, float cr_pawrx, float cr_pawry,
+    //            float cl_pawlx, float cl_pawly, float cl_pawrx, float cl_pawry,
+    //            float wheel)> timestampData;
+    private Dictionary<string, float[]> timestampData;
+
     private List<(int start, int stimOn, int feedback, bool right, float contrast, bool correct)> trialData;
     private (int start, int stimOn, int feedback, bool right, float contrast, bool correct) currentTrialData;
     private (int start, int stimOn, int feedback, bool right, float contrast, bool correct) nextTrialData;
@@ -98,29 +100,48 @@ public class TrialViewerManager : MonoBehaviour
         AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
         AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
         AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
+
+
         await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task , leftHandle.Task, rightHandle.Task, bodyHandle.Task});
 
         // videos
-        leftVideoPlayer.clip = leftHandle.Result;
-        rightVideoPlayer.clip = rightHandle.Result;
-        bodyVideoPlayer.clip = bodyHandle.Result;
+        leftVideoPlayer.url = leftHandle.Result.originalPath;
+        rightVideoPlayer.url = rightHandle.Result.originalPath;
+        bodyVideoPlayer.url = bodyHandle.Result.originalPath;
+        //leftVideoPlayer.clip = leftHandle.Result;
+        //rightVideoPlayer.clip = rightHandle.Result;
+        //bodyVideoPlayer.clip = bodyHandle.Result;
 
         leftVideoPlayer.Prepare();
         rightVideoPlayer.Prepare();
         bodyVideoPlayer.Prepare();
 
         // parse timestamp data
-        timestampData = CSVReader.ParseTimestampData(timestampHandle.Result.text);
+        //timestampData = CSVReader.ParseTimestampData(timestampHandle.Result.text);
+
+        timestampData = new Dictionary<string, float[]>();
+        string[] dataTypes = {"right_ts","left_idx","body_idx",
+            "cr_paw_l_x", "cr_paw_l_y", "cr_paw_r_x", "cr_paw_r_y",
+            "cl_paw_l_x", "cl_paw_l_y", "cl_paw_r_x", "cl_paw_r_y",
+            "wheel"};
+        foreach (string type in dataTypes)
+        {
+            Task<float[]> handle = NPYReader.LoadBinaryFloatHelper(string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes",pid, type));
+            await handle;
+            timestampData[type] = handle.Result;
+        }
+
 
         // parse trial data
         trialData = CSVReader.ParseTrialData(trialHandle.Result.text);
 
-        Debug.Log(timestampData.Count);
+        //Debug.Log(timestampData.Count);
         Debug.Log(trialData.Count);
 
         trial = 1;
         UpdateTrial();
     }
+
     #endregion 
 
     private void Update()
@@ -134,14 +155,14 @@ public class TrialViewerManager : MonoBehaviour
                 // find the next frame
                 int frameIdx;
                 for (frameIdx = currentTrialData.start; frameIdx < nextTrialData.start; frameIdx++)
-                    if (timestampData[frameIdx].time >= time)
+                    if (timestampData["right_ts"][frameIdx] >= time)
                         break;
 
                 if (frameIdx >= nextTrialData.start)
                     NextTrial();
 
                 // wheel properties
-                wheel.SetRotation(timestampData[frameIdx].wheel);
+                wheel.SetRotation(timestampData["wheel"][frameIdx]);
 
 
                 // stimulus properties
@@ -184,7 +205,6 @@ public class TrialViewerManager : MonoBehaviour
 
                 if (frameIdx >= currentTrialData.stimOn && !playedGo)
                 {
-                    Debug.Log(frameIdx);
                     // stim on
                     playedGo = true;
                     infoImage.sprite = goSprite;
@@ -219,17 +239,17 @@ public class TrialViewerManager : MonoBehaviour
                 }
 
                 // Set DLC points
-                pawLcamR.SetPosition(timestampData[frameIdx].cr_pawlx, timestampData[frameIdx].cr_pawly);
-                pawRcamR.SetPosition(timestampData[frameIdx].cr_pawrx, timestampData[frameIdx].cr_pawry);
-                pawLcamL.SetPosition(timestampData[frameIdx].cl_pawlx, timestampData[frameIdx].cl_pawly);
-                pawRcamL.SetPosition(timestampData[frameIdx].cl_pawrx, timestampData[frameIdx].cl_pawry);
+                pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frameIdx], timestampData["cr_paw_l_y"][frameIdx]);
+                pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frameIdx], timestampData["cr_paw_r_y"][frameIdx]);
+                pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frameIdx], timestampData["cl_paw_l_y"][frameIdx]);
+                pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frameIdx], timestampData["cl_paw_r_y"][frameIdx]);
 
                 // Set videos
                 rightVideoPlayer.frame = frameIdx;
                 rightVideoPlayer.Play();
-                bodyVideoPlayer.frame = timestampData[frameIdx].bodyIdx;
+                bodyVideoPlayer.frame = (long)timestampData["body_idx"][frameIdx];
                 bodyVideoPlayer.Play();
-                leftVideoPlayer.frame = timestampData[frameIdx].leftIdx;
+                leftVideoPlayer.frame = (long)timestampData["left_idx"][frameIdx];
                 leftVideoPlayer.Play();
             }
         }
@@ -252,7 +272,7 @@ public class TrialViewerManager : MonoBehaviour
 
         currentTrialData = trialData[trial];
         nextTrialData = trialData[trial + 1];
-        time = timestampData[currentTrialData.start].time; // get the starting time for the trial
+        time = timestampData["right_ts"][currentTrialData.start]; // get the starting time for the trial
         Debug.Log(string.Format("Starting trial {0}: start {1} end {2} right {3} correct {4}", trial,
             currentTrialData.start, nextTrialData.start, currentTrialData.right, currentTrialData.correct));
 
@@ -261,8 +281,8 @@ public class TrialViewerManager : MonoBehaviour
         sideFlip = currentTrialData.right ? 1 : -1;
 
         // set the wheel properties
-        initDeg = wheel.CalculateDegrees(timestampData[currentTrialData.stimOn].wheel);
-        endDeg = wheel.CalculateDegrees(timestampData[currentTrialData.feedback].wheel);
+        initDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.stimOn]);
+        endDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.feedback]);
     }
 
     #region webpage callbacks
@@ -308,19 +328,19 @@ public class TrialViewerManager : MonoBehaviour
     public void Play()
     {
         playing = true;
-        pawLcamL.enabled = true;
-        pawRcamL.enabled = true;
-        pawLcamR.enabled = true;
-        pawRcamL.enabled = true;
+        pawLcamL.gameObject.SetActive(true);
+        pawRcamL.gameObject.SetActive(true);
+        pawLcamR.gameObject.SetActive(true);
+        pawRcamR.gameObject.SetActive(true);
     }
 
     public void Stop()
     {
         playing = false;
-        pawLcamL.enabled = false;
-        pawRcamL.enabled = false;
-        pawLcamR.enabled = false;
-        pawRcamL.enabled = false;
+        pawLcamL.gameObject.SetActive(false);
+        pawRcamL.gameObject.SetActive(false);
+        pawLcamR.gameObject.SetActive(false);
+        pawRcamR.gameObject.SetActive(false);
     }
     #endregion
 }
