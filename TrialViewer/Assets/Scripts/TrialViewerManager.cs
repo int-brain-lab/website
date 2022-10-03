@@ -109,13 +109,19 @@ public class TrialViewerManager : MonoBehaviour
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
         AsyncOperationHandle<TextAsset> timestampHandle = timestampTextAsset.LoadAssetAsync();
+        await timestampHandle.Task;
+
         AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
+        await trialHandle.Task;
+
         AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
+        await leftHandle.Task;
+
         AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
+        await rightHandle.Task;
+
         AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
-
-
-        await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task , leftHandle.Task, rightHandle.Task, bodyHandle.Task});
+        await bodyHandle.Task;
 
         Debug.Log("Passed initial load");
         // videos
