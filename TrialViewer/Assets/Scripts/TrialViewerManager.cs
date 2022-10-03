@@ -107,6 +107,7 @@ public class TrialViewerManager : MonoBehaviour
     public async void LoadData(string pid)
     {
         // for now we ignore the PID and just load the referenced assets
+        Debug.Log("Starting async load calls");
         AsyncOperationHandle<TextAsset> timestampHandle = timestampTextAsset.LoadAssetAsync();
         AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
         AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
@@ -116,6 +117,7 @@ public class TrialViewerManager : MonoBehaviour
 
         await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task , leftHandle.Task, rightHandle.Task, bodyHandle.Task});
 
+        Debug.Log("Passed initial load");
         // videos
         leftVideoPlayer.url = leftHandle.Result.originalPath;
         rightVideoPlayer.url = rightHandle.Result.originalPath;
@@ -138,6 +140,7 @@ public class TrialViewerManager : MonoBehaviour
             "wheel"};
         foreach (string type in dataTypes)
         {
+            Debug.Log("Loading: " + type);
             string path = string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type);
             AsyncOperationHandle<TextAsset> dataHandle = Addressables.LoadAssetAsync<TextAsset>(path);
             await dataHandle.Task;
