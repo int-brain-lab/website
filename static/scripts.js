@@ -10,7 +10,8 @@ var CTX = {
     tid: 0,
 };
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-var myGameInstance = null;
+var unitySession = null; // unity instance for the session selector
+var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
 
 
@@ -291,8 +292,8 @@ function loadUnity() {
     // Disable Unity widget on smartphones.
     if (isOnMobile()) return;
 
-    var canvas = document.querySelector("#unity-canvas");
-    createUnityInstance(canvas, {
+    // Session selector widget.
+    createUnityInstance(document.querySelector("#unity-canvas"), {
         dataUrl: "static/Build/IBLMini-webgl.data.gz",
         frameworkUrl: "static/Build/IBLMini-webgl.framework.js.gz",
         codeUrl: "static/Build/IBLMini-webgl.wasm.gz",
@@ -303,7 +304,22 @@ function loadUnity() {
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
-        window.myGameInstance = unityInstance;
+        window.unitySession = unityInstance;
+    });
+
+    // Trial viewer.
+    createUnityInstance(document.querySelector("#unity-canvas-trial"), {
+        dataUrl: "static/TrialViewerBuild/TrialViewer-webgl.data.gz",
+        frameworkUrl: "static/TrialViewerBuild/TrialViewer-webgl.framework.js.gz",
+        codeUrl: "static/TrialViewerBuild/TrialViewer-webgl.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Daniel Birman @ UW",
+        productName: "TrialViewer",
+        productVersion: "0.2.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+    }).then((unityInstance) => {
+        window.unityTrial = unityInstance;
     });
 };
 
@@ -333,8 +349,8 @@ function selectPID(pid) {
 
 function unityLoaded() {
     /// Unity loaded callback event, update the current highlighted probe
-    if (myGameInstance)
-        myGameInstance.SendMessage("main", "HighlightProbe", CTX.pid);
+    if (unitySession)
+        unitySession.SendMessage("main", "HighlightProbe", CTX.pid);
 }
 
 
@@ -343,8 +359,8 @@ async function selectSession(pid) {
     if (!pid) return;
     CTX.pid = pid;
 
-    if (myGameInstance)
-        myGameInstance.SendMessage("main", "HighlightProbe", pid);
+    if (unitySession)
+        unitySession.SendMessage("main", "HighlightProbe", pid);
 
     // Show the session details.
     var url = `/api/session/${pid}/details`;

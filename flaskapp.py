@@ -13,8 +13,7 @@ from pprint import pprint
 
 import png
 from flask_cors import CORS
-# from flask_caching import Cache
-from flask import Flask, render_template, send_file, Response
+from flask import Flask, render_template, send_file, Response, send_from_directory
 
 from generator import *
 
@@ -154,6 +153,10 @@ def make_app():
     @app.route('/app')
     def the_app():
         return _render('app.html')
+
+    @app.route('/WebGL/<path:path>')
+    def trial_viewer(path):
+        return send_from_directory('WebGL', path)
 
     # JSON details
     # ---------------------------------------------------------------------------------------------
