@@ -64,7 +64,7 @@ MonoBehaviour:
       - m_Id: 8d9aa1a8824ebbd41a2341916577c723
         m_Value: ServerData/[BuildTarget]
       - m_Id: dd8a5d9dc422c584782aec55776afbc9
-        m_Value: http://viz.internationalbrainlab.org/[BuildTarget]
+        m_Value: https://viz.internationalbrainlab.org/[BuildTarget]
     m_ProfileEntryNames:
     - m_Id: 893327a840c72834894a13bc7f8c3a33
       m_Name: BuildTarget

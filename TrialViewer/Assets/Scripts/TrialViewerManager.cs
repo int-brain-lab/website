@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -85,10 +86,19 @@ public class TrialViewerManager : MonoBehaviour
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
         WebGLInput.captureAllKeyboardInput = false;
 #endif
+        Addressables.WebRequestOverride = EditWebRequestURL;
 
         LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c");
 
         Stop();
+    }
+
+    //Override the url of the WebRequest, the request passed to the method is what would be used as standard by Addressables.
+    private void EditWebRequestURL(UnityWebRequest request)
+    {
+        if (request.url.Contains("http://"))
+            request.url = request.url.Replace("http://", "https://");
+        Debug.Log(request.url);
     }
 
     #region data loading
