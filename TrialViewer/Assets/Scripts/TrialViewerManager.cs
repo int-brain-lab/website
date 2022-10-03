@@ -45,6 +45,11 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private AssetReferenceT<TextAsset> timestampTextAsset;
     [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
+
+    [SerializeField] private AssetReferenceT<VideoClip> leftClip;
+    [SerializeField] private AssetReferenceT<VideoClip> rightClip;
+    [SerializeField] private AssetReferenceT<VideoClip> bodyClip;
+
     #endregion
 
     #region data
@@ -80,9 +85,6 @@ public class TrialViewerManager : MonoBehaviour
 #endif
 
         LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c");
-        leftVideoPlayer.Prepare();
-        rightVideoPlayer.Prepare();
-        bodyVideoPlayer.Prepare();
 
         Stop();
     }
@@ -93,7 +95,19 @@ public class TrialViewerManager : MonoBehaviour
         // for now we ignore the PID and just load the referenced assets
         AsyncOperationHandle<TextAsset> timestampHandle = timestampTextAsset.LoadAssetAsync();
         AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
-        await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task });
+        AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
+        AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
+        AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
+        await Task.WhenAll(new Task[] { timestampHandle.Task, trialHandle.Task , leftHandle.Task, rightHandle.Task, bodyHandle.Task});
+
+        // videos
+        leftVideoPlayer.clip = leftHandle.Result;
+        rightVideoPlayer.clip = rightHandle.Result;
+        bodyVideoPlayer.clip = bodyHandle.Result;
+
+        leftVideoPlayer.Prepare();
+        rightVideoPlayer.Prepare();
+        bodyVideoPlayer.Prepare();
 
         // parse timestamp data
         timestampData = CSVReader.ParseTimestampData(timestampHandle.Result.text);
