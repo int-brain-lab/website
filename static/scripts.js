@@ -421,6 +421,11 @@ async function selectSession(pid) {
 
 
 async function selectTrial(pid, tid) {
+    CTX.tid = tid;
+
+    if (unityTrial)
+        unityTrial.SendMessage("main", "SetTrial", tid);
+
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_plot/${tid}`;
     showImage('trialPlot', url);
@@ -491,19 +496,24 @@ function setupButtons() {
 function updateTrialTime(time) {
     // takes a float time and renders a red vertical line on the trial plot showing the current position
     console.log(time);
+    // todo
 }
 
 
-function changeTrial(trialIncrement) {
-    // trialIncrement will either be +1 or -1 to go forward or back
-    console.log(trialIncrement);
+function changeTrial(trialNum) {
+    // trialNum will be the trial to jump to
+    selectTrial(CTX.pid, trialNum);
 }
 
 function trialViewerLoaded() {
     // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
     // call SetSession(pid)
     // and SetTrial(int)
-    console.log('loaded');
+    if (unityTrial) {
+        // unityTrial.SendMessage("main", "LoadData", CTX.pid);
+        unityTrial.SendMessage("main", "SetTrial", CTX.tid);
+    }
+    // todo
 }
 
 /*************************************************************************************************/
