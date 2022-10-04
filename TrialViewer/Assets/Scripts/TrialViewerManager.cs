@@ -86,6 +86,8 @@ public class TrialViewerManager : MonoBehaviour
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
         WebGLInput.captureAllKeyboardInput = false;
+
+        Application.targetFrameRate = 30;
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
@@ -169,15 +171,20 @@ public class TrialViewerManager : MonoBehaviour
         //Debug.Log(timestampData.Count);
         Debug.Log(trialData.Count);
 
+        while (!leftVideoPlayer.isPrepared)
+            yield return null;
+        while (!rightVideoPlayer.isPrepared)
+            yield return null;
+        while (!bodyVideoPlayer.isPrepared)
+            yield return null;
+
+        Debug.Log("LOADED");
         trial = 1;
         UpdateTrial();
 
-        rightVideoPlayer.frame = currentTrialData.start;
-        rightVideoPlayer.Play();
-        bodyVideoPlayer.frame = (long)timestampData["body_idx"][currentTrialData.start];
-        bodyVideoPlayer.Play();
-        leftVideoPlayer.frame = (long)timestampData["left_idx"][currentTrialData.start];
-        leftVideoPlayer.Play();
+#if !UNITY_EDITOR && UNITY_WEBGL
+        TrialViewerLoaded();
+#endif
     }
 
     #endregion 
@@ -284,10 +291,12 @@ public class TrialViewerManager : MonoBehaviour
 
                 // Set videos
                 rightVideoPlayer.frame = frameIdx;
-                rightVideoPlayer.Play();
                 bodyVideoPlayer.frame = (long)timestampData["body_idx"][frameIdx];
-                bodyVideoPlayer.Play();
                 leftVideoPlayer.frame = (long)timestampData["left_idx"][frameIdx];
+                if (rightVideoPlayer.frame != frameIdx)
+                    Debug.LogWarning("out of sync");
+                rightVideoPlayer.Play();
+                bodyVideoPlayer.Play();
                 leftVideoPlayer.Play();
             }
         }
@@ -321,6 +330,7 @@ public class TrialViewerManager : MonoBehaviour
         // set the wheel properties
         initDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.stimOn]);
         endDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.feedback]);
+
     }
 
     #region webpage callbacks
@@ -366,6 +376,7 @@ public class TrialViewerManager : MonoBehaviour
     public void Play()
     {
         playing = true;
+
         pawLcamL.gameObject.SetActive(true);
         pawRcamL.gameObject.SetActive(true);
         pawLcamR.gameObject.SetActive(true);
