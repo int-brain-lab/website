@@ -21,18 +21,6 @@ MonoBehaviour:
     m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c.trials.csv
     m_ReadOnly: 0
     m_SerializedLabels: []
-  - m_GUID: c4c15cd4fb911634692b1c0e88a63cd5
-    m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c/0802ced5-33a3-405e-8336-b65ebc5cb07c_left_scaled.mp4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: aee61e511e8e02f45beefe043cd5d226
-    m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c/0802ced5-33a3-405e-8336-b65ebc5cb07c_body_scaled.mp4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 4c345d88e836ea745bad519e19a66a6f
-    m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c/0802ced5-33a3-405e-8336-b65ebc5cb07c_right_scaled.mp4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
   - m_GUID: db1c1b2acbdc0354ab84c1405266271e
     m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c/0802ced5-33a3-405e-8336-b65ebc5cb07c.cr_paw_l_y.bytes
     m_ReadOnly: 0

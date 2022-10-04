@@ -111,23 +111,23 @@ public class TrialViewerManager : MonoBehaviour
         if (!trialHandle.IsDone)
             yield return trialHandle;
 
-        AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
-        if (!leftHandle.IsDone)
-            yield return leftHandle;
+        //AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
+        //if (!leftHandle.IsDone)
+        //    yield return leftHandle;
 
-        AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
-        if (!rightHandle.IsDone)
-            yield return rightHandle;
+        //AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
+        //if (!rightHandle.IsDone)
+        //    yield return rightHandle;
 
-        AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
-        if (!bodyHandle.IsDone)
-            yield return bodyHandle;
+        //AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
+        //if (!bodyHandle.IsDone)
+        //    yield return bodyHandle;
 
         Debug.Log("Passed initial load");
         // videos
-        leftVideoPlayer.url = leftHandle.Result.originalPath;
-        rightVideoPlayer.url = rightHandle.Result.originalPath;
-        bodyVideoPlayer.url = bodyHandle.Result.originalPath;
+        leftVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_left_scaled.mp4",pid);
+        rightVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_right_scaled.mp4", pid);
+        bodyVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_body_scaled.mp4", pid);
         //leftVideoPlayer.clip = leftHandle.Result;
         //rightVideoPlayer.clip = rightHandle.Result;
         //bodyVideoPlayer.clip = bodyHandle.Result;
