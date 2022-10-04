@@ -26,6 +26,8 @@ public class TrialViewerManager : MonoBehaviour
     [SerializeField] private Button playButton;
     [SerializeField] private Button stopButton;
 
+    [SerializeField] private GameObject _loadingScreen;
+
     [SerializeField] private Image infoImage;
     [SerializeField] private Color defaultColor;
     [SerializeField] private Sprite defaultSprite;
@@ -47,10 +49,6 @@ public class TrialViewerManager : MonoBehaviour
     [SerializeField] private WheelComponent wheel;
 
     [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
-
-    [SerializeField] private AssetReferenceT<VideoClip> leftClip;
-    [SerializeField] private AssetReferenceT<VideoClip> rightClip;
-    [SerializeField] private AssetReferenceT<VideoClip> bodyClip;
 
     #endregion
 
@@ -86,8 +84,6 @@ public class TrialViewerManager : MonoBehaviour
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
         WebGLInput.captureAllKeyboardInput = false;
-
-        Application.targetFrameRate = 30;
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
@@ -107,39 +103,17 @@ public class TrialViewerManager : MonoBehaviour
     #region data loading
     public IEnumerator LoadData(string pid)
     {
+        _loadingScreen.SetActive(true);
+
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
         AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
-        if (!trialHandle.IsDone)
-            yield return trialHandle;
-
-        //AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
-        //if (!leftHandle.IsDone)
-        //    yield return leftHandle;
-
-        //AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
-        //if (!rightHandle.IsDone)
-        //    yield return rightHandle;
-
-        //AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
-        //if (!bodyHandle.IsDone)
-        //    yield return bodyHandle;
 
         Debug.Log("Passed initial load");
         // videos
         leftVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_left_scaled.mp4",pid);
         rightVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_right_scaled.mp4", pid);
         bodyVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_body_scaled.mp4", pid);
-        //leftVideoPlayer.clip = leftHandle.Result;
-        //rightVideoPlayer.clip = rightHandle.Result;
-        //bodyVideoPlayer.clip = bodyHandle.Result;
-
-        leftVideoPlayer.Prepare();
-        rightVideoPlayer.Prepare();
-        bodyVideoPlayer.Prepare();
-
-        // parse timestamp data
-        //timestampData = CSVReader.ParseTimestampData(timestampHandle.Result.text);
 
         timestampData = new Dictionary<string, float[]>();
         string[] dataTypes = {"right_ts","left_idx","body_idx",
@@ -164,27 +138,31 @@ public class TrialViewerManager : MonoBehaviour
             timestampData[type] = data;
         }
 
+        if (!trialHandle.IsDone)
+            yield return trialHandle;
 
         // parse trial data
         trialData = CSVReader.ParseTrialData(trialHandle.Result.text);
 
-        //Debug.Log(timestampData.Count);
-        Debug.Log(trialData.Count);
-
-        while (!leftVideoPlayer.isPrepared)
-            yield return null;
-        while (!rightVideoPlayer.isPrepared)
-            yield return null;
-        while (!bodyVideoPlayer.isPrepared)
-            yield return null;
-
-        Debug.Log("LOADED");
         trial = 1;
         UpdateTrial();
+
+        MoveToFrameAndPrepare(currentTrialData.start);
+
+        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared)
+            yield return null;
+
+        pawLcamL.gameObject.SetActive(true);
+        pawRcamL.gameObject.SetActive(true);
+        pawLcamR.gameObject.SetActive(true);
+        pawRcamR.gameObject.SetActive(true);
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
 #endif
+
+        Debug.Log("LOADED");
+        _loadingScreen.SetActive(false);
     }
 
     #endregion 
@@ -193,112 +171,106 @@ public class TrialViewerManager : MonoBehaviour
     {
         if (playing)
         {
-            time += Time.deltaTime;
+            int frameIdx = (int)leftVideoPlayer.frame;
 
-            if (leftVideoPlayer.isPrepared)
+            // catch in case the video hasn't finished loading
+            if (frameIdx == -1)
+                return;
+
+            time += timestampData["right_ts"][frameIdx];
+
+#if !UNITY_EDITOR && UNITY_WEBGL
+            UpdateTrialTime(time);
+#endif
+
+            if (frameIdx >= nextTrialData.start)
             {
-                // find the next frame
-                int frameIdx;
-                for (frameIdx = currentTrialData.start; frameIdx < nextTrialData.start; frameIdx++)
-                    if (timestampData["right_ts"][frameIdx] >= time)
-                        break;
+                trial++;
+                UpdateTrial();
+            }
 
-                if (frameIdx >= nextTrialData.start)
-                    NextTrial();
-
-                // wheel properties
-                wheel.SetRotation(timestampData["wheel"][frameIdx]);
+            // wheel properties
+            wheel.SetRotation(timestampData["wheel"][frameIdx]);
 
 
-                // stimulus properties
-                if (currentTrialData.correct)
+            // stimulus properties
+            if (currentTrialData.correct)
+            {
+                if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
                 {
-                    if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
-                    {
-                        stimulus.gameObject.SetActive(true);
+                    stimulus.gameObject.SetActive(true);
 
-                        float deg = wheel.Degrees();
-                        Mathf.InverseLerp(initDeg, endDeg, deg);
-                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
-                    }
-                    else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
-                    {
-                        stimulus.gameObject.SetActive(true);
-                        stimulus.SetPosition(0f);
-                    }
-                    else
-                        stimulus.gameObject.SetActive(false);
+                    float deg = wheel.Degrees();
+                    Mathf.InverseLerp(initDeg, endDeg, deg);
+                    stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                }
+                else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
+                {
+                    stimulus.gameObject.SetActive(true);
+                    stimulus.SetPosition(0f);
                 }
                 else
+                    stimulus.gameObject.SetActive(false);
+            }
+            else
+            {
+                if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
                 {
-                    if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
-                    {
-                        stimulus.gameObject.SetActive(true);
+                    stimulus.gameObject.SetActive(true);
 
-                        float deg = wheel.Degrees();
-                        Mathf.InverseLerp(initDeg, endDeg, deg);
-                        stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
-                    }
-                    else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
-                    {
-                        stimulus.gameObject.SetActive(true);
-                        stimulus.SetPosition(2f);
-                    }
-                    else
-                        stimulus.gameObject.SetActive(false);
+                    float deg = wheel.Degrees();
+                    Mathf.InverseLerp(initDeg, endDeg, deg);
+                    stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
                 }
-
-                if (frameIdx >= currentTrialData.stimOn && !playedGo)
+                else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
                 {
-                    // stim on
-                    playedGo = true;
+                    stimulus.gameObject.SetActive(true);
+                    stimulus.SetPosition(2f);
+                }
+                else
+                    stimulus.gameObject.SetActive(false);
+            }
+
+            if (frameIdx >= currentTrialData.stimOn && !playedGo)
+            {
+                // stim on
+                playedGo = true;
+                infoImage.sprite = goSprite;
+                infoImage.color = Color.yellow;
+
+                if (infoCoroutine != null)
+                    StopCoroutine(infoCoroutine);
+                infoCoroutine = StartCoroutine(ClearSprite(0.2f));
+            }
+
+            if (frameIdx >= currentTrialData.feedback && !playedFeedback)
+            {
+                playedFeedback = true;
+                if (currentTrialData.correct)
+                {
                     infoImage.sprite = goSprite;
-                    infoImage.color = Color.yellow;
+                    infoImage.color = Color.green;
 
                     if (infoCoroutine != null)
                         StopCoroutine(infoCoroutine);
-                    infoCoroutine = StartCoroutine(ClearSprite(0.2f));
+                    infoCoroutine = StartCoroutine(ClearSprite(0.5f));
                 }
-
-                if (frameIdx >= currentTrialData.feedback && !playedFeedback)
+                else
                 {
-                    playedFeedback = true;
-                    if (currentTrialData.correct)
-                    {
-                        infoImage.sprite = goSprite;
-                        infoImage.color = Color.green;
+                    infoImage.sprite = wrongSprite;
+                    infoImage.color = Color.red;
 
-                        if (infoCoroutine != null)
-                            StopCoroutine(infoCoroutine);
-                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
-                    }
-                    else
-                    {
-                        infoImage.sprite = wrongSprite;
-                        infoImage.color = Color.red;
-
-                        if (infoCoroutine != null)
-                            StopCoroutine(infoCoroutine);
-                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
-                    }
+                    if (infoCoroutine != null)
+                        StopCoroutine(infoCoroutine);
+                    infoCoroutine = StartCoroutine(ClearSprite(0.5f));
                 }
-
-                // Set DLC points
-                pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frameIdx], timestampData["cr_paw_l_y"][frameIdx]);
-                pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frameIdx], timestampData["cr_paw_r_y"][frameIdx]);
-                pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frameIdx], timestampData["cl_paw_l_y"][frameIdx]);
-                pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frameIdx], timestampData["cl_paw_r_y"][frameIdx]);
-
-                // Set videos
-                rightVideoPlayer.frame = frameIdx;
-                bodyVideoPlayer.frame = (long)timestampData["body_idx"][frameIdx];
-                leftVideoPlayer.frame = (long)timestampData["left_idx"][frameIdx];
-                if (rightVideoPlayer.frame != frameIdx)
-                    Debug.LogWarning("out of sync");
-                rightVideoPlayer.Play();
-                bodyVideoPlayer.Play();
-                leftVideoPlayer.Play();
             }
+
+            // Set DLC points
+            pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frameIdx], timestampData["cr_paw_l_y"][frameIdx]);
+            pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frameIdx], timestampData["cr_paw_r_y"][frameIdx]);
+            pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frameIdx], timestampData["cl_paw_l_y"][frameIdx]);
+            pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frameIdx], timestampData["cl_paw_r_y"][frameIdx]);
         }
     }
 
@@ -310,8 +282,9 @@ public class TrialViewerManager : MonoBehaviour
         infoImage.color = defaultColor;
     }
 
+    Coroutine nextFrameRoutine;
 
-    public void UpdateTrial()
+    public void UpdateTrial(bool forceFrame = false)
     {
         //reset trial variables
         playedGo = false;
@@ -319,9 +292,11 @@ public class TrialViewerManager : MonoBehaviour
 
         currentTrialData = trialData[trial];
         nextTrialData = trialData[trial + 1];
-        time = timestampData["right_ts"][currentTrialData.start]; // get the starting time for the trial
+
+#if UNITY_EDITOR
         Debug.Log(string.Format("Starting trial {0}: start {1} end {2} right {3} correct {4}", trial,
             currentTrialData.start, nextTrialData.start, currentTrialData.right, currentTrialData.correct));
+#endif
 
         // set the stimulus properties
         stimulus.SetContrast(currentTrialData.contrast);
@@ -331,6 +306,48 @@ public class TrialViewerManager : MonoBehaviour
         initDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.stimOn]);
         endDeg = wheel.CalculateDegrees(timestampData["wheel"][currentTrialData.feedback]);
 
+        if (!playing || forceFrame)
+        {
+            if (forceFrame)
+            {
+                if (nextFrameRoutine != null)
+                    StopCoroutine(nextFrameRoutine);
+                nextFrameRoutine = StartCoroutine(UpdateVideoFramesAndPlay());
+            }
+            else
+            {
+                // if we aren't playing, move the videos to the correct frame
+                MoveToFrameAndPrepare(currentTrialData.start);
+            }
+        }
+    }
+
+    private IEnumerator UpdateVideoFramesAndPlay()
+    {
+        Stop();
+
+        MoveToFrameAndPrepare(currentTrialData.start);
+
+        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared)
+            yield return null;
+
+        Play();
+    }
+
+    private void MoveToFrameAndPrepare(int frame)
+    {
+        rightVideoPlayer.frame = frame;
+        bodyVideoPlayer.frame = (long)timestampData["body_idx"][frame];
+        leftVideoPlayer.frame = (long)timestampData["left_idx"][frame];
+
+        leftVideoPlayer.Prepare();
+        rightVideoPlayer.Prepare();
+        bodyVideoPlayer.Prepare();
+
+        pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frame], timestampData["cr_paw_l_y"][frame]);
+        pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frame], timestampData["cr_paw_r_y"][frame]);
+        pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frame], timestampData["cl_paw_l_y"][frame]);
+        pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frame], timestampData["cl_paw_r_y"][frame]);
     }
 
     #region webpage callbacks
@@ -339,8 +356,16 @@ public class TrialViewerManager : MonoBehaviour
         Debug.LogWarning("Session cannot be changed until additional sessions are created");
     }
 
+    /// <summary>
+    /// Callback from the webpage to tell us which trial to go to
+    /// 
+    /// Stops playback
+    /// </summary>
+    /// <param name="newTrial"></param>
     public void SetTrial(int newTrial)
     {
+        Stop();
+
         trial = newTrial;
         UpdateTrial();
         
@@ -356,7 +381,7 @@ public class TrialViewerManager : MonoBehaviour
     public void PrevTrial()
     {
         trial -= 1;
-        UpdateTrial();
+        UpdateTrial(playing);
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         ChangeTrial(trial);
@@ -366,7 +391,7 @@ public class TrialViewerManager : MonoBehaviour
     public void NextTrial()
     {
         trial += 1;
-        UpdateTrial();
+        UpdateTrial(playing);
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         ChangeTrial(trial);
@@ -377,19 +402,18 @@ public class TrialViewerManager : MonoBehaviour
     {
         playing = true;
 
-        pawLcamL.gameObject.SetActive(true);
-        pawRcamL.gameObject.SetActive(true);
-        pawLcamR.gameObject.SetActive(true);
-        pawRcamR.gameObject.SetActive(true);
+        rightVideoPlayer.Play();
+        bodyVideoPlayer.Play();
+        leftVideoPlayer.Play();
     }
 
     public void Stop()
     {
         playing = false;
-        pawLcamL.gameObject.SetActive(false);
-        pawRcamL.gameObject.SetActive(false);
-        pawLcamR.gameObject.SetActive(false);
-        pawRcamR.gameObject.SetActive(false);
+
+        rightVideoPlayer.Stop();
+        bodyVideoPlayer.Stop();
+        leftVideoPlayer.Stop();
     }
     #endregion
 }
