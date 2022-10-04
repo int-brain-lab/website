@@ -498,7 +498,6 @@ function setupButtons() {
 
 function updateTrialTime(time) {
     // takes a float time and renders a red vertical line on the trial plot showing the current position
-    console.log(time);
     // todo
 }
 
