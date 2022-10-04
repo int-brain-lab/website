@@ -361,6 +361,9 @@ async function selectSession(pid) {
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
+        
+    if (unityTrial)
+        unityTrial.SendMessage("main", "SetSession", pid);
 
     // Show the session details.
     var url = `/api/session/${pid}/details`;
@@ -424,7 +427,7 @@ async function selectTrial(pid, tid) {
     CTX.tid = tid;
 
     if (unityTrial)
-        unityTrial.SendMessage("main", "SetTrial", tid);
+        unityTrial.SendMessage("main", "SetTrial", Number(tid));
 
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_plot/${tid}`;
