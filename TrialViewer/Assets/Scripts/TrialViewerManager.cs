@@ -46,7 +46,6 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private WheelComponent wheel;
 
-    [SerializeField] private AssetReferenceT<TextAsset> timestampTextAsset;
     [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
 
     [SerializeField] private AssetReferenceT<VideoClip> leftClip;
@@ -90,7 +89,7 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
-        LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c");
+        StartCoroutine(LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c"));   
 
         Stop();
     }
@@ -104,24 +103,25 @@ public class TrialViewerManager : MonoBehaviour
     }
 
     #region data loading
-    public async void LoadData(string pid)
+    public IEnumerator LoadData(string pid)
     {
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
-        AsyncOperationHandle<TextAsset> timestampHandle = timestampTextAsset.LoadAssetAsync();
-        await timestampHandle.Task;
-
         AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
-        await trialHandle.Task;
+        if (!trialHandle.IsDone)
+            yield return trialHandle;
 
         AsyncOperationHandle<VideoClip> leftHandle = leftClip.LoadAssetAsync();
-        await leftHandle.Task;
+        if (!leftHandle.IsDone)
+            yield return leftHandle;
 
         AsyncOperationHandle<VideoClip> rightHandle = rightClip.LoadAssetAsync();
-        await rightHandle.Task;
+        if (!rightHandle.IsDone)
+            yield return rightHandle;
 
         AsyncOperationHandle<VideoClip> bodyHandle = bodyClip.LoadAssetAsync();
-        await bodyHandle.Task;
+        if (!bodyHandle.IsDone)
+            yield return bodyHandle;
 
         Debug.Log("Passed initial load");
         // videos
@@ -149,7 +149,8 @@ public class TrialViewerManager : MonoBehaviour
             Debug.Log("Loading: " + type);
             string path = string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type);
             AsyncOperationHandle<TextAsset> dataHandle = Addressables.LoadAssetAsync<TextAsset>(path);
-            await dataHandle.Task;
+            if (!dataHandle.IsDone)
+                yield return dataHandle;
 
             int nBytes = dataHandle.Result.bytes.Length;
             Debug.Log(string.Format("Loading {0} with {1} bytes", path, nBytes));
@@ -170,6 +171,13 @@ public class TrialViewerManager : MonoBehaviour
 
         trial = 1;
         UpdateTrial();
+
+        rightVideoPlayer.frame = currentTrialData.start;
+        rightVideoPlayer.Play();
+        bodyVideoPlayer.frame = (long)timestampData["body_idx"][currentTrialData.start];
+        bodyVideoPlayer.Play();
+        leftVideoPlayer.frame = (long)timestampData["left_idx"][currentTrialData.start];
+        leftVideoPlayer.Play();
     }
 
     #endregion 
