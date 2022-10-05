@@ -126,7 +126,6 @@ def filter_features_by_pid(features, pid, column):
     return feat[column].values
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Processing functions
 # -------------------------------------------------------------------------------------------------
@@ -277,6 +276,7 @@ class DataLoader:
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
         details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
+        details['_duration'] = np.max(self.spikes.times)
 
         return details
 

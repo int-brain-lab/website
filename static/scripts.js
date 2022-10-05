@@ -6,8 +6,9 @@
 const DEFAULT_PARAMS = {
 };
 var CTX = {
-    pid: null,
-    tid: 0,
+    pid: null, // probe UUID
+    tid: 0, // trial ID
+    dur: 0, // session duration
 };
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
@@ -347,6 +348,8 @@ function selectPID(pid) {
     autoCompleteJS.setQuery(pid);
 };
 
+
+
 function unityLoaded() {
     /// Unity loaded callback event, update the current highlighted probe
     if (unitySession)
@@ -361,7 +364,7 @@ async function selectSession(pid) {
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
-        
+
     if (unityTrial)
         unityTrial.SendMessage("main", "SetSession", pid);
 
@@ -377,6 +380,7 @@ async function selectSession(pid) {
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
+    CTX.dur = details["_duration"];
 
     // Make table with session details
     verticaltablefromjson(details, 'sessionDetails')
@@ -497,15 +501,36 @@ function setupButtons() {
 /*************************************************************************************************/
 
 function updateTrialTime(time) {
+    // png is 1200x500
+    // trial view: x: 80-540, y: 60-420
     // takes a float time and renders a red vertical line on the trial plot showing the current position
-    // todo
+    var img = document.getElementById("trialPlot");
+    // TODO
+    // var w = img.width;
+    // var h = img.height;
+    // var c = w / 1200.0;
+    // var x0 = 80 * c;
+    // var x1 = 540 * c;
+    // var y0 = 60 * c;
+    // var y1 = 420 * c;
+    // var dur = CTX.dur;
+    // var line = document.getElementById("trialTime");
+    // line.style.left = x0 + (time * .001 / dur) * (x1 - x0);
+    // line.style.top = y0;
+    // line.style.height = y1 - y0;
 }
+
 
 
 function changeTrial(trialNum) {
     // trialNum will be the trial to jump to
     selectTrial(CTX.pid, trialNum);
+
+    var s = document.getElementById('trialSelector');
+    s.options[trialNum].selected = true;
 }
+
+
 
 function trialViewerLoaded() {
     // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
@@ -517,6 +542,8 @@ function trialViewerLoaded() {
     }
     // todo
 }
+
+
 
 /*************************************************************************************************/
 /*  Params browser persistence                                                                   */

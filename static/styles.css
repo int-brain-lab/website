@@ -336,6 +336,24 @@ video {
     /* aspect-ratio: 1; */
 }
 
+#trialWrapper {
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+#trialTime {
+    /* trial view: x: 80-540, y: 60-420 */
+    display: none;
+    position: absolute;
+    top: 48px;
+    left: 65px;
+    height: 288px;
+    width: 2px;
+    background-color: red;
+}
+
+
 
 /*************************************************************************************************/
 /*  Double slider                                                                                */
