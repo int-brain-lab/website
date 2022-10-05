@@ -212,3 +212,5 @@ UnityMiniBrainClient/UserSettings/Layouts/default-2021.dwlt
 **/UserSettings/*
 WebGL
 StreamingAssets
+TrialViewer/pipelines/password.txt
+TrialViewer/pipelines/username.txt
