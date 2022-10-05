@@ -225,6 +225,18 @@ function arrowButton(name, dir) {
 }
 
 
+async function getCursorPosition(canvas, event) {
+    const rect = canvas.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width
+    const y = Math.abs((event.clientY - rect.bottom)) / rect.height
+    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}`;
+    var r = await fetch(url);
+    var details = await r.json();
+
+    selectCluster(CTX.pid, details["cluster_idx"])
+
+}
+
 
 /*************************************************************************************************/
 /*  Setup functions                                                                              */
@@ -337,6 +349,18 @@ function setupSliders() {
     //     updateParamsData();
     // });
 
+
+};
+
+
+function setupMouseEvents() {
+
+
+    const canvas = document.getElementById('clusterPlot')
+    canvas.addEventListener('mousedown', function(e) {
+    getCursorPosition(canvas, e)
+});
+
 };
 
 
@@ -389,6 +413,10 @@ async function selectSession(pid) {
     // Show the session overview plot
     url = `/api/session/${pid}/session_plot`;
     showImage('sessionPlot', url);
+
+        // Show the session overview plot
+    url = `/api/session/${pid}/trial_event_plot`;
+    showImage('trialEventPlot', url);
 
 
     // Set the trial selector.
@@ -450,8 +478,9 @@ async function selectTrial(pid, tid) {
 
 
 async function selectCluster(pid, cid) {
-    console.log(`select cluster #${cid}`);
 
+    console.log(`select cluster #${cid}`);
+    CTX.cid = cid;
     var url = `/api/session/${pid}/cluster_plot/${cid}`;
     showImage('clusterPlot', url);
 
@@ -589,6 +618,7 @@ function load() {
     loadUnity();
     setupPersistence();
     setupSliders();
+    setupMouseEvents()
     setupDropdowns();
     setupButtons();
 };
