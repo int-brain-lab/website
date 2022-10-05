@@ -157,7 +157,7 @@ def make_app():
     @app.route('/WebGL/<path:path>')
     def trial_viewer(path):
         return send_from_directory('WebGL', path)
-        
+
     @app.route('/StreamingAssets/<path:path>')
     def streaming_assets(path):
         return send_from_directory('StreamingAssets', path)
@@ -204,4 +204,6 @@ if __name__ == '__main__':
     logger.info(f"Serving the Flask application on port {port}")
 
     app = make_app()
-    app.run('0.0.0.0', port=port)
+    # to run with SSL, generate certificate with
+    # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
+    app.run(ssl_context=('cert.pem', 'key.pem'))
