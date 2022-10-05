@@ -357,9 +357,9 @@ function setupMouseEvents() {
 
 
     const canvas = document.getElementById('clusterPlot')
-    canvas.addEventListener('mousedown', function(e) {
-    getCursorPosition(canvas, e)
-});
+    canvas.addEventListener('mousedown', function (e) {
+        getCursorPosition(canvas, e)
+    });
 
 };
 
@@ -414,7 +414,7 @@ async function selectSession(pid) {
     url = `/api/session/${pid}/session_plot`;
     showImage('sessionPlot', url);
 
-        // Show the session overview plot
+    // Show the session overview plot
     url = `/api/session/${pid}/trial_event_plot`;
     showImage('trialEventPlot', url);
 

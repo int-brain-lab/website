@@ -126,12 +126,13 @@ def load_json(path):
 
 def get_cluster_idx_from_xy(pid, cluster_idx, x, y):
     df = pd.read_parquet(cluster_pixels_path(pid))
-    norm_dist = np.sqrt(np.sum(np.c_[(df.x.values - x) ** 2, (df.y.values - y) ** 2], axis=1))
+    norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
     min_idx = np.argmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
         return df.iloc[min_idx].cluster_id
     else:
         return cluster_idx
+
 
 # -------------------------------------------------------------------------------------------------
 # Path functions
@@ -319,7 +320,6 @@ class Generator:
         plt.close(fig)
 
     def make_trial_event_plot(self):
-
         path = trial_event_overview_path(self.pid)
         if path.exists():
             return
