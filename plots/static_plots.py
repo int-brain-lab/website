@@ -127,7 +127,6 @@ def filter_features_by_pid(features, pid, column):
     return feat[column].values
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Processing functions
 # -------------------------------------------------------------------------------------------------
@@ -244,6 +243,7 @@ class DataLoader:
         """
         self.spikes = filter_spikes_by_good_clusters(load_spikes(pid))
         self.trials = load_trials(pid)
+        self.trial_intervals = self.compute_trial_intervals()
         self.clusters = load_clusters(pid)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
@@ -251,6 +251,9 @@ class DataLoader:
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
         self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+
+        self.depth_lim = [0, 4000]
+        self.amp_lim = [-10, 800]
 
     def get_session_details(self):
         """
@@ -317,6 +320,12 @@ class DataLoader:
 
         return details
 
+    def compute_trial_intervals(self):
+        t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
+        t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
+
+        return np.c_[t0, t1]
+
     # Plotting functions
     # ---------------------------------------------------------------------------------------------
 
@@ -361,7 +370,7 @@ class DataLoader:
         ax.set_yticks(region_labels[:, 0].astype(int))
         ax.yaxis.set_tick_params(labelsize=10)
         ax.set_yticklabels(region_labels[:, 1])
-        ax.set_ylim(0, 4000)
+        ax.set_ylim(*self.depth_lim)
 
         ax.get_xaxis().set_visible(False)
 
@@ -394,7 +403,7 @@ class DataLoader:
             ax.images.append(im)
 
         ax.set_xlim(data['xlim'][0], data['xlim'][1])
-        ax.set_ylim(0, 4000)
+        ax.set_ylim(*self.depth_lim)
         ax.set_xlabel(data['labels']['xlabel'])
         ax.set_ylabel(data['labels']['ylabel'])
         ax.set_title(data['labels']['title'])
@@ -433,7 +442,7 @@ class DataLoader:
             ax.images.append(im)
 
         ax.set_xlim(data['xlim'][0], data['xlim'][1])
-        ax.set_ylim(0, 4000)
+        ax.set_ylim(*self.depth_lim)
         ax.set_xlabel(data['labels']['xlabel'])
         ax.set_ylabel(data['labels']['ylabel'])
         ax.set_title(data['labels']['title'])
@@ -447,7 +456,7 @@ class DataLoader:
 
         return fig
 
-    def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None):
+    def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None, xlabel='Time (s)'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(9, 6))
@@ -459,8 +468,8 @@ class DataLoader:
                   aspect='auto', origin='lower', vmax=50, cmap='binary')
 
         ax.set_xlim(0, np.max(self.t_vals))
-        ax.set_ylim(0, 4000)
-        set_axis_style(ax, xlabel='Time (s)', ylabel='Depth (um)')
+        ax.set_ylim(*self.depth_lim)
+        set_axis_style(ax, xlabel=xlabel, ylabel='Depth (um)')
 
         if cluster_idx is not None:
             # TODO Allen colours
@@ -484,14 +493,10 @@ class DataLoader:
             fig = ax.get_figure()
 
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-        if np.isnan(trials['feedback_times']) and np.isnan(trials['stimOn_times']):
-            spikes = filter_spikes_by_trial(self.spikes, trials['intervals'][0], trials['intervals'][1])
-        elif np.isnan(trials['feedback_times']):
-            spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['stimOn_times'] + 1)
-        elif np.isnan(trials['stimOn_times']):
-            spikes = filter_spikes_by_trial(self.spikes, trials['feeback_times'] - 1, trials['feedback_times'] + 0.5)
-        else:
-            spikes = filter_spikes_by_trial(self.spikes, trials['stimOn_times'] - 0.5, trials['feedback_times'] + 0.5)
+        t0 = self.trial_intervals[trial_idx, 0]
+        t1 = self.trial_intervals[trial_idx, 1]
+
+        spikes = filter_spikes_by_trial(self.spikes, t0, t1)
 
         t_bin = 0.005
         d_bin = 5
@@ -503,7 +508,7 @@ class DataLoader:
         ax.imshow(raster, extent=np.r_[np.min(t_vals), np.max(t_vals), np.min(d_vals), np.max(d_vals)],
                   aspect='auto', origin='lower', vmax=50, cmap='binary')
 
-        ax.set_ylim(0, 4000)
+        ax.set_ylim(*self.depth_lim)
         ax.set_xlim(np.min(spikes.times), np.max(spikes.times))
 
         if cluster_idx is not None:
@@ -592,8 +597,8 @@ class DataLoader:
         mua = ax.scatter(self.clusters.amps * 1e6, self.clusters.depths, c='r')
         good = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c='g')
 
-        ax.set_ylim(0, 4000)
-        ax.set_xlim(-10, 800)
+        ax.set_ylim(*self.depth_lim)
+        ax.set_xlim(*self.amp_lim)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         ax_legend.legend(handles=[mua, good], labels=['mua', 'good'], frameon=False, bbox_to_anchor=(0.8, 0.2))
@@ -618,8 +623,8 @@ class DataLoader:
             if clusters is not None:
                 ax.scatter(clusters.amps * 1e6, clusters.depths, c=clusters.firing_rate, cmap='hot', edgecolors='grey',
                            linewidths=2, s=80)
-        ax.set_ylim(0, 4000)
-        ax.set_xlim(-10, 800)
+        ax.set_ylim(*self.depth_lim)
+        ax.set_xlim(*self.amp_lim)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         cbar = fig.colorbar(scat, ax=ax_cbar, orientation="horizontal")
@@ -647,8 +652,8 @@ class DataLoader:
         ax.yaxis.set_tick_params(labelsize=10)
         ax.set_yticklabels(region_labels[:, 1])
 
-        ax.set_ylim(0, 4000)
-        ax.set_xlim(-10, 800)
+        ax.set_ylim(*self.depth_lim)
+        ax.set_xlim(*self.amp_lim)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
@@ -664,8 +669,8 @@ class DataLoader:
         clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
         if clusters is not None:
             ax.scatter(clusters.firing_rate, clusters.depths, c='r')
-        ax.set_ylim(0, 4000)
-        ax.set_xlim(-5, 100)
+        ax.set_ylim(*self.depth_lim)
+        ax.set_xlim(*self.amp_lim)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
@@ -678,9 +683,9 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        stim_events = {'go cue ': self.trials['goCue_times'],
-                       'first movement': self.trials['firstMovement_times'],
-                       'feedback': self.trials['feedback_times']}
+        stim_events = {'Stim On': self.trials['stimOn_times'],
+                       'First Move': self.trials['firstMovement_times'],
+                       'Feedback': self.trials['feedback_times']}
         kp_idx = ~np.isnan(self.spikes.depths)
         pre_stim = 0.4
         post_stim = 1
@@ -688,14 +693,15 @@ class DataLoader:
                                          post_stim=post_stim, y_lim=[0, 3840])
 
         for i, (key, d) in enumerate(data.items()):
-            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10)
+            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10,
+                               origin='lower')
             if i == 0:
-                set_axis_style(axs[i], xlabel=f'T from {key} time', ylabel=ylabel)
+                set_axis_style(axs[i], xlabel=f'T from {key} (s)', ylabel=ylabel)
             else:
                 axs[i].set_yticklabels([])
-                set_axis_style(axs[i], xlabel=f'T from {key} time')
+                set_axis_style(axs[i], xlabel=f'T from {key} (s)')
 
-            axs[i].set_ylim(0, 4000)
+            axs[i].set_ylim(*self.depth_lim)
             axs[i].set_xlim(-1 * pre_stim, post_stim)
             axs[i].axvline(0, *axs[i].get_ylim(), c='k', ls='--', zorder=10)
 
@@ -775,7 +781,6 @@ class DataLoader:
                                 psth_div + std_div, alpha=0.4, color=colors[iD])
             axs[0].plot(t_psth, psth_div, alpha=1, color=colors[iD])
 
-
         axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
                       extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
 
@@ -838,7 +843,7 @@ class DataLoader:
             wf_peak = 100
 
         # peak waveform takes 2 times of each y interval between adjacent channels
-        y_scale = (y_max - y_min) / (n_ypos - 1) / wf_peak * 2
+        y_scale = (y_max - y_min) / (n_ypos - 1) / wf_peak * 1.5
 
         time = np.arange(time_len) * dt
 
@@ -847,14 +852,14 @@ class DataLoader:
 
         # Scale bar
         x0 = x_min - 6
-        y0 = y_min + 10
+        y0 = y_min - 15
         ax.text(x0, y0 - 10, '1ms')
         ax.text(x0 - 6, y0, '100uV', rotation='vertical')
         ax.plot([x0, x0 + x_scale], [y0, y0], color='black')
         ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='black')
 
         ax.set_xlim([x_min - 10, x_max + 15])
-        ax.set_ylim([y_min - 20, y_max + 20])
+        ax.set_ylim([y_min - 30, y_max + 30])
 
         remove_frame(ax)
 
@@ -914,9 +919,6 @@ class DataLoader:
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
-
-
-
 
 if __name__ == '__main__':
 
