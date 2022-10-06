@@ -214,3 +214,6 @@ WebGL
 StreamingAssets
 TrialViewer/pipelines/password.txt
 TrialViewer/pipelines/username.txt
+static/Build/**
+static/TrialViewerBuild/**
+static/StreamingAssets/**
