@@ -129,9 +129,10 @@ def get_cluster_idx_from_xy(pid, cluster_idx, x, y):
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
     min_idx = np.argmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
-        return df.iloc[min_idx].cluster_id
+        return df.iloc[min_idx].cluster_id, min_idx
     else:
-        return cluster_idx
+        idx = np.where(df.cluster_id.values == cluster_idx)[0]
+        return cluster_idx, idx
 
 
 # -------------------------------------------------------------------------------------------------
@@ -176,6 +177,10 @@ def cluster_overview_path(pid, cluster_idx):
 
 def cluster_pixels_path(pid):
     return session_cache_path(pid) / 'cluster_pixels.pqt'
+
+
+def trial_intervals_path(pid):
+    return session_cache_path(pid) / f'trial_intervals.pqt'
 
 
 # -------------------------------------------------------------------------------------------------
@@ -309,9 +314,9 @@ class Generator:
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
         loader = self.dl
 
-        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [10, 10, 1], 'wspace': 0.05})
-        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0])
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1])
+        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
+        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
         axs[1].get_yaxis().set_visible(False)
         loader.plot_brain_regions(axs[2])
         set_figure_style(fig)
@@ -327,7 +332,7 @@ class Generator:
         loader = self.dl
 
         fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[4, 4, 4, 1], wspace=0.1)
+        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[5, 5, 5, 1], wspace=0.1)
 
         ax1 = fig.add_subplot(gs[0, 0:3])
         ax2 = fig.add_subplot(gs[1, 0])
@@ -338,10 +343,15 @@ class Generator:
         loader.plot_event_aligned_activity(axs=[ax2, ax3, ax4], ax_cbar=ax1)
         loader.plot_brain_regions(ax=ax5)
         set_figure_style(fig)
-        fig.subplots_adjust(top=1.02)
 
         fig.savefig(path)
         plt.close(fig)
+
+        path_interval = trial_intervals_path(self.pid)
+        df = pd.DataFrame()
+        df['t0'] = loader.trial_intervals[:, 0]
+        df['t1'] = loader.trial_intervals[:, 1]
+        df.to_parquet(path_interval)
 
     def make_cluster_plot(self, cluster_idx):
         path = cluster_overview_path(self.pid, cluster_idx)
@@ -377,9 +387,9 @@ class Generator:
 
         loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
 
-        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
+        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
+        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
         ax2.get_xaxis().set_visible(False)
         ax4.get_xaxis().set_visible(False)
         ax6.get_xaxis().set_visible(False)
@@ -400,13 +410,15 @@ class Generator:
 
         path_scat = cluster_pixels_path(self.pid)
         if not path_scat.exists():
-            pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps.astype(np.float64) * 1e6,
-                                                        loader.clusters_good.depths.astype(np.float64)]).T)
+            idx = np.argsort(loader.clusters_good.depths)[::-1]
+            pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
+                                                        loader.clusters_good.depths[idx].astype(np.float64)]).T)
             width, height = fig.canvas.get_width_height()
             pixels[:, 0] /= width
             pixels[:, 1] /= height
             df = pd.DataFrame()
-            df['cluster_id'] = loader.clusters_good.cluster_id.astype(np.int32)
+            # Sort by depth so they are in the same order as the cluster selector drop down
+            df['cluster_id'] = loader.clusters_good.cluster_id[idx].astype(np.int32)
             df['x'] = pixels[:, 0]
             df['y'] = pixels[:, 1]
             df.to_parquet(path_scat)

@@ -224,8 +224,12 @@ function arrowButton(name, dir) {
 
 }
 
+/*************************************************************************************************/
+/*  Mouse interaction callbacks                                                                  */
+/*************************************************************************************************/
 
 async function getCursorPosition(canvas, event) {
+
     const rect = canvas.getBoundingClientRect()
     const x = (event.clientX - rect.left) / rect.width
     const y = Math.abs((event.clientY - rect.bottom)) / rect.height
@@ -233,7 +237,12 @@ async function getCursorPosition(canvas, event) {
     var r = await fetch(url);
     var details = await r.json();
 
-    selectCluster(CTX.pid, details["cluster_idx"])
+    var new_cluster_idx = details["cluster_idx"];
+
+    if (new_cluster_idx !== CTX.cid)
+        selectCluster(CTX.pid, details["cluster_idx"]);
+        var select = document.getElementById(`clusterSelector`);
+        select.selectedIndex = details["idx"];
 
 }
 

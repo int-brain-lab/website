@@ -179,8 +179,9 @@ def make_app():
 
     @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float:x>_<float:y>')
     def cluster_from_xy(pid, cluster_idx, x, y):
-        cluster_idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y)
+        cluster_idx, idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y)
         return {
+            "idx": int(idx),
             "cluster_idx": int(cluster_idx),
         }
 
