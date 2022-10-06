@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import requests
 import subprocess
+from os.path import exists
 from one.api import ONE
 one = ONE(base_url='https://alyx.internationalbrainlab.org')
 
@@ -29,6 +30,9 @@ for i,row in session_table.iterrows():
 # run pids
 for pid in selectable_pids:
   eid, probe = one.pid2eid(pid)
+  
+  if eid == 'ac7d3064-7f09-48a3-88d2-e86a4eb86461':
+    continue
 
   dsets = one.type2datasets(eid, '_iblrig_Camera.raw', details=True)
   videos = ['left','right','body']
@@ -39,7 +43,8 @@ for pid in selectable_pids:
     print(url)
     ftext = pid + '_' + video
     videoFile = 'D:\\ibl-website-videos\\raw\\' +ftext + ".mp4"
-    open(videoFile, 'wb').write(requests.get(url, auth=(username, password)).content)
+    if not exists(videoFile):
+      open(videoFile, 'wb').write(requests.get(url, auth=(username, password)).content)
     # also get the timestamps
     # To get timestamps for video data so you can find out what times each frame is at
     dsets_time = one.type2datasets(eid, 'camera.times')
@@ -49,7 +54,10 @@ for pid in selectable_pids:
     # with open('./videos/raw/'+ftext+'_times.txt','w') as f:
     #   f.write(str(times[0]))
     np.save('D:\\ibl-website-videos\\proc\\'+ftext+"_times.npy",times)
-    call = subprocess.call(['ffmpeg',
-                  '-i', 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4',
-                  '-vf', 'fps=24,scale=64:52', 
-                  'D:\\ibl-website-videos\\proc\\'+ftext+'_scaled'+'.mp4'])
+
+    scaledFile = 'D:\\ibl-website-videos\\proc\\'+ftext+'_scaled'+'.mp4'
+    if not exists(scaledFile):
+      call = subprocess.call(['ffmpeg',
+                    '-i', 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4',
+                    '-vf', 'fps=24,scale=64:52', 
+                    scaledFile])
