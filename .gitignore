@@ -218,3 +218,6 @@ static/Build/**
 static/TrialViewerBuild/**
 static/StreamingAssets/**
 TrialViewer/pipelines/data/*
+
+static/*Build
+static/data
