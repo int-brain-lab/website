@@ -39,8 +39,8 @@ locale.setlocale(locale.LC_ALL, '')
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).parent.resolve()
-DATA_DIR = ROOT_DIR / 'data'
-CACHE_DIR = ROOT_DIR / 'cache'
+DATA_DIR = ROOT_DIR / 'static/data'
+CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
 
 

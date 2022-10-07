@@ -66,7 +66,7 @@ def add_default_handler(level='DEBUG', logger=logger):
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).parent.resolve()
-DATA_DIR = ROOT_DIR / 'data'
+DATA_DIR = ROOT_DIR / 'static/data'
 PORT = 4321
 DEFAULT_PID = '7d999a68-0215-4e45-8e6c-879c6ca2b771'
 
@@ -156,11 +156,11 @@ def make_app():
 
     @app.route('/WebGL/<path:path>')
     def trial_viewer(path):
-        return send_from_directory('WebGL', path)
+        return send_from_directory('static/WebGL', path)
 
     @app.route('/StreamingAssets/<path:path>')
     def streaming_assets(path):
-        return send_from_directory('StreamingAssets', path)
+        return send_from_directory('static/StreamingAssets', path)
 
     # JSON details
     # ---------------------------------------------------------------------------------------------
