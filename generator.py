@@ -144,7 +144,9 @@ def session_data_path(pid):
 
 
 def session_cache_path(pid):
-    return CACHE_DIR / pid
+    cp = CACHE_DIR / pid
+    assert cp.exists(), f"the path `{cp}` does not exist"
+    return cp
 
 
 def session_details_path(pid):
@@ -190,6 +192,7 @@ def trial_intervals_path(pid):
 def get_pids():
     pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
+    assert pids
     return pids
 
 
