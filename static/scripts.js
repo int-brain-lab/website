@@ -170,6 +170,18 @@ function showImage(id, url) {
 
 
 
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+
+
+function getUnique(arr) {
+    return arr.filter(onlyUnique);
+}
+
+
+
 /*************************************************************************************************/
 /*  Sliders                                                                                      */
 /*************************************************************************************************/
@@ -241,8 +253,8 @@ async function getCursorPosition(canvas, event) {
 
     if (new_cluster_idx !== CTX.cid)
         selectCluster(CTX.pid, details["cluster_idx"]);
-        var select = document.getElementById(`clusterSelector`);
-        select.selectedIndex = details["idx"];
+    var select = document.getElementById(`clusterSelector`);
+    select.selectedIndex = details["idx"];
 
 }
 
@@ -281,9 +293,10 @@ function loadAutoComplete() {
                         // If 1 session is already selected, show all of them.
                         if (isValidUUID(query)) return AUTOCOMPLETE;
 
-                        return AUTOCOMPLETE.filter(({ Lab, Subject, ID }) =>
+                        return AUTOCOMPLETE.filter(({ Lab, Subject, ID, _acronyms }) =>
                             Lab.toLowerCase().includes(query_) ||
                             Subject.toLowerCase().includes(query_) ||
+                            getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
                             ID.toLowerCase().includes(query_)
                         );
                     },

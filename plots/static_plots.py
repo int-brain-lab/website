@@ -29,7 +29,7 @@ import one.alf.io as alfio
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT_DIR / 'data'
+DATA_DIR = ROOT_DIR / 'static/data'
 BRAIN_REGIONS = BrainRegions()
 
 
@@ -225,6 +225,9 @@ class DataLoader:
         self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
         self.session_df = self.session_df.set_index('pid')
 
+        # # Channels and brain acronyms.
+        # self.channels_df = pd.read_parquet(DATA_DIR.joinpath('channels.pqt'))
+
         # load in the waveform tables
         self.features = pd.read_parquet(DATA_DIR.joinpath('raw_ephys_features.pqt'))
         self.features = self.features.reset_index()
@@ -249,6 +252,12 @@ class DataLoader:
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
         self.channels = load_channels(pid)
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
+
+        # # self.brain_regions is a string with the list of brain regions in a given session
+        # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
+        #     transform(lambda x: ', '.join(sorted(x)))
+        # self.brain_regions = self.brain_regions[self.brain_regions.index == pid][0]
+
         self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
         self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
 
@@ -280,6 +289,8 @@ class DataLoader:
         # Internal fields used by the frontend.
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
+        # details['_brain_regions'] = self.brain_regions
+        # details['_brain_regions'] = sorted(set(details['_acronyms']))
         details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
         details['_duration'] = np.max(self.spikes.times)
 
@@ -904,7 +915,6 @@ class DataLoader:
         ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
-
         return fig
 
     def plot_cluster_amplitude(self, cluster_idx, ax=None, xlabel='T (s)', ylabel='Amp (uV)'):
@@ -920,6 +930,7 @@ class DataLoader:
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
+
 
 if __name__ == '__main__':
 

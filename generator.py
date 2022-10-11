@@ -38,8 +38,9 @@ locale.setlocale(locale.LC_ALL, '')
 # CONSTANTS
 # -------------------------------------------------------------------------------------------------
 
-ROOT_DIR = Path(__file__).parent.resolve()
-DATA_DIR = ROOT_DIR / 'static/data'
+# ROOT_DIR and DATA_DIR are loaded from static_plots.py
+# ROOT_DIR = Path(__file__).parent.resolve()
+# DATA_DIR = ROOT_DIR / 'static/data'
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
 
@@ -458,7 +459,7 @@ class Generator:
 
 
 def make_session_plots(pid):
-    Generator(pid) .make_all_session_plots()
+    Generator(pid).make_all_session_plots()
 
 
 def make_all_plots():
