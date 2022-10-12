@@ -70,6 +70,7 @@ for pid in selectable_pids:
       fs_subsamp_factor = int(video_params[label]['fps'] / new_fs)
 
       video_data = one.load_object(eid, f'{label}Camera', collection='alf')
+      ts = video_data['times']
 
       # if timestamps don't match we need to recompute
       if video_data['dlc'].shape[0] != video_data['times'].size:
