@@ -59,5 +59,5 @@ for pid in selectable_pids:
     if not exists(scaledFile):
       call = subprocess.call(['ffmpeg',
                     '-i', 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4',
-                    '-vf', 'fps=24,scale=64:52', 
+                    '-vf', 'fps=24,scale=160:128', 
                     scaledFile])

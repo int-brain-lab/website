@@ -58,8 +58,8 @@ for pid in selectable_pids:
   }
 
   new_fs = 24
-  new_width = 64
-  new_height = 50
+  new_width = 160
+  new_height = 128
 
 
   for label in ['left', 'right', 'body']:
@@ -68,6 +68,8 @@ for pid in selectable_pids:
       video_meta = get_video_meta(video_path)
 
       fs_subsamp_factor = int(video_params[label]['fps'] / new_fs)
+      w_subsamp_factor = video_params[label]['width'] / new_width
+      h_subsamp_factor = video_params[label]['height'] / new_height
 
       video_data = one.load_object(eid, f'{label}Camera', collection='alf')
       ts = video_data['times']
@@ -93,20 +95,22 @@ for pid in selectable_pids:
           if 'likelihood' in col:
               dlc[col] = dlc_positions[col].values[::fs_subsamp_factor]
           elif '_x' in col:
-              dlc[col] = dlc_positions[col].values[::fs_subsamp_factor]
+              dlc[col] = dlc_positions[col].values[::fs_subsamp_factor] / w_subsamp_factor
           elif '_y' in col:
-              dlc[col] = dlc_positions[col].values[::fs_subsamp_factor]
+              dlc[col] = dlc_positions[col].values[::fs_subsamp_factor] / h_subsamp_factor
 
       if label == 'left':
 
-          p_pupil = np.array(dlc[['pupil_top_r_x', 'pupil_top_r_y']].mean())
+          p_pupil_x = np.mean(dlc[['pupil_top_r_x', 'pupil_left_r_x', 'pupil_right_r_x', 'pupil_bottom_r_x']].mean())
+          p_pupil_y = np.mean(dlc[['pupil_top_r_y', 'pupil_left_r_y', 'pupil_right_r_y', 'pupil_bottom_r_y']].mean())
 
           res = video_params[label]['resolution']
           df_pupil = dict()
-          df_pupil['x0'] = int(p_pupil[0] - (33 * res / 2))
-          df_pupil['x1'] = int(p_pupil[0] + (33 * res / 2))
-          df_pupil['y0'] = int(p_pupil[1] + (38 * res / 2))
-          df_pupil['y1'] = int(p_pupil[1] - (38 * res / 2))
+          # get the center coordinate 
+          df_pupil['x0'] = int(p_pupil_x - new_width/2)
+          df_pupil['y0'] = int(p_pupil_y - new_height/2)
+          df_pupil['x0_ss'] = int((p_pupil_x - new_width/2) / w_subsamp_factor)
+          df_pupil['y0_ss'] = int((p_pupil_x - new_height/2) / h_subsamp_factor)
           df_pupil = pd.DataFrame.from_dict([df_pupil])
 
           df_pupil.to_csv(out_path.joinpath(f'{pid}/{pid}_{label}_pupil_rect.csv'))
