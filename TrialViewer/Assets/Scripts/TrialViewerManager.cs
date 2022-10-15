@@ -38,17 +38,19 @@ public class TrialViewerManager : MonoBehaviour
     [SerializeField] private VideoPlayer leftVideoPlayer;
     [SerializeField] private VideoPlayer bodyVideoPlayer;
     [SerializeField] private VideoPlayer rightVideoPlayer;
+    [SerializeField] private VideoPlayer pupilVideoPlayer;
 
-    [SerializeField] private DLCPoint pawLcamR;
-    [SerializeField] private DLCPoint pawRcamR;
-    [SerializeField] private DLCPoint pawLcamL;
-    [SerializeField] private DLCPoint pawRcamL;
+    [SerializeField] private DLCPoint cr_pawL;
+    [SerializeField] private DLCPoint cr_pawR;
+
+    [SerializeField] private DLCPoint cl_pawL;
+    [SerializeField] private DLCPoint cl_pawR;
+
+    [SerializeField] private DLCPoint body_tail;
 
     [SerializeField] private GaborStimulus stimulus;
 
     [SerializeField] private WheelComponent wheel;
-
-    [SerializeField] private AssetReferenceT<TextAsset> trialTextAsset;
 
     #endregion
 
@@ -87,7 +89,9 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
-        StartCoroutine(LoadData("0802ced5-33a3-405e-8336-b65ebc5cb07c"));   
+        //StartCoroutine(LoadData("47be9ae4-290f-46ab-b047-952bc3a1a509"));
+        StartCoroutine(LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86"));   
+
 
         Stop();
     }
@@ -107,29 +111,47 @@ public class TrialViewerManager : MonoBehaviour
 
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
-        AsyncOperationHandle<TextAsset> trialHandle = trialTextAsset.LoadAssetAsync();
+        string path = string.Format("Assets/AddressableAssets/{0}/{0}.trials.csv", pid);
+        AsyncOperationHandle<TextAsset> trialHandle = Addressables.LoadAssetAsync<TextAsset>(path);
 
         Debug.Log("Passed initial load");
         // videos
         leftVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_left_scaled.mp4",pid);
         rightVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_right_scaled.mp4", pid);
         bodyVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_body_scaled.mp4", pid);
+        pupilVideoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}_left_crop.mp4", pid);
 
         timestampData = new Dictionary<string, float[]>();
-        string[] dataTypes = {"right_ts","left_idx","body_idx",
-            "cr_paw_l_x", "cr_paw_l_y", "cr_paw_r_x", "cr_paw_r_y",
-            "cl_paw_l_x", "cl_paw_l_y", "cl_paw_r_x", "cl_paw_r_y",
-            "wheel"};
+        string[] dataTypes = {"left_ts", "right_idx", "body_idx", "wheel", "tail_start_x",
+                               "tail_start_y", "cl_nose_tip_x", "cl_nose_tip_y", "cl_paw_l_x",
+                               "cl_paw_l_y", "cl_paw_r_x", "cl_paw_r_y", "cl_tube_top_x",
+                               "cl_tube_top_y", "cl_tongue_end_l_x", "cl_tongue_end_l_y",
+                               "cl_tongue_end_r_x", "cl_tongue_end_r_y", "cr_nose_tip_x",
+                               "cr_nose_tip_y", "cr_paw_l_x", "cr_paw_l_y", "cr_paw_r_x", "cr_paw_r_y",
+                               "cr_tube_top_x", "cr_tube_top_y", "cr_tongue_end_l_x",
+                               "cr_tongue_end_l_y", "cr_tongue_end_r_x", "cr_tongue_end_r_y",
+                               "pupil_right_r_x", "pupil_right_r_y", "pupil_left_r_x",
+                               "pupil_left_r_y", "pupil_top_r_x", "pupil_top_r_y", "pupil_bottom_r_x",
+                               "pupil_bottom_r_y"};
+
+        Dictionary<string, AsyncOperationHandle<TextAsset>> dataHandles = new Dictionary<string, AsyncOperationHandle<TextAsset>>();
+
+
         foreach (string type in dataTypes)
         {
             Debug.Log("Loading: " + type);
-            string path = string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type);
-            AsyncOperationHandle<TextAsset> dataHandle = Addressables.LoadAssetAsync<TextAsset>(path);
+            dataHandles.Add(type, Addressables.LoadAssetAsync<TextAsset>(string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type)));
+        }
+
+        foreach (KeyValuePair<string, AsyncOperationHandle<TextAsset>> kvp in dataHandles)
+        {
+            string type = kvp.Key;
+            AsyncOperationHandle<TextAsset> dataHandle = kvp.Value;
             if (!dataHandle.IsDone)
                 yield return dataHandle;
 
             int nBytes = dataHandle.Result.bytes.Length;
-            Debug.Log(string.Format("Loading {0} with {1} bytes", path, nBytes));
+            Debug.Log(string.Format("Loading {0} with {1} bytes", type, nBytes));
             float[] data = new float[nBytes / 4];
 
             Buffer.BlockCopy(dataHandle.Result.bytes, 0, data, 0, nBytes);
@@ -149,13 +171,17 @@ public class TrialViewerManager : MonoBehaviour
 
         MoveToFrameAndPrepare(currentTrialData.start);
 
-        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared)
+        cl_pawL.gameObject.SetActive(true);
+        cl_pawR.gameObject.SetActive(true);
+
+        cr_pawL.gameObject.SetActive(true);
+        cr_pawR.gameObject.SetActive(true);
+
+        body_tail.gameObject.SetActive(true);
+
+        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared || !pupilVideoPlayer.isPrepared)
             yield return null;
 
-        pawLcamL.gameObject.SetActive(true);
-        pawRcamL.gameObject.SetActive(true);
-        pawLcamR.gameObject.SetActive(true);
-        pawRcamR.gameObject.SetActive(true);
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
@@ -173,11 +199,11 @@ public class TrialViewerManager : MonoBehaviour
         {
             int frameIdx = (int)leftVideoPlayer.frame;
 
-            // catch in case the video hasn't finished loading
+            // catch in case the video hasn"t finished loading
             if (frameIdx == -1)
                 return;
 
-            time += timestampData["right_ts"][frameIdx];
+            time += timestampData["left_ts"][frameIdx];
 
 #if !UNITY_EDITOR && UNITY_WEBGL
             UpdateTrialTime(time);
@@ -240,7 +266,7 @@ public class TrialViewerManager : MonoBehaviour
 
                 if (infoCoroutine != null)
                     StopCoroutine(infoCoroutine);
-                infoCoroutine = StartCoroutine(ClearSprite(0.2f));
+                infoCoroutine = StartCoroutine(ClearSprite(0.1f));
             }
 
             if (frameIdx >= currentTrialData.feedback && !playedFeedback)
@@ -267,10 +293,7 @@ public class TrialViewerManager : MonoBehaviour
             }
 
             // Set DLC points
-            pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frameIdx], timestampData["cr_paw_l_y"][frameIdx]);
-            pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frameIdx], timestampData["cr_paw_r_y"][frameIdx]);
-            pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frameIdx], timestampData["cl_paw_l_y"][frameIdx]);
-            pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frameIdx], timestampData["cl_paw_r_y"][frameIdx]);
+            SetDLC2Frame(frameIdx);
         }
     }
 
@@ -316,7 +339,7 @@ public class TrialViewerManager : MonoBehaviour
             }
             else
             {
-                // if we aren't playing, move the videos to the correct frame
+                // if we aren"t playing, move the videos to the correct frame
                 MoveToFrameAndPrepare(currentTrialData.start);
             }
         }
@@ -328,7 +351,7 @@ public class TrialViewerManager : MonoBehaviour
 
         MoveToFrameAndPrepare(currentTrialData.start);
 
-        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared)
+        while (!leftVideoPlayer.isPrepared || !rightVideoPlayer.isPrepared || !bodyVideoPlayer.isPrepared || !pupilVideoPlayer)
             yield return null;
 
         Play();
@@ -336,18 +359,27 @@ public class TrialViewerManager : MonoBehaviour
 
     private void MoveToFrameAndPrepare(int frame)
     {
-        rightVideoPlayer.frame = frame;
+        leftVideoPlayer.frame = frame;
+        pupilVideoPlayer.frame = frame;
         bodyVideoPlayer.frame = (long)timestampData["body_idx"][frame];
-        leftVideoPlayer.frame = (long)timestampData["left_idx"][frame];
+        rightVideoPlayer.frame = (long)timestampData["right_idx"][frame];
 
         leftVideoPlayer.Prepare();
+        pupilVideoPlayer.Prepare();
         rightVideoPlayer.Prepare();
         bodyVideoPlayer.Prepare();
 
-        pawLcamR.SetPosition(timestampData["cr_paw_l_x"][frame], timestampData["cr_paw_l_y"][frame]);
-        pawRcamR.SetPosition(timestampData["cr_paw_r_x"][frame], timestampData["cr_paw_r_y"][frame]);
-        pawLcamL.SetPosition(timestampData["cl_paw_l_x"][frame], timestampData["cl_paw_l_y"][frame]);
-        pawRcamL.SetPosition(timestampData["cl_paw_r_x"][frame], timestampData["cl_paw_r_y"][frame]);
+        SetDLC2Frame(frame);
+    }
+
+    private void SetDLC2Frame(int frame)
+    {
+        cr_pawL.SetPosition(timestampData["cr_paw_l_x"][frame], timestampData["cr_paw_l_y"][frame]);
+        cr_pawR.SetPosition(timestampData["cr_paw_r_x"][frame], timestampData["cr_paw_r_y"][frame]);
+        cl_pawL.SetPosition(timestampData["cl_paw_l_x"][frame], timestampData["cl_paw_l_y"][frame]);
+        cl_pawR.SetPosition(timestampData["cl_paw_r_x"][frame], timestampData["cl_paw_r_y"][frame]);
+
+        body_tail.SetPosition(timestampData["tail_start_x"][frame], timestampData["tail_start_y"][frame]);
     }
 
     #region webpage callbacks
@@ -405,6 +437,7 @@ public class TrialViewerManager : MonoBehaviour
         rightVideoPlayer.Play();
         bodyVideoPlayer.Play();
         leftVideoPlayer.Play();
+        pupilVideoPlayer.Play();
     }
 
     public void Stop()
@@ -414,6 +447,7 @@ public class TrialViewerManager : MonoBehaviour
         rightVideoPlayer.Stop();
         bodyVideoPlayer.Stop();
         leftVideoPlayer.Stop();
+        pupilVideoPlayer.Stop();
     }
     #endregion
 }

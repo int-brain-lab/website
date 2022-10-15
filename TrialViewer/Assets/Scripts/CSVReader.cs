@@ -66,7 +66,7 @@ public class CSVReader
 
         for (var i = 1; i < lines.Length; i++)
         {
-
+            Debug.Log(lines[i]);
             var values = Regex.Split(lines[i], SPLIT_RE);
             if (values.Length == 0 || values[0] == "") continue;
             for (int j = 0; j < values.Length; j++)
@@ -74,12 +74,15 @@ public class CSVReader
 
             (int start, int stimOn, int feedback, bool right, float contrast, bool correct) entry;
 
-            entry.start = int.Parse(values[1], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.stimOn = int.Parse(values[2], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.feedback = int.Parse(values[3], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.right = values[4].Equals("R");
-            entry.contrast = float.Parse(values[5], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.correct = int.Parse(values[6], NumberStyles.Any, CultureInfo.InvariantCulture)==1;
+            foreach (string v in values)
+                Debug.Log(v);
+
+            entry.start = int.Parse(values[0], NumberStyles.Any, CultureInfo.InvariantCulture);
+            entry.stimOn = int.Parse(values[1], NumberStyles.Any, CultureInfo.InvariantCulture);
+            entry.feedback = int.Parse(values[2], NumberStyles.Any, CultureInfo.InvariantCulture);
+            entry.right = values[3].Equals("R");
+            entry.contrast = float.Parse(values[4], NumberStyles.Any, CultureInfo.InvariantCulture);
+            entry.correct = int.Parse(values[5], NumberStyles.Any, CultureInfo.InvariantCulture)==1;
 
             data.Add(entry);
         }

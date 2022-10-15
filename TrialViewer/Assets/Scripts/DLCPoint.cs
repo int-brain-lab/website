@@ -34,9 +34,9 @@ public class DLCPoint : MonoBehaviour
 
         gameObject.SetActive(true);
         // Rescale the pixel position to match the screen position
-        float x = (originalX / originalScale.x) * scale.x - scale.x/2;
-        float y = (originalY / originalScale.y) * scale.y - scale.y/2;
-        transform.localPosition = new Vector2(x, -y);
+        //float x = (originalX / originalScale.x) * scale.x - scale.x/2;
+        //float y = (originalY / originalScale.y) * scale.y - scale.y/2;
+        transform.localPosition = new Vector2(originalX - 80, -(originalY - 64));
     }
 
 }
