@@ -91,6 +91,8 @@ public class TrialViewerManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.Log("(TrialViewer) v0.1.0");
+
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
         WebGLInput.captureAllKeyboardInput = false;
@@ -100,7 +102,6 @@ public class TrialViewerManager : MonoBehaviour
         //StartCoroutine(LoadData("47be9ae4-290f-46ab-b047-952bc3a1a509"));
         //StartCoroutine(LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86"));   
         StartCoroutine(LoadData("03c42ea1-1e04-4a3e-9b04-46d8568dcd02"));
-
 
         Stop();
     }
