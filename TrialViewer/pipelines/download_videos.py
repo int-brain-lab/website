@@ -8,8 +8,11 @@ from one.api import ONE
 one = ONE(base_url='https://alyx.internationalbrainlab.org')
 
 # setup folders
-RAW_FOLDER = './videos/raw/'
-PROC_FOLDER = './videos/proc/'
+RAW_FOLDER = 'D:/ibl-website-videos/raw'
+PROC_FOLDER = 'D:/ibl-website-videos/proc'
+
+new_width = 160
+new_height = 128
 
 # get username/password
 with open('username.txt') as f:
@@ -19,13 +22,9 @@ with open('password.txt') as f:
     password = f.readlines()
     password = password[0]
 
-
-# load CSV file
-session_table = pd.read_csv('./session.table.csv')
-selectable_pids = []
-for i,row in session_table.iterrows():
-    if row['selectable']:
-        selectable_pids.append(row['pid'])
+import pickle
+with open("selectable.pids", "rb") as fp:   # Unpickling
+  selectable_pids = pickle.load(fp)
 
 # run pids
 for pid in selectable_pids:
@@ -41,23 +40,26 @@ for pid in selectable_pids:
     dset = next(d for idx, d in dsets.iterrows() if video in d['rel_path'])
     url = one.record2url(dset)
     print(url)
-    ftext = pid + '_' + video
-    videoFile = 'D:\\ibl-website-videos\\raw\\' +ftext + ".mp4"
+    videoFile = f'{RAW_FOLDER}/{pid}_{video}.mp4'
     if not exists(videoFile):
       open(videoFile, 'wb').write(requests.get(url, auth=(username, password)).content)
     # also get the timestamps
     # To get timestamps for video data so you can find out what times each frame is at
     dsets_time = one.type2datasets(eid, 'camera.times')
     dset = next(d for d in dsets_time if video in d)
-    # load data
+    # save timestamps
     times = one.load_dataset(eid, dset)
-    # with open('./videos/raw/'+ftext+'_times.txt','w') as f:
-    #   f.write(str(times[0]))
-    np.save('D:\\ibl-website-videos\\proc\\'+ftext+"_times.npy",times)
+    np.save(f'{PROC_FOLDER}/{pid}_{video}_times.npy',times)
 
-    scaledFile = 'D:\\ibl-website-videos\\proc\\'+ftext+'_scaled'+'.mp4'
+    framerate = 1/np.mean(np.diff(times))
+
+    print(f'Input file true framerate is {framerate}')
+
+    scaledFile = f'{PROC_FOLDER}/{pid}_{video}_scaled.mp4'
     if not exists(scaledFile):
       call = subprocess.call(['ffmpeg',
-                    '-i', 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4',
-                    '-vf', 'fps=24,scale=160:128', 
+                    '-r', f'{framerate}',
+                    '-i', videoFile,
+                    '-vf', f'scale={new_width}:{new_height}', 
+                    '-r', '24',
                     scaledFile])

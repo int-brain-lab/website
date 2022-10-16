@@ -221,3 +221,4 @@ TrialViewer/pipelines/data/*
 
 static/*Build
 static/data
+TrialViewer/pipelines/final/*

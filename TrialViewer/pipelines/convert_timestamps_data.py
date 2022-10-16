@@ -7,13 +7,12 @@
 # if a DLC frame is missing we will replace it with -1
 
 # Load the trial data files and convert them to just the columns that we want
+from telnetlib import OUTMRK
 import numpy as np
 import pandas as pd
-from one.api import ONE
-
-one = ONE()
 
 DATA_DIR = './data'
+OUT_DIR = './final'
 
 def flatten(list_of_list):
   ret = []
@@ -27,19 +26,23 @@ def get_dlc_coord(row, key):
     val = -1
   return val
 
-# load CSV file
-session_table = pd.read_csv('./session.table.csv')
-selectable_pids = []
-for i,row in session_table.iterrows():
-  if row['selectable']:
-    selectable_pids.append(row['pid'])
+import pickle
+with open("selectable.pids", "rb") as fp:   # Unpickling
+  selectable_pids = pickle.load(fp)
 
 
 for pid in selectable_pids:
-  # load timestamp files
-  body_ts = np.load(f'{DATA_DIR}/{pid}/{pid}_body_times_scaled.npy')
-  left_ts = np.load(f'{DATA_DIR}/{pid}/{pid}_left_times_scaled.npy')
-  right_ts = np.load(f'{DATA_DIR}/{pid}/{pid}_right_times_scaled.npy')
+  print(f'Starting {pid}')
+
+  # trim the timestamps to match the videos
+  # load the start/end points
+  start_end = np.load(f'{DATA_DIR}/{pid}/{pid}_start_end.npy')
+  start = start_end[0]
+  end = start_end[1]
+
+  left_ts = np.arange(0,end-start,1/24) + start
+
+
   # Load csv files
   dlc_right = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_right_dlc_scaled.csv')
   dlc_left = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_dlc_scaled.csv')
@@ -60,7 +63,7 @@ for pid in selectable_pids:
   dlc_left_pupil_keys_xy = flatten([(x + '_x', x + '_y') for x in dlc_left_pupil_keys])
 
   # 1 re-index videos, dlc, and wheel into one file
-  indexes = pd.DataFrame(columns=['left_ts','right_idx','body_idx','wheel'] + dlc_body_keys_xy + dlc_left_keys_xy + dlc_right_keys_xy + dlc_left_pupil_keys_xy)
+  indexes = pd.DataFrame(columns=['left_ts','wheel'] + dlc_body_keys_xy + dlc_left_keys_xy + dlc_right_keys_xy + dlc_left_pupil_keys_xy)
   data_cols = {}
 
   crop_data = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv')
@@ -74,21 +77,19 @@ for pid in selectable_pids:
 
   for i, lts in enumerate(left_ts):
     # get indexes
-    right_idx = np.argmin(np.abs(right_ts-lts))
-    body_idx = np.argmin(np.abs(body_ts-lts))
 
-    row_data = [lts, right_idx, body_idx, wheel[i]]
+    row_data = [lts, wheel[i]]
 
     # pull the data columns
     for key in dlc_body_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_body.iloc[body_idx], key + suffix))
+        row_data.append(get_dlc_coord(dlc_body.iloc[i], key + suffix))
     for key in dlc_left_keys:
       for suffix in suffixes:
         row_data.append(get_dlc_coord(dlc_left.iloc[i], key[3:] + suffix))
     for key in dlc_right_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_right.iloc[right_idx], key[3:] + suffix))
+        row_data.append(get_dlc_coord(dlc_right.iloc[i], key[3:] + suffix))
 
     # get the pupil, and offset by the x0/y0 values
     for key in dlc_left_pupil_keys:
@@ -96,9 +97,11 @@ for pid in selectable_pids:
         val = get_dlc_coord(dlc_left.iloc[i], key + suffix) - pupil_xy[j]
         row_data.append(val)
     
-  indexes.loc[i] = row_data
+    indexes.loc[i] = row_data
 
+  indexes.to_csv(f'{DATA_DIR}/{pid}/indexes.csv')
   for key in indexes.keys():
     dat = indexes[key].values.astype(np.float32)
-    with open(f'{DATA_DIR}/{pid}/{pid}.{key}.bytes', 'wb') as file:
-        file.write(dat.tobytes())
+    with open(f'{OUT_DIR}/{pid}/{pid}.{key}.bytes', 'wb') as file:
+      file.write(dat.tobytes())
+  print(f'Finished {pid}')

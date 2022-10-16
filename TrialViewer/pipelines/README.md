@@ -2,6 +2,10 @@
 
 The code downloads all of the full resolution videos to a local folder (D:\ibl-website-videos)
 
+# Convert session table to list of selectable pids
+
+Run `get_selectable_pids.py`
+
 # Download videos
 
 Run `download_videos.py` to download the video data and downsample it
@@ -13,6 +17,10 @@ Run `download_trial_data.py` to download the metadata and DLC and re-sample thes
 # Crop pupil video
 
 Run `crop_pupil_video.py` to crop the pupil video out of the original LEFT video
+
+# Trim and concatenate videos
+
+Run `trim_concat_videos.py`
 
 # Convert trial metadata
 
