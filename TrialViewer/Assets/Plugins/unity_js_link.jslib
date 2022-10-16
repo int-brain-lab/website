@@ -1,7 +1,7 @@
 mergeInto(LibraryManager.library, {
 
-  UpdateTrialTime: function (time) {
-    updateTrialTime(time);
+  UpdateTrialTime: function (t0, t1, t) {
+    updateTrialTime(t0, t1, t);
   },
 
   ChangeTrial: function (trialInc) {

@@ -66,16 +66,12 @@ public class CSVReader
 
         for (var i = 1; i < lines.Length; i++)
         {
-            Debug.Log(lines[i]);
             var values = Regex.Split(lines[i], SPLIT_RE);
             if (values.Length == 0 || values[0] == "") continue;
             for (int j = 0; j < values.Length; j++)
                 values[j] = values[j].TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
 
             (int start, int stimOn, int feedback, bool right, float contrast, bool correct) entry;
-
-            foreach (string v in values)
-                Debug.Log(v);
 
             entry.start = int.Parse(values[0], NumberStyles.Any, CultureInfo.InvariantCulture);
             entry.stimOn = int.Parse(values[1], NumberStyles.Any, CultureInfo.InvariantCulture);
