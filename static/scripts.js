@@ -344,9 +344,9 @@ function loadUnity() {
 
     // Trial viewer.
     createUnityInstance(document.querySelector("#unity-canvas-trial"), {
-        dataUrl: "static/TrialViewerBuild/TrialViewer-webgl.data.gz",
-        frameworkUrl: "static/TrialViewerBuild/TrialViewer-webgl.framework.js.gz",
-        codeUrl: "static/TrialViewerBuild/TrialViewer-webgl.wasm.gz",
+        dataUrl: "static/TrialViewerBuild/TrialViewer.data.gz",
+        frameworkUrl: "static/TrialViewerBuild/TrialViewer.framework.js.gz",
+        codeUrl: "static/TrialViewerBuild/TrialViewer.wasm.gz",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Daniel Birman @ UW",
         productName: "TrialViewer",
