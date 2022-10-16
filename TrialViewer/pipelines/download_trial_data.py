@@ -27,12 +27,17 @@ import pickle
 with open("selectable.pids", "rb") as fp:   # Unpickling
   selectable_pids = pickle.load(fp)
 
-missing = ['ac7d3064-7f09-48a3-88d2-e86a4eb86461']
+skip_pids = '176b4fe3-f570-4d9f-9e25-a5d218f75c8b'
+missing_eids = ['ac7d3064-7f09-48a3-88d2-e86a4eb86461', '176b4fe3-f570-4d9f-9e25-a5d218f75c8b']
 
 for pid in selectable_pids:
+  # skip sessions that were already run
+  if exists(f'{out_path}/{pid}/{pid}_trials.csv'):
+    continue
+
   eid, probe = one.pid2eid(pid) #'0802ced5-33a3-405e-8336-b65ebc5cb07c'
 
-  if eid in missing:
+  if eid in missing_eids:
     continue
 
   print((pid,eid))
@@ -51,6 +56,9 @@ for pid in selectable_pids:
   trials['contrast'] = np.nansum(np.c_[trials_data.contrastLeft, trials_data.contrastRight], axis=1)
   trials['feedback'] = trials_data.feedbackType  # correct = 1, incorrect = -1
 
+  # remove any rows with NaNs
+  trials = trials.dropna()
+
   if not exists(f'{out_path}/{pid}'):
     os.makedirs(f'{out_path}/{pid}')
 
@@ -64,6 +72,7 @@ for pid in selectable_pids:
   frames = (end - start) * new_fs
 
   # calculate the new frame times relative to 0
+  print(f'Computing frame times up to {end-start} for {frames} frames')
   frame_times = np.arange(0,end-start,1/new_fs) + start
 
   # to use the start and end -- these will be the first and last timepoints in the 
@@ -123,14 +132,14 @@ for pid in selectable_pids:
 
       for col in dlc_positions.keys():
           if 'pupil' in col:
-              dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times)
+              dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values, fill_value=-1, bounds_error=False)(frame_times)
           else:
               if 'likelihood' in col:
-                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times)
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values, fill_value=-1, bounds_error=False)(frame_times)
               elif '_x' in col:
-                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / w_subsamp_factor
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values, fill_value=-1, bounds_error=False)(frame_times) / w_subsamp_factor
               elif '_y' in col:
-                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / h_subsamp_factor
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values, fill_value=-1, bounds_error=False)(frame_times) / h_subsamp_factor
 
 
       if label == 'left':
