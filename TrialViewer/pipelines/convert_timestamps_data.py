@@ -20,9 +20,10 @@ def flatten(list_of_list):
     ret += list
   return ret
 
-def get_dlc_coord(row, key):
-  val = row[key]
-  if np.isnan(val):
+def get_dlc_coord(row, key, suffix):
+  val = row[key + suffix]
+  like = row[key + '_likelihood']
+  if like < 0.1 or np.isnan(val):
     val = -1
   return val
 
@@ -68,7 +69,7 @@ for pid in selectable_pids:
 
   crop_data = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv')
 
-  pupil_xy = [crop_data.x0_ss[0], crop_data.y0_ss[0]]
+  pupil_xy = [crop_data.x0[0], crop_data.y0[0]]
 
   suffixes = ['_x', '_y']
 
@@ -83,19 +84,22 @@ for pid in selectable_pids:
     # pull the data columns
     for key in dlc_body_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_body.iloc[i], key + suffix))
+        row_data.append(get_dlc_coord(dlc_body.iloc[i], key, suffix))
     for key in dlc_left_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_left.iloc[i], key[3:] + suffix))
+        row_data.append(get_dlc_coord(dlc_left.iloc[i], key[3:], suffix))
     for key in dlc_right_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_right.iloc[i], key[3:] + suffix))
+        row_data.append(get_dlc_coord(dlc_right.iloc[i], key[3:], suffix))
 
     # get the pupil, and offset by the x0/y0 values
     for key in dlc_left_pupil_keys:
       for j, suffix in enumerate(suffixes):
-        val = get_dlc_coord(dlc_left.iloc[i], key + suffix) - pupil_xy[j]
-        row_data.append(val)
+        val = get_dlc_coord(dlc_left.iloc[i], key, suffix)
+        if val > -1:
+          row_data.append(val - pupil_xy[j])
+        else:
+          row_data.append(val)
     
     indexes.loc[i] = row_data
 

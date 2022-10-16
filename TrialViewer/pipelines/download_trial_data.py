@@ -122,24 +122,28 @@ for pid in selectable_pids:
       dlc_positions = copy.copy(video_data.dlc)
 
       for col in dlc_positions.keys():
-          if 'likelihood' in col:
+          if 'pupil' in col:
               dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times)
-          elif '_x' in col:
-              dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / w_subsamp_factor
-          elif '_y' in col:
-              dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / h_subsamp_factor
+          else:
+              if 'likelihood' in col:
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times)
+              elif '_x' in col:
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / w_subsamp_factor
+              elif '_y' in col:
+                  dlc[col] = interpolate.interp1d(video_data.times, dlc_positions[col].values)(frame_times) / h_subsamp_factor
+
 
       if label == 'left':
-          p_pupil_x = np.mean(dlc[['pupil_top_r_x', 'pupil_left_r_x', 'pupil_right_r_x', 'pupil_bottom_r_x']].mean()) * w_subsamp_factor
-          p_pupil_y = np.mean(dlc[['pupil_top_r_y', 'pupil_left_r_y', 'pupil_right_r_y', 'pupil_bottom_r_y']].mean()) * h_subsamp_factor
+          p_pupil_x = np.mean(dlc[['pupil_top_r_x', 'pupil_left_r_x', 'pupil_right_r_x', 'pupil_bottom_r_x']].mean())
+          p_pupil_y = np.mean(dlc[['pupil_top_r_y', 'pupil_left_r_y', 'pupil_right_r_y', 'pupil_bottom_r_y']].mean())
 
           res = video_params[label]['resolution']
           df_pupil = dict()
           # get the center coordinate 
           df_pupil['x0'] = int(p_pupil_x - new_width/2)
           df_pupil['y0'] = int(p_pupil_y - new_height/2)
-          df_pupil['x0_ss'] = int((p_pupil_x - new_width/2) / w_subsamp_factor)
-          df_pupil['y0_ss'] = int((p_pupil_x - new_height/2) / h_subsamp_factor)
+          df_pupil['x_mu'] = int(p_pupil_x)
+          df_pupil['y_mu'] = int(p_pupil_y)
           df_pupil = pd.DataFrame.from_dict([df_pupil])
 
           df_pupil.to_csv(out_path.joinpath(f'{pid}/{pid}_{label}_pupil_rect.csv'), index = False)
