@@ -79,6 +79,8 @@ public class TrialViewerManager : MonoBehaviour
     private int trial;
     private bool playing;
     private Coroutine infoCoroutine;
+
+    private AsyncOperationHandle catalogHandle;
     #endregion
 
     #region trial vars
@@ -92,6 +94,7 @@ public class TrialViewerManager : MonoBehaviour
     private void Awake()
     {
         Debug.Log("(TrialViewer) v0.1.0");
+        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.10.17.05.35.13.json");
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
@@ -101,7 +104,9 @@ public class TrialViewerManager : MonoBehaviour
 
         //StartCoroutine(LoadData("47be9ae4-290f-46ab-b047-952bc3a1a509"));
         //StartCoroutine(LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86"));   
-        StartCoroutine(LoadData("03c42ea1-1e04-4a3e-9b04-46d8568dcd02"));
+        StartCoroutine(LoadData("7d999a68-0215-4e45-8e6c-879c6ca2b771"));
+
+        // force load the remote content catalog
 
         Stop();
     }
@@ -111,13 +116,14 @@ public class TrialViewerManager : MonoBehaviour
     {
         if (request.url.Contains("http://"))
             request.url = request.url.Replace("http://", "https://");
-        Debug.Log(request.url);
     }
 
     #region data loading
     public IEnumerator LoadData(string pid)
     {
         _loadingScreen.SetActive(true);
+        while (!catalogHandle.IsDone)
+            yield return catalogHandle;
 
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
@@ -423,6 +429,7 @@ public class TrialViewerManager : MonoBehaviour
     /// <param name="newTrial"></param>
     public void SetTrial(int newTrial)
     {
+        Debug.Log(string.Format("(TrialViewer) Setting trial to {0}", newTrial));
         if (newTrial == 0)
             prevTrialButton.enabled = false;
         if (newTrial == trialData.Count)

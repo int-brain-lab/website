@@ -350,7 +350,7 @@ function loadUnity() {
         streamingAssetsUrl: "StreamingAssets",
         companyName: "Daniel Birman @ UW",
         productName: "TrialViewer",
-        productVersion: "0.2.0",
+        productVersion: "0.1.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
@@ -551,10 +551,11 @@ function setupButtons() {
 /*  Trial viewer                                                                                 */
 /*************************************************************************************************/
 
-function updateTrialTime(time) {
+function updateTrialTime(t0, t1, time) {
     // png is 1200x500
     // trial view: x: 80-540, y: 60-420
     // takes a float time and renders a red vertical line on the trial plot showing the current position
+    console.log(t0 + " " + t1 + " " + time);
     var img = document.getElementById("trialPlot");
     // TODO
     // var w = img.width;
