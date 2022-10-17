@@ -228,7 +228,7 @@ public class TrialViewerManager : MonoBehaviour
             if (frameIdx == -1)
                 return;
 
-            time += timestampData["left_ts"][frameIdx];
+            time = timestampData["left_ts"][frameIdx];
 
 #if !UNITY_EDITOR && UNITY_WEBGL
             UpdateTrialTime(timestampData["left_ts"][currentTrialData.start], timestampData["left_ts"][nextTrialData.start], time);

@@ -555,21 +555,22 @@ function updateTrialTime(t0, t1, time) {
     // png is 1200x500
     // trial view: x: 80-540, y: 60-420
     // takes a float time and renders a red vertical line on the trial plot showing the current position
-    console.log(t0 + " " + t1 + " " + time);
     var img = document.getElementById("trialPlot");
+
+    var perc = (time - t0) / (t1 - t0);
     // TODO
-    // var w = img.width;
-    // var h = img.height;
-    // var c = w / 1200.0;
-    // var x0 = 80 * c;
-    // var x1 = 540 * c;
-    // var y0 = 60 * c;
-    // var y1 = 420 * c;
-    // var dur = CTX.dur;
-    // var line = document.getElementById("trialTime");
-    // line.style.left = x0 + (time * .001 / dur) * (x1 - x0);
-    // line.style.top = y0;
-    // line.style.height = y1 - y0;
+    var w = img.width;
+    var h = img.height;
+    var c = w / 1200.0;
+    var x0 = 80 * c;
+    var x1 = 540 * c;
+    var y0 = 60 * c;
+    var y1 = 420 * c;
+    var dur = CTX.dur;
+    var line = document.getElementById("trialTime");
+    line.style.left = x0 + perc * (x1 - x0);
+    line.style.top = y0;
+    line.style.height = y1 - y0;
 }
 
 
