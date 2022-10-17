@@ -370,6 +370,9 @@ public class TrialViewerManager : MonoBehaviour
 
     public void UpdateTrial(bool forceFrame = false)
     {
+        if (waitingToLoad)
+            return;
+
         //reset trial variables
         playedGo = false;
         playedFeedback = false;
@@ -466,14 +469,11 @@ public class TrialViewerManager : MonoBehaviour
     public void SetTrial(int newTrial)
     {
         Debug.Log(string.Format("(TrialViewer) Setting trial to {0}", newTrial));
-        if (newTrial == 0)
-            prevTrialButton.enabled = false;
-        if (newTrial == trialData.Count)
-            nextTrialButton.enabled = false;
+        prevTrialButton.enabled = newTrial > 0;
+        nextTrialButton.enabled = newTrial < trialData.Count;
 
         trial = newTrial;
-        if (!waitingToLoad)
-            UpdateTrial(playing);
+        UpdateTrial(playing);
     }
     #endregion
 
@@ -506,16 +506,14 @@ public class TrialViewerManager : MonoBehaviour
         videoPlayer.Play();
     }
 
-    private void PlayOnPrepared()
-    {
-
-    }
-
     public void Stop()
     {
         playing = false;
 
-        videoPlayer.Stop();
+        videoPlayer.Pause();
+
+        ////reset the current trial
+        //UpdateTrial();
     }
     #endregion
 }
