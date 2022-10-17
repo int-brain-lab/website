@@ -20,6 +20,10 @@ var autoCompleteJS = null;
 /*  Utils                                                                                        */
 /*************************************************************************************************/
 
+function clamp(num, min, max) { return Math.min(Math.max(num, min), max); };
+
+
+
 function isEmpty(obj) {
     // https://stackoverflow.com/a/679937/1595060
     return Object.keys(obj).length === 0;
@@ -477,6 +481,37 @@ async function selectSession(pid) {
 
 
 
+function clickTrial(event) {
+    // png is 1200x500
+    // trial view: x: 80-540, y: 60-420
+    // right panel, lower left corner: 557, 420. upper right corner: 1018, 60
+    var img = document.getElementById("trialPlot");
+
+    var w = img.width;
+    var h = img.height;
+    var c = w / 1200.0;
+    var x0 = 80 * c;
+    var x1 = 540 * c;
+    var y0 = 60 * c;
+    var y1 = 420 * c;
+
+
+    var rect = img.getBoundingClientRect();
+    var x = (event.clientX - rect.left) - x0;
+    var y = Math.abs((event.clientY - rect.bottom)) - y0;
+
+    x = x / (x1 - x0);
+    y = y / (y1 - y0);
+
+    x = clamp(x, 0, 1);
+    y = clamp(y, 0, 1);
+
+    // console.log(x, y);
+    // TODO: select the trial at the given time
+};
+
+
+
 async function selectTrial(pid, tid, unityCalled = false) {
     CTX.tid = tid;
 
@@ -487,6 +522,7 @@ async function selectTrial(pid, tid, unityCalled = false) {
     var url = `/api/session/${pid}/trial_plot/${tid}`;
     showImage('trialPlot', url);
 
+    document.getElementById('trialPlot').onclick = clickTrial;
 
     // Show information about trials in table
     var url = `/api/session/${pid}/trial_details/${tid}`;
