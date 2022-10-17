@@ -81,6 +81,7 @@ public class TrialViewerManager : MonoBehaviour
     private Coroutine infoCoroutine;
 
     private AsyncOperationHandle catalogHandle;
+    private Coroutine loadDataRoutine;
     #endregion
 
     #region trial vars
@@ -104,7 +105,7 @@ public class TrialViewerManager : MonoBehaviour
 
         //StartCoroutine(LoadData("47be9ae4-290f-46ab-b047-952bc3a1a509"));
         //StartCoroutine(LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86"));   
-        StartCoroutine(LoadData("7d999a68-0215-4e45-8e6c-879c6ca2b771"));
+        loadDataRoutine = StartCoroutine(LoadData("7d999a68-0215-4e45-8e6c-879c6ca2b771"));
 
         // force load the remote content catalog
 
@@ -160,7 +161,7 @@ public class TrialViewerManager : MonoBehaviour
         {
             string type = kvp.Key;
             AsyncOperationHandle<TextAsset> dataHandle = kvp.Value;
-            if (!dataHandle.IsDone)
+            while (!dataHandle.IsDone)
                 yield return dataHandle;
 
             int nBytes = dataHandle.Result.bytes.Length;
@@ -173,7 +174,7 @@ public class TrialViewerManager : MonoBehaviour
             timestampData[type] = data;
         }
 
-        if (!trialHandle.IsDone)
+        while (!trialHandle.IsDone)
             yield return trialHandle;
 
         // parse trial data
@@ -238,6 +239,10 @@ public class TrialViewerManager : MonoBehaviour
             {
                 trial++;
                 UpdateTrial();
+
+        #if !UNITY_EDITOR && UNITY_WEBGL
+                ChangeTrial(trial);
+        #endif
             }
 
             // wheel properties
@@ -418,7 +423,9 @@ public class TrialViewerManager : MonoBehaviour
     #region webpage callbacks
     public void SetSession(string pid)
     {
-        StartCoroutine(LoadData(pid));
+        if (loadDataRoutine != null)
+            StopCoroutine(loadDataRoutine);
+        loadDataRoutine = StartCoroutine(LoadData(pid));
     }
 
     /// <summary>
