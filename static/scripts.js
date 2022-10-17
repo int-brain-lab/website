@@ -295,6 +295,14 @@ async function getCursorPosition(canvas, event) {
 /*  Setup functions                                                                              */
 /*************************************************************************************************/
 
+function filterQuery(query_, Lab, Subject, ID, _acronyms) {
+    return Lab.toLowerCase().includes(query_) ||
+        Subject.toLowerCase().includes(query_) ||
+        getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
+        ID.toLowerCase().includes(query_);
+}
+
+
 function loadAutoComplete() {
 
     autoCompleteJS = autocomplete({
@@ -323,13 +331,16 @@ function loadAutoComplete() {
                     getItemInputValue: ({ item }) => item.ID,
                     getItems() {
                         // If 1 session is already selected, show all of them.
-                        if (isValidUUID(query)) return AUTOCOMPLETE;
+                        if (isValidUUID(query_)) return AUTOCOMPLETE;
 
-                        return AUTOCOMPLETE.filter(({ Lab, Subject, ID, _acronyms }) =>
-                            Lab.toLowerCase().includes(query_) ||
-                            Subject.toLowerCase().includes(query_) ||
-                            getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
-                            ID.toLowerCase().includes(query_)
+                        return AUTOCOMPLETE.filter(function ({ Lab, Subject, ID, _acronyms }) {
+                            var res = true;
+                            for (let q of query_.split(/(\s+)/)) {
+                                console.log(q);
+                                res &= filterQuery(q, Lab, Subject, ID, _acronyms);
+                            }
+                            return res;
+                        }
                         );
                     },
                     templates: {
