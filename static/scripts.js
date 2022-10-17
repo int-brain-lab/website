@@ -477,10 +477,10 @@ async function selectSession(pid) {
 
 
 
-async function selectTrial(pid, tid) {
+async function selectTrial(pid, tid, unityCalled = false) {
     CTX.tid = tid;
 
-    if (unityTrial)
+    if (unityTrial && !unityCalled)
         unityTrial.SendMessage("main", "SetTrial", Number(tid));
 
     // Show the trial raster plot.
@@ -577,7 +577,7 @@ function updateTrialTime(t0, t1, time) {
 
 function changeTrial(trialNum) {
     // trialNum will be the trial to jump to
-    selectTrial(CTX.pid, trialNum);
+    selectTrial(CTX.pid, trialNum, true);
 
     var s = document.getElementById('trialSelector');
     s.options[trialNum].selected = true;
@@ -590,7 +590,7 @@ function trialViewerLoaded() {
     // call SetSession(pid)
     // and SetTrial(int)
     if (unityTrial) {
-        // unityTrial.SendMessage("main", "LoadData", CTX.pid);
+        unityTrial.SendMessage("main", "SetSession", CTX.pid);
         unityTrial.SendMessage("main", "SetTrial", CTX.tid);
     }
     // todo
