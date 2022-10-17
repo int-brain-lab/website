@@ -160,12 +160,14 @@ function isOnMobile() {
 function showImage(id, url) {
     var loading = document.getElementById(id + "Loading");
     loading.style.visibility = "visible";
+    unityTrial.SendMessage("main", "Stop");
 
     var tmpImg = new Image();
     tmpImg.onload = function () {
         document.getElementById(id).src = tmpImg.src;
         loading.style.visibility = "hidden";
         delete tmpImg;
+        unityTrial.SendMessage("main", "Play");
     }
     tmpImg.src = url;
 
