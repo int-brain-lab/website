@@ -180,9 +180,37 @@ function onlyUnique(value, index, self) {
 
 
 
-function getUnique(arr) {
-    return arr.filter(onlyUnique);
-}
+// function getUnique(arr) {
+//     return arr.filter(onlyUnique);
+// }
+
+function getUnique(array) {
+    var frequency = {}, value;
+
+    // compute frequencies of each value
+    for (var i = 0; i < array.length; i++) {
+        value = array[i];
+        if (value in frequency) {
+            frequency[value]++;
+        }
+        else {
+            frequency[value] = 1;
+        }
+    }
+
+    // make array from the frequency object to de-duplicate
+    var uniques = [];
+    for (value in frequency) {
+        uniques.push(value);
+    }
+
+    // sort the uniques array in descending order by frequency
+    function compareFrequency(a, b) {
+        return frequency[b] - frequency[a];
+    }
+
+    return uniques.sort(compareFrequency);
+};
 
 
 
@@ -306,11 +334,22 @@ function loadAutoComplete() {
                     },
                     templates: {
                         item({ item, html }) {
+                            var acronyms = item['_acronyms'];
+                            acronyms = getUnique(acronyms);
+                            acronyms = acronyms.filter(item => item !== "void");
+
+                            var n = acronyms.length;
+                            var M = 5;
+                            acronyms = acronyms.slice(0, M);
+                            acronyms = acronyms.join(", ");
+                            if (n > M)
+                                acronyms += "...";
                             return html`
                             <div class="item-container">
                             <div class="item item-lab">${item.Lab}</div>
                             <div class="item item-subject">${item.Subject}</div>
                             <div class="item item-date">${item['Recording date']}</div>
+                            <div class="item item-acronyms">${acronyms}</div>
                             <div class="item item-ID">${item.ID}</div>
                             </div >`
                                 ;

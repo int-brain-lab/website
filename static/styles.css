@@ -207,18 +207,26 @@ h2 {
 .aa-Panel .item {
     display: inline-block;
     margin-right: 10px;
+    font-size: 10pt;
+    white-space: nowrap;
 }
 
 .aa-Panel .item-lab {
-    width: 120px;
+    width: 100px;
 }
 
 .aa-Panel .item-subject {
-    width: 120px;
+    width: 100px;
 }
 
 .aa-Panel .item-date {
-    width: 80px;
+    width: 70px;
+    font-size: 8pt;
+    color: #555;
+}
+
+.aa-Panel .item-acronyms {
+    width: 200px;
     font-size: 8pt;
     color: #555;
 }
