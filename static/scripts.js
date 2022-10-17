@@ -554,23 +554,27 @@ function setupButtons() {
 function updateTrialTime(t0, t1, time) {
     // png is 1200x500
     // trial view: x: 80-540, y: 60-420
+    // right panel, lower left corner: 557, 420. upper right corner: 1018, 60
     // takes a float time and renders a red vertical line on the trial plot showing the current position
     var img = document.getElementById("trialPlot");
 
     var perc = (time - t0) / (t1 - t0);
-    // TODO
+
     var w = img.width;
     var h = img.height;
     var c = w / 1200.0;
-    var x0 = 80 * c;
-    var x1 = 540 * c;
+    var x0 = 557 * c;
+    var x1 = 1018 * c;
     var y0 = 60 * c;
     var y1 = 420 * c;
-    var dur = CTX.dur;
+
     var line = document.getElementById("trialTime");
-    line.style.left = x0 + perc * (x1 - x0);
-    line.style.top = y0;
-    line.style.height = y1 - y0;
+    line.style.display = "block";
+    line.style.left = x0 + perc * (x1 - x0) + "px";
+    line.style.top = y0 + "px";
+    line.style.height = (y1 - y0) + "px";
+
+    console.log(line.style.left);
 }
 
 

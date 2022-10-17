@@ -344,14 +344,13 @@ video {
 }
 
 #trialTime {
-    /* trial view: x: 80-540, y: 60-420 */
     display: none;
     position: absolute;
-    top: 48px;
-    left: 65px;
+    top: 0;
+    left: 0;
     height: 288px;
     width: 2px;
-    background-color: red;
+    background-color: #119cd6;
 }
 
 
