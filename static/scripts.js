@@ -644,7 +644,7 @@ function updateTrialTime(t0, t1, time) {
     // takes a float time and renders a red vertical line on the trial plot showing the current position
     var img = document.getElementById("trialPlot");
 
-    var perc = (time - t0) / (t1 - t0);
+    var perc = clamp((time - t0) / (t1 - t0), 0, 1);
 
     var w = img.width;
     var h = img.height;
