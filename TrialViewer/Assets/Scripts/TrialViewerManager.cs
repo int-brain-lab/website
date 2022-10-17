@@ -27,6 +27,7 @@ public class TrialViewerManager : MonoBehaviour
     [SerializeField] private Button stopButton;
 
     [SerializeField] private GameObject _loadingScreen;
+    [SerializeField] private GameObject _waitingScreen;
 
     [SerializeField] private Image infoImage;
     [SerializeField] private Color defaultColor;
@@ -82,6 +83,9 @@ public class TrialViewerManager : MonoBehaviour
 
     private AsyncOperationHandle catalogHandle;
     private Coroutine loadDataRoutine;
+
+    private bool waitingToLoad = false;
+    private string waitingToLoadPid;
     #endregion
 
     #region trial vars
@@ -103,12 +107,7 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
-        //StartCoroutine(LoadData("47be9ae4-290f-46ab-b047-952bc3a1a509"));
-        //StartCoroutine(LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86"));   
-        loadDataRoutine = StartCoroutine(LoadData("7d999a68-0215-4e45-8e6c-879c6ca2b771"));
-
-        // force load the remote content catalog
-
+        WaitToLoad("7d999a68-0215-4e45-8e6c-879c6ca2b771");
         Stop();
     }
 
@@ -120,8 +119,25 @@ public class TrialViewerManager : MonoBehaviour
     }
 
     #region data loading
-    public IEnumerator LoadData(string pid)
+
+    public void WaitToLoad(string pid)
     {
+        waitingToLoad = true;
+        waitingToLoadPid = pid;
+        _waitingScreen.SetActive(true);
+    }
+
+    public void LoadData(string pid)
+    {
+        if (loadDataRoutine != null)
+            StopCoroutine(loadDataRoutine);
+        loadDataRoutine = StartCoroutine(LoadDataHelper(pid));
+    }
+
+    public IEnumerator LoadDataHelper(string pid)
+    {
+        waitingToLoad = false;
+
         _loadingScreen.SetActive(true);
         while (!catalogHandle.IsDone)
             yield return catalogHandle;
@@ -218,6 +234,16 @@ public class TrialViewerManager : MonoBehaviour
 
     private void Update()
     {
+        if (waitingToLoad)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                LoadData(waitingToLoadPid);
+                _waitingScreen.SetActive(false);
+            }
+            return;
+        }
+
         if (Input.GetMouseButtonDown(0) && !audmanager.gameObject.activeSelf)
             audmanager.gameObject.SetActive(true);
 
@@ -423,10 +449,9 @@ public class TrialViewerManager : MonoBehaviour
     #region webpage callbacks
     public void SetSession(string pid)
     {
-        if (loadDataRoutine != null)
-            StopCoroutine(loadDataRoutine);
-        loadDataRoutine = StartCoroutine(LoadData(pid));
+        WaitToLoad(pid);
     }
+
 
     /// <summary>
     /// Callback from the webpage to tell us which trial to go to
