@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
@@ -28,6 +29,7 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private GameObject _loadingScreen;
     [SerializeField] private GameObject _waitingScreen;
+    [SerializeField] private TMP_Text _trialText;
 
     [SerializeField] private Image infoImage;
     [SerializeField] private Color defaultColor;
@@ -107,8 +109,12 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
-        WaitToLoad("7d999a68-0215-4e45-8e6c-879c6ca2b771");
+        WaitToLoad("03c42ea1-1e04-4a3e-9b04-46d8568dcd02");
         Stop();
+
+#if !UNITY_EDITOR && UNITY_WEBGL
+        TrialViewerLoaded();
+#endif
     }
 
     //Override the url of the WebRequest, the request passed to the method is what would be used as standard by Addressables.
@@ -124,13 +130,14 @@ public class TrialViewerManager : MonoBehaviour
     {
         waitingToLoad = true;
         waitingToLoadPid = pid;
+        if (loadDataRoutine != null)
+            StopCoroutine(loadDataRoutine);
+        _loadingScreen.SetActive(false);
         _waitingScreen.SetActive(true);
     }
 
     public void LoadData(string pid)
     {
-        if (loadDataRoutine != null)
-            StopCoroutine(loadDataRoutine);
         loadDataRoutine = StartCoroutine(LoadDataHelper(pid));
     }
 
@@ -139,6 +146,8 @@ public class TrialViewerManager : MonoBehaviour
         waitingToLoad = false;
 
         _loadingScreen.SetActive(true);
+        _waitingScreen.SetActive(false);
+
         while (!catalogHandle.IsDone)
             yield return catalogHandle;
 
@@ -221,11 +230,6 @@ public class TrialViewerManager : MonoBehaviour
         while (!videoPlayer.isPrepared)
             yield return null;
 
-
-#if !UNITY_EDITOR && UNITY_WEBGL
-        TrialViewerLoaded();
-#endif
-
         Debug.Log("LOADED");
         _loadingScreen.SetActive(false);
     }
@@ -237,10 +241,7 @@ public class TrialViewerManager : MonoBehaviour
         if (waitingToLoad)
         {
             if (Input.GetMouseButtonDown(0))
-            {
                 LoadData(waitingToLoadPid);
-                _waitingScreen.SetActive(false);
-            }
             return;
         }
 
@@ -376,6 +377,8 @@ public class TrialViewerManager : MonoBehaviour
         currentTrialData = trialData[trial];
         nextTrialData = trialData[trial + 1];
 
+        _trialText.text = string.Format("Trial {0}", trial);
+
 #if UNITY_EDITOR
         Debug.Log(string.Format("Starting trial {0}: start {1} end {2} right {3} correct {4}", trial,
             currentTrialData.start, nextTrialData.start, currentTrialData.right, currentTrialData.correct));
@@ -449,6 +452,7 @@ public class TrialViewerManager : MonoBehaviour
     #region webpage callbacks
     public void SetSession(string pid)
     {
+        Debug.Log(string.Format("(TrailViewer) SetSession called with pid {0}",pid));
         WaitToLoad(pid);
     }
 
@@ -468,7 +472,8 @@ public class TrialViewerManager : MonoBehaviour
             nextTrialButton.enabled = false;
 
         trial = newTrial;
-        UpdateTrial(playing);
+        if (!waitingToLoad)
+            UpdateTrial(playing);
     }
     #endregion
 
