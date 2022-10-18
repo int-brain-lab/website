@@ -11,7 +11,8 @@ from pathlib import Path
 import os
 from os.path import exists
 
-PROC_FOLDER = 'D:/ibl-website-videos/proc'
+PROC_DIR = 'D:/ibl-website-videos/proc'
+DATA_DIR = './data'
 
 data_path = Path(r'D:\ibl-website-videos\proc')
 out_path = Path(r'./data')
@@ -27,7 +28,7 @@ for pid in selectable_pids:
   ftext = pid + '_left'
 
   # load crop metadata
-  crop_data = pd.read_csv(os.path.join(out_path, pid, ftext + '_pupil_rect.csv'))
+  crop_data = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv')
 
   x0 = crop_data.x0[0]
   y0 = crop_data.y0[0]
@@ -36,13 +37,13 @@ for pid in selectable_pids:
 
   print((x0, y0, w, h))
 
-  times = np.load(f'{PROC_FOLDER}/{pid}_left_times.npy')
+  times = np.load(f'{PROC_DIR}/{pid}_left_times.npy')
 
   framerate = 1/np.mean(np.diff(times))
 
 
   # crop 
-  cropFile = 'D:\\ibl-website-videos\\proc\\'+ftext+'_crop'+'.mp4'
+  cropFile = f'{PROC_DIR}/{pid}_left_crop.mp4'
   if not exists(cropFile):
     call = subprocess.call(['ffmpeg',
                   '-r', f'{framerate}',

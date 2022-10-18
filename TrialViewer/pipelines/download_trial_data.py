@@ -27,7 +27,7 @@ import pickle
 with open("selectable.pids", "rb") as fp:   # Unpickling
   selectable_pids = pickle.load(fp)
 
-skip_pids = '176b4fe3-f570-4d9f-9e25-a5d218f75c8b'
+skip_pids = ['176b4fe3-f570-4d9f-9e25-a5d218f75c8b','68c98fb2-402b-4670-9b3b-0c77619998ea'
 missing_eids = ['ac7d3064-7f09-48a3-88d2-e86a4eb86461', '176b4fe3-f570-4d9f-9e25-a5d218f75c8b']
 
 for pid in selectable_pids:
@@ -67,6 +67,8 @@ for pid in selectable_pids:
   # calculate the start and end times 
   start = trials.start_timestamp.values[0] - PAD_S
   end = trials.feedback_timestamp.values[-1] + PAD_S
+
+  # TODO: deal with sessions where you need to drop trials so that the start timestamp comes before the first trial
 
   # calculate the # of frames from start to end at 24fps
   frames = (end - start) * new_fs
