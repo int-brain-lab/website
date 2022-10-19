@@ -391,8 +391,8 @@ class Generator:
 
         loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
 
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
+        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
+        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
         loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
         ax2.get_xaxis().set_visible(False)
         ax4.get_xaxis().set_visible(False)

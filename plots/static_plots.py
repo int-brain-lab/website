@@ -723,13 +723,13 @@ class DataLoader:
 
         return fig
 
-    def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
+    def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
         fig, ax = self.single_cluster_raster(
-            spikes.times, self.trials['stimOn_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
+            spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
@@ -927,6 +927,7 @@ class DataLoader:
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
 
         ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
+        ax.set_xlim(-10, np.max(self.spikes.times))
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
