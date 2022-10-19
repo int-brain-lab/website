@@ -146,6 +146,7 @@ def session_data_path(pid):
 
 def session_cache_path(pid):
     cp = CACHE_DIR / pid
+    cp.mkdir(exist_ok=True, parents=True)
     assert cp.exists(), f"the path `{cp}` does not exist"
     return cp
 
