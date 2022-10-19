@@ -10,9 +10,9 @@
 from telnetlib import OUTMRK
 import numpy as np
 import pandas as pd
+import multiprocessing
 
-DATA_DIR = './data'
-OUT_DIR = './final'
+LIKE_THRESH = 0.9
 
 def flatten(list_of_list):
   ret = []
@@ -23,16 +23,11 @@ def flatten(list_of_list):
 def get_dlc_coord(row, key, suffix):
   val = row[key + suffix]
   like = row[key + '_likelihood']
-  if like < 0.1 or np.isnan(val):
+  if like < LIKE_THRESH or np.isnan(val):
     val = -1
   return val
 
-import pickle
-with open("selectable.pids", "rb") as fp:   # Unpickling
-  selectable_pids = pickle.load(fp)
-
-
-for pid in selectable_pids:
+def convert_timestamps(pid):
   print(f'Starting {pid}')
 
   # trim the timestamps to match the videos
@@ -42,7 +37,6 @@ for pid in selectable_pids:
   end = start_end[1]
 
   left_ts = np.arange(0,end-start,1/24) + start
-
 
   # Load csv files
   dlc_right = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_right_dlc_scaled.csv')
@@ -109,3 +103,17 @@ for pid in selectable_pids:
     with open(f'{OUT_DIR}/{pid}/{pid}.{key}.bytes', 'wb') as file:
       file.write(dat.tobytes())
   print(f'Finished {pid}')
+
+if __name__ == "__main__":
+  DATA_DIR = './data'
+  OUT_DIR = './final'
+
+  import pickle
+  with open("selectable.pids", "rb") as fp:   # Unpickling
+    selectable_pids = pickle.load(fp)
+
+  pool_obj = multiprocessing.Pool()
+
+  print(pool_obj)
+
+  pool_obj.map(convert_timestamps,selectable_pids)

@@ -51,14 +51,17 @@ for pid in selectable_pids:
     times = one.load_dataset(eid, dset)
     np.save(f'{PROC_FOLDER}/{pid}_{video}_times.npy',times)
 
-    framerate = 1/np.mean(np.diff(times))
+    framerate2 = 1/((times[-1]-times[0])/len(times))
+    # framerate = 1/np.mean(np.diff(times))
 
-    print(f'Input file true framerate is {framerate}')
+    # print((framerate,framerate2))
+
+    print(f'Input file true framerate is {framerate2}')
 
     scaledFile = f'{PROC_FOLDER}/{pid}_{video}_scaled.mp4'
     if not exists(scaledFile):
       call = subprocess.call(['ffmpeg',
-                    '-r', f'{framerate}',
+                    '-r', f'{framerate2}',
                     '-i', videoFile,
                     '-vf', f'scale={new_width}:{new_height}', 
                     '-r', '24',
