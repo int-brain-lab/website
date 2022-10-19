@@ -160,14 +160,16 @@ function isOnMobile() {
 function showImage(id, url) {
     var loading = document.getElementById(id + "Loading");
     loading.style.visibility = "visible";
-    unityTrial.SendMessage("main", "Stop");
+    if (unityTrial)
+        unityTrial.SendMessage("main", "Stop");
 
     var tmpImg = new Image();
     tmpImg.onload = function () {
         document.getElementById(id).src = tmpImg.src;
         loading.style.visibility = "hidden";
         delete tmpImg;
-        unityTrial.SendMessage("main", "Play");
+        if (unityTrial)
+            unityTrial.SendMessage("main", "Play");
     }
     tmpImg.src = url;
 
@@ -535,8 +537,8 @@ async function selectSession(pid) {
 
 function clickTrial(event) {
     // png is 1200x500
-    // trial view: x: 80-540, y: 60-420
-    // right panel, lower left corner: 557, 420. upper right corner: 1018, 60
+    // left panel:  x: 80-540,   y: 60-420
+    // right panel: x: 399-1004, y: 60-420
     var img = document.getElementById("trialPlot");
 
     var w = img.width;
@@ -546,7 +548,6 @@ function clickTrial(event) {
     var x1 = 540 * c;
     var y0 = 60 * c;
     var y1 = 420 * c;
-
 
     var rect = img.getBoundingClientRect();
     var x = (event.clientX - rect.left) - x0;
@@ -641,8 +642,8 @@ function setupButtons() {
 
 function updateTrialTime(t0, t1, time) {
     // png is 1200x500
-    // trial view: x: 80-540, y: 60-420
-    // right panel, lower left corner: 557, 420. upper right corner: 1018, 60
+    // left panel:  x: 80-540,   y: 60-420
+    // right panel: x: 399-1004, y: 60-420
     // takes a float time and renders a red vertical line on the trial plot showing the current position
     var img = document.getElementById("trialPlot");
 
@@ -651,8 +652,8 @@ function updateTrialTime(t0, t1, time) {
     var w = img.width;
     var h = img.height;
     var c = w / 1200.0;
-    var x0 = 557 * c;
-    var x1 = 1018 * c;
+    var x0 = 399 * c;
+    var x1 = 1004 * c;
     var y0 = 60 * c;
     var y1 = 420 * c;
 
@@ -662,7 +663,7 @@ function updateTrialTime(t0, t1, time) {
     line.style.top = y0 + "px";
     line.style.height = (y1 - y0) + "px";
 
-    console.log(line.style.left);
+    // console.log(line.style.left);
 }
 
 
