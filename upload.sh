@@ -1,1 +1,1 @@
-rsync -avzh static/cache iblviz:/mnt/data/cache
+rsync -avzh static/cache iblviz:/mnt/data/
