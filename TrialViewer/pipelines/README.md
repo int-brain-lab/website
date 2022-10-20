@@ -6,13 +6,17 @@ The code downloads all of the full resolution videos to a local folder (D:\ibl-w
 
 Run `get_selectable_pids.py`
 
+# Download trial data
+
+Run `download_trial_data.py` to download the metadata and DLC and re-sample these to match the videos
+
 # Download videos
 
 Run `download_videos.py` to download the video data and downsample it
 
-# Download trial data
+# Download dlc data
 
-Run `download_trial_data.py` to download the metadata and DLC and re-sample these to match the videos
+Run `download_dlc_data.py` to download the metadata and DLC and re-sample these to match the videos
 
 # Crop pupil video
 

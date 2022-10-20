@@ -10,6 +10,7 @@ one = ONE(base_url='https://alyx.internationalbrainlab.org')
 # setup folders
 RAW_FOLDER = 'D:/ibl-website-videos/raw'
 PROC_FOLDER = 'D:/ibl-website-videos/proc'
+out_path = './data'
 
 new_width = 160
 new_height = 128
@@ -49,20 +50,37 @@ for pid in selectable_pids:
     dset = next(d for d in dsets_time if video in d)
     # save timestamps
     times = one.load_dataset(eid, dset)
-    np.save(f'{PROC_FOLDER}/{pid}_{video}_times.npy',times)
+    if len(times)>0:
+      np.save(f'{PROC_FOLDER}/{pid}_{video}_times.npy',times)
 
-    framerate2 = 1/((times[-1]-times[0])/len(times))
-    # framerate = 1/np.mean(np.diff(times))
+      framerate2 = 1/((times[-1]-times[0])/len(times))
 
-    # print((framerate,framerate2))
-
-    print(f'Input file true framerate is {framerate2}')
+      print(f'Input file true framerate is {framerate2}')
 
     scaledFile = f'{PROC_FOLDER}/{pid}_{video}_scaled.mp4'
-    if not exists(scaledFile):
+    if exists(videoFile) and len(times>0):
+      if not exists(scaledFile):
+        call = subprocess.call(['ffmpeg',
+                      '-r', f'{framerate2}',
+                      '-i', videoFile,
+                      '-vf', f'scale={new_width}:{new_height}', 
+                      '-r', '24',
+                      scaledFile])
+    else:
+      # create a fake timestamps file
+      start_end = np.load(f'{out_path}/{pid}/{pid}_start_end.npy')
+      start = start_end[0]
+      end = start_end[1]
+      
+      times = np.arange(start,end,1/24)
+      np.save(f'{PROC_FOLDER}/{pid}_{video}_times.npy',times)
+
+      # create a fake scaled video
+      print(f'Creating fake video for {pid} {video}')
       call = subprocess.call(['ffmpeg',
-                    '-r', f'{framerate2}',
-                    '-i', videoFile,
-                    '-vf', f'scale={new_width}:{new_height}', 
-                    '-r', '24',
-                    scaledFile])
+                            '-loop','1',
+                            '-i','./img/video_not_available.png',
+                            '-t', f'{end-start}',
+                            '-vf', f'scale={new_width}:{new_height}',
+                            '-r', '24',
+                            scaledFile])
