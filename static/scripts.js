@@ -37,7 +37,22 @@ function binarySearch(arr, val) {
         }
     }
     return -1;
-}
+};
+
+
+
+function findStartIdx(sortedArray, target) {
+    let start = 0,
+        end = sortedArray.length - 1
+
+    while (start <= end) {
+        const mid = Math.floor((start + end) / 2)
+        if (sortedArray[mid] < target) start = mid + 1
+        else end = mid - 1
+    }
+
+    return start
+};
 
 
 
@@ -517,6 +532,8 @@ async function selectSession(pid) {
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
+    CTX.dur = details["_duration"];
+    CTX.trial_ids = trial_ids;
     CTX.trial_onsets = details["_trial_onsets"];
     CTX.trial_offsets = details["_trial_offsets"];
 
@@ -593,9 +610,11 @@ function updateTrialTime(t0, t1, time) {
 
 
 
+// UNITY callback
 function changeTrial(trialNum) {
-    var s = document.getElementById('trialSelector');
-    s.options[trialNum].selected = true;
+    $('#trialSelector').val(trialNum);
+    // var s = document.getElementById('trialSelector');
+    // s.options[trialNum].selected = true;
 
     // trialNum will be the trial to jump to
     selectTrial(CTX.pid, trialNum, true);
@@ -611,7 +630,7 @@ function updateTrialPlot(pid) {
 
 function clickTrial(event) {
     // png is 1200x500
-    // left panel:  x: 80-540,   y: 60-420
+    // left panel:  x: 80-383,   y: 60-420
     // right panel: x: 399-1004, y: 60-420
     var img = document.getElementById("trialPlot");
 
@@ -619,7 +638,7 @@ function clickTrial(event) {
     var h = img.height;
     var c = w / 1200.0;
     var x0 = 80 * c;
-    var x1 = 540 * c;
+    var x1 = 383 * c;
     var y0 = 60 * c;
     var y1 = 420 * c;
 
@@ -633,8 +652,14 @@ function clickTrial(event) {
     x = clamp(x, 0, 1);
     y = clamp(y, 0, 1);
 
-    // console.log(x, y);
-    // TODO: select the trial at the given time
+    var t = x * CTX.dur;
+    console.log("select trial at time " + t);
+
+    var tidx = findStartIdx(CTX.trial_onsets, t);
+    tidx = clamp(tidx, 0, CTX.trial_ids.length - 1);
+    var tid = CTX.trial_ids[tidx];
+    $('#trialSelector').val(tid);
+    selectTrial(CTX.pid, tid);
 };
 
 
