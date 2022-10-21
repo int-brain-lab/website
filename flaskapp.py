@@ -119,7 +119,7 @@ def send(path):
 # Functions
 # -------------------------------------------------------------------------------------------------
 
-def autocomplete():
+def sessions():
     sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
@@ -142,8 +142,10 @@ def make_app():
     def _render(fn):
         return render_template(
             fn,
-            autocomplete=autocomplete(),
-            default_pid=DEFAULT_PID,
+            FLASK_CTX={
+                "SESSIONS": sessions(),
+                "DEFAULT_PID": DEFAULT_PID,
+            },
         )
 
     @app.route('/')

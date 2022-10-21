@@ -3,13 +3,8 @@
 /*  Constants                                                                                    */
 /*************************************************************************************************/
 
-const DEFAULT_PARAMS = {
-};
-var CTX = {
-    pid: null, // probe UUID
-    tid: 0, // trial ID
-    dur: 0, // session duration
-};
+// Passing data from Flask to Javascript
+
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
@@ -33,7 +28,7 @@ function isEmpty(obj) {
 
 function isValidUUID(pid) {
     return regexExp.test(pid);
-}
+};
 
 
 
@@ -92,7 +87,7 @@ function show(arrbuf) {
 
 
 
-function verticaltablefromjson(json, elementID) {
+function fillVerticalTable(json, elementID) {
 
     var table_data = `<table>`
     for (let key in json) {
@@ -115,7 +110,7 @@ function verticaltablefromjson(json, elementID) {
 
 
 
-function horizontaltablefromjson(json, elementID) {
+function fillHorizontalTable(json, elementID) {
 
     var table_data = `<table>`
     table_data += `<tr>`
@@ -174,16 +169,17 @@ function showImage(id, url) {
     tmpImg.src = url;
 
     // document.getElementById(id).src = url;
-}
+};
 
 
 
 function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
-}
+};
 
 
 
+// This commented function does not take the count of each value in the result.
 // function getUnique(arr) {
 //     return arr.filter(onlyUnique);
 // }
@@ -219,43 +215,153 @@ function getUnique(array) {
 
 
 /*************************************************************************************************/
-/*  Sliders                                                                                      */
+/*  Unity callback functions                                                                     */
 /*************************************************************************************************/
 
-function initSlider(id, initRange, fullRange) {
+/// UNITY loaded callback event, update the current highlighted probe
+function unityLoaded() {
+    if (unitySession)
+        unitySession.SendMessage("main", "HighlightProbe", CTX.pid);
+}
 
-    var el = document.getElementById(id);
-    if (el.noUiSlider)
-        el.noUiSlider.destroy();
 
-    noUiSlider.create(el, {
-        start: initRange,
-        connect: true,
-        range: {
-            'min': fullRange[0],
-            'max': fullRange[1]
-        },
-        tooltips: true,
+
+// UNITY callback
+function selectPID(pid) {
+    selectSession(pid);
+    autoCompleteJS.setQuery(pid);
+};
+
+
+
+
+/*************************************************************************************************/
+/*  Setup session selection                                                                      */
+/*************************************************************************************************/
+
+function setupUnitySession() {
+    // Disable Unity widget on smartphones.
+    if (isOnMobile()) return;
+
+    // Session selector widget.
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "static/Build/IBLMini-webgl.data.gz",
+        frameworkUrl: "static/Build/IBLMini-webgl.framework.js.gz",
+        codeUrl: "static/Build/IBLMini-webgl.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Daniel Birman @ UW",
+        productName: "IBLMini",
+        productVersion: "0.2.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+    }).then((unityInstance) => {
+        window.unitySession = unityInstance;
     });
 };
 
 
 
-function onSliderChange(id, callback) {
-    var el = document.getElementById(id);
-    el.noUiSlider.on('update',
-        function (values, handle, unencoded, tap, positions, noUiSlider) {
-            min = parseFloat(values[0]);
-            max = parseFloat(values[1]);
-            callback(min, max);
-        });
+/*************************************************************************************************/
+/*  Setup trial selection                                                                        */
+/*************************************************************************************************/
+
+function setupUnityTrial() {
+    // Disable Unity widget on smartphones.
+    if (isOnMobile()) return;
+
+    // Trial viewer.
+    createUnityInstance(document.querySelector("#unity-canvas-trial"), {
+        dataUrl: "static/TrialViewerBuild/TrialViewer.data.gz",
+        frameworkUrl: "static/TrialViewerBuild/TrialViewer.framework.js.gz",
+        codeUrl: "static/TrialViewerBuild/TrialViewer.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Daniel Birman @ UW",
+        productName: "TrialViewer",
+        productVersion: "0.1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+    }).then((unityInstance) => {
+        window.unityTrial = unityInstance;
+    });
 };
 
 
 
+function setupTrialDropdown(n_trials, trial_idx = 0) {
+    // Set the trial selector.
+    var s = document.getElementById('trialSelector');
+    $('#trialSelector option').remove();
+    var option = null;
+    for (var i = 0; i < n_trials; i++) {
+        option = new Option(`trial #${i.toString().padStart(3, "0")}`, i);
+        if (i == (trial_idx || 0))
+            option.selected = true;
+        s.options[s.options.length] = option;
+    }
+};
+
+
+
+function setupTrialCallback() {
+    // Trial selector.
+    document.getElementById('trialSelector').onchange = function (e) {
+        var tid = e.target.value;
+        if (!tid) return;
+        selectTrial(CTX.pid, tid);
+    }
+
+    document.getElementById('trialPlot').onclick = clickTrial;
+}
+
+
 
 /*************************************************************************************************/
-/*  Button callbacks                                                                             */
+/*  Setup cluster selection                                                                     */
+/*************************************************************************************************/
+
+function setupClusterDropdown(cluster_ids, acronyms, colors) {
+    // Set the cluster selector.
+    var s = document.getElementById('clusterSelector');
+    $('#clusterSelector option').remove();
+    for (var i = 0; i < cluster_ids.length; i++) {
+        var cluster_id = cluster_ids[i];
+        var acronym = acronyms[i];
+        var color = colors[i];
+        option = new Option(`${acronym} — #${cluster_id}`, cluster_id);
+        var r = color[0];
+        var g = color[1];
+        var b = color[2];
+        option.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        if (i == 0)
+            option.selected = true;
+        s.options[s.options.length] = option;
+    }
+}
+
+
+
+function setupClusterCallback() {
+    // Cluster selector.
+    document.getElementById('clusterSelector').onchange = function (e) {
+        var cid = e.target.value;
+        if (!cid) return;
+        selectCluster(CTX.pid, cid);
+    }
+};
+
+
+
+function setupClusterClick() {
+    const canvas = document.getElementById('clusterPlot')
+    canvas.addEventListener('mousedown', function (e) {
+        onClusterClick(canvas, e)
+    });
+};
+
+
+
+/*************************************************************************************************/
+/*  Session selection                                                                            */
 /*************************************************************************************************/
 
 function arrowButton(name, dir) {
@@ -270,50 +376,25 @@ function arrowButton(name, dir) {
 
     select.dispatchEvent(new Event('change'));
 
-}
-
-/*************************************************************************************************/
-/*  Mouse interaction callbacks                                                                  */
-/*************************************************************************************************/
-
-async function getCursorPosition(canvas, event) {
-
-    const rect = canvas.getBoundingClientRect()
-    const x = (event.clientX - rect.left) / rect.width
-    const y = Math.abs((event.clientY - rect.bottom)) / rect.height
-    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}`;
-    var r = await fetch(url);
-    var details = await r.json();
-
-    var new_cluster_idx = details["cluster_idx"];
-
-    if (new_cluster_idx !== CTX.cid)
-        selectCluster(CTX.pid, details["cluster_idx"]);
-    var select = document.getElementById(`clusterSelector`);
-    select.selectedIndex = details["idx"];
-
-}
+};
 
 
-/*************************************************************************************************/
-/*  Setup functions                                                                              */
-/*************************************************************************************************/
 
 function filterQuery(query_, Lab, Subject, ID, _acronyms) {
     return Lab.toLowerCase().includes(query_) ||
         Subject.toLowerCase().includes(query_) ||
         getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
         ID.toLowerCase().includes(query_);
-}
+};
+
 
 
 function loadAutoComplete() {
-
     autoCompleteJS = autocomplete({
         container: '#sessionSelector',
         placeholder: 'search for session',
         openOnFocus: true,
-        initialState: { query: DEFAULT_PID },
+        initialState: { query: CTX.pid },
         onStateChange({ state }) {
             var pid = state.query;
 
@@ -334,10 +415,11 @@ function loadAutoComplete() {
                     sourceId: 'sessions',
                     getItemInputValue: ({ item }) => item.ID,
                     getItems() {
+                        let sessions = FLASK_CTX.SESSIONS;
                         // If 1 session is already selected, show all of them.
-                        if (isValidUUID(query_)) return AUTOCOMPLETE;
+                        if (isValidUUID(query_)) return sessions;
 
-                        return AUTOCOMPLETE.filter(function ({ Lab, Subject, ID, _acronyms }) {
+                        return sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
                                 console.log(q);
@@ -377,88 +459,19 @@ function loadAutoComplete() {
             ];
         },
     });
-}
-
-
-
-function loadUnity() {
-    // Disable Unity widget on smartphones.
-    if (isOnMobile()) return;
-
-    // Session selector widget.
-    createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "static/Build/IBLMini-webgl.data.gz",
-        frameworkUrl: "static/Build/IBLMini-webgl.framework.js.gz",
-        codeUrl: "static/Build/IBLMini-webgl.wasm.gz",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Daniel Birman @ UW",
-        productName: "IBLMini",
-        productVersion: "0.2.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-    }).then((unityInstance) => {
-        window.unitySession = unityInstance;
-    });
-
-    // Trial viewer.
-    createUnityInstance(document.querySelector("#unity-canvas-trial"), {
-        dataUrl: "static/TrialViewerBuild/TrialViewer.data.gz",
-        frameworkUrl: "static/TrialViewerBuild/TrialViewer.framework.js.gz",
-        codeUrl: "static/TrialViewerBuild/TrialViewer.wasm.gz",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Daniel Birman @ UW",
-        productName: "TrialViewer",
-        productVersion: "0.1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-    }).then((unityInstance) => {
-        window.unityTrial = unityInstance;
-    });
 };
 
 
 
-function setupSliders() {
-
-    // Alpha slider
-
-    // initSlider('sliderAlpha', window.params.alpha_range, window.params.alpha_lims);
-
-    // onSliderChange('sliderAlpha', function (min, max) {
-    //     window.params.alpha_range = [min, max];
-    //     updateParamsData();
-    // });
-
-
-};
-
-
-function setupMouseEvents() {
-
-
-    const canvas = document.getElementById('clusterPlot')
-    canvas.addEventListener('mousedown', function (e) {
-        getCursorPosition(canvas, e)
-    });
-
+function updateSessionPlot(pid) {
+    showImage('sessionPlot', `/api/session/${pid}/session_plot`);
 };
 
 
 
-function selectPID(pid) {
-    // UNITY callback
-    // document.getElementById('sessionSelector').value = pid;
-    selectSession(pid);
-    autoCompleteJS.setQuery(pid);
+function updateTrialPlot(pid) {
+    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot`);
 };
-
-
-
-function unityLoaded() {
-    /// Unity loaded callback event, update the current highlighted probe
-    if (unitySession)
-        unitySession.SendMessage("main", "HighlightProbe", CTX.pid);
-}
 
 
 
@@ -484,53 +497,87 @@ async function selectSession(pid) {
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
-    CTX.dur = details["_duration"];
+    // CTX.dur = details["_duration"];
 
-    // Make table with session details
-    verticaltablefromjson(details, 'sessionDetails')
+    // Make table with session details.
+    fillVerticalTable(details, 'sessionDetails')
 
+    // Show the session overview plot.
+    updateSessionPlot(pid);
 
-    // Show the session overview plot
-    url = `/api/session/${pid}/session_plot`;
-    showImage('sessionPlot', url);
+    // Show the trial plot.
+    updateTrialPlot(pid);
 
-    // Show the session overview plot
-    url = `/api/session/${pid}/trial_event_plot`;
-    showImage('trialEventPlot', url);
+    // Setup the trial selector.
+    var trial_idx = 0;
+    if (QUERY_PARAMS.pid == pid && QUERY_PARAMS.trial_idx)
+        trial_idx = QUERY_PARAMS.trial_idx;
+    setupTrialDropdown(details["N trials"], trial_idx);
 
-
-    // Set the trial selector.
-    var s = document.getElementById('trialSelector');
-    $('#trialSelector option').remove();
-    var option = null;
-    for (var i = 0; i < details["N trials"]; i++) {
-        option = new Option(`trial #${i.toString().padStart(3, "0")}`, i);
-        if (i == 0)
-            option.selected = true;
-        s.options[s.options.length] = option;
-    }
-
-    // Set the cluster selector.
-    var s = document.getElementById('clusterSelector');
-    $('#clusterSelector option').remove();
-    for (var i = 0; i < cluster_ids.length; i++) {
-        var cluster_id = cluster_ids[i];
-        var acronym = acronyms[i];
-        var color = colors[i];
-        option = new Option(`${acronym} — #${cluster_id}`, cluster_id);
-        var r = color[0];
-        var g = color[1];
-        var b = color[2];
-        option.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        if (i == 0)
-            option.selected = true;
-        s.options[s.options.length] = option;
-    }
+    // Setup the cluster selector.
+    setupClusterDropdown(cluster_ids, acronyms, colors);
 
     // Update the other plots.
     selectTrial(pid, 0);
+
     // Need to make sure first cluster is a good one, otherwise get error
-    selectCluster(pid, cluster_ids[0]);
+    if (cluster_ids)
+        selectCluster(pid, cluster_ids[0]);
+};
+
+
+
+/*************************************************************************************************/
+/*  Trial viewer                                                                                 */
+/*************************************************************************************************/
+
+function updateTrialTime(t0, t1, time) {
+    // png is 1200x500
+    // left panel:  x: 80-540,   y: 60-420
+    // right panel: x: 399-1004, y: 60-420
+    // takes a float time and renders a red vertical line on the trial plot showing the current position
+    var img = document.getElementById("trialPlot");
+
+    var perc = clamp((time - t0) / (t1 - t0), 0, 1);
+
+    var w = img.width;
+    var h = img.height;
+    var c = w / 1200.0;
+    var x0 = 399 * c;
+    var x1 = 1004 * c;
+    var y0 = 60 * c;
+    var y1 = 420 * c;
+
+    var line = document.getElementById("trialTime");
+    line.style.display = "block";
+    line.style.left = x0 + perc * (x1 - x0) + "px";
+    line.style.top = y0 + "px";
+    line.style.height = (y1 - y0) + "px";
+
+    // console.log(line.style.left);
+};
+
+
+
+function changeTrial(trialNum) {
+    var s = document.getElementById('trialSelector');
+    s.options[trialNum].selected = true;
+
+    // trialNum will be the trial to jump to
+    selectTrial(CTX.pid, trialNum, true);
+};
+
+
+
+function trialViewerLoaded() {
+    // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
+    // call SetSession(pid)
+    // and SetTrial(int)
+    if (unityTrial) {
+        unityTrial.SendMessage("main", "SetSession", CTX.pid);
+        unityTrial.SendMessage("main", "SetTrial", CTX.tid);
+    }
+    // todo
 };
 
 
@@ -575,15 +622,35 @@ async function selectTrial(pid, tid, unityCalled = false) {
     var url = `/api/session/${pid}/trial_plot/${tid}`;
     showImage('trialPlot', url);
 
-    document.getElementById('trialPlot').onclick = clickTrial;
-
     // Show information about trials in table
     var url = `/api/session/${pid}/trial_details/${tid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
-    horizontaltablefromjson(details, 'trialDetails')
+    // Fill the trial details table.
+    fillHorizontalTable(details, 'trialDetails')
+};
 
+
+
+/*************************************************************************************************/
+/*  Cluster selection                                                                            */
+/*************************************************************************************************/
+
+async function onClusterClick(canvas, event) {
+    const rect = canvas.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width
+    const y = Math.abs((event.clientY - rect.bottom)) / rect.height
+    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}`;
+    var r = await fetch(url);
+    var details = await r.json();
+
+    var new_cluster_idx = details["cluster_idx"];
+
+    if (new_cluster_idx !== CTX.cid)
+        selectCluster(CTX.pid, details["cluster_idx"]);
+    var select = document.getElementById(`clusterSelector`);
+    select.selectedIndex = details["idx"];
 };
 
 
@@ -600,128 +667,8 @@ async function selectCluster(pid, cid) {
     var r = await fetch(url).then();
     var details = await r.json();
 
-    horizontaltablefromjson(details, 'clusterDetails')
+    fillHorizontalTable(details, 'clusterDetails')
 
-}
-
-
-
-function setupDropdowns() {
-    // Trial selector.
-    document.getElementById('trialSelector').onchange = function (e) {
-        var tid = e.target.value;
-        if (!tid) return;
-        selectTrial(CTX.pid, tid);
-    }
-
-    // Cluster selector.
-    document.getElementById('clusterSelector').onchange = function (e) {
-        var cid = e.target.value;
-        if (!cid) return;
-        selectCluster(CTX.pid, cid);
-    }
-
-    // Initial selection.
-    selectSession(DEFAULT_PID);
-};
-
-
-
-function setupButtons() {
-    // document.getElementById('resetButton').onclick = function (e) {
-    //     console.log("reset params");
-    //     resetParams();
-    // }
-};
-
-
-
-/*************************************************************************************************/
-/*  Trial viewer                                                                                 */
-/*************************************************************************************************/
-
-function updateTrialTime(t0, t1, time) {
-    // png is 1200x500
-    // left panel:  x: 80-540,   y: 60-420
-    // right panel: x: 399-1004, y: 60-420
-    // takes a float time and renders a red vertical line on the trial plot showing the current position
-    var img = document.getElementById("trialPlot");
-
-    var perc = clamp((time - t0) / (t1 - t0), 0, 1);
-
-    var w = img.width;
-    var h = img.height;
-    var c = w / 1200.0;
-    var x0 = 399 * c;
-    var x1 = 1004 * c;
-    var y0 = 60 * c;
-    var y1 = 420 * c;
-
-    var line = document.getElementById("trialTime");
-    line.style.display = "block";
-    line.style.left = x0 + perc * (x1 - x0) + "px";
-    line.style.top = y0 + "px";
-    line.style.height = (y1 - y0) + "px";
-
-    // console.log(line.style.left);
-}
-
-
-
-function changeTrial(trialNum) {
-    // trialNum will be the trial to jump to
-    selectTrial(CTX.pid, trialNum, true);
-
-    var s = document.getElementById('trialSelector');
-    s.options[trialNum].selected = true;
-}
-
-
-
-function trialViewerLoaded() {
-    // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
-    // call SetSession(pid)
-    // and SetTrial(int)
-    if (unityTrial) {
-        unityTrial.SendMessage("main", "SetSession", CTX.pid);
-        unityTrial.SendMessage("main", "SetTrial", CTX.tid);
-    }
-    // todo
-}
-
-
-
-/*************************************************************************************************/
-/*  Params browser persistence                                                                   */
-/*************************************************************************************************/
-
-function loadParams() {
-    window.params = JSON.parse(localStorage.params || "{}");
-    if (isEmpty(window.params)) {
-        window.params = DEFAULT_PARAMS;
-    }
-};
-
-
-
-function saveParams() {
-    localStorage.params = JSON.stringify(window.params);
-};
-
-
-
-function resetParams() {
-    window.params = DEFAULT_PARAMS;
-    saveParams();
-    setupSliders();
-    setupDropdowns();
-};
-
-
-
-function setupPersistence() {
-    loadParams();
-    window.onbeforeunload = saveParams;
 };
 
 
@@ -732,12 +679,16 @@ function setupPersistence() {
 
 function load() {
     loadAutoComplete();
-    loadUnity();
-    setupPersistence();
-    setupSliders();
-    setupMouseEvents()
-    setupDropdowns();
-    setupButtons();
+
+    setupUnitySession();
+    setupUnityTrial();
+
+    setupClusterClick()
+    setupTrialCallback();
+    setupClusterCallback();
+
+    // Initial selection.
+    selectSession(CTX.pid);
 };
 
 

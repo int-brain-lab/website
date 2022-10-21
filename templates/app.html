@@ -3,10 +3,25 @@
 
 {% block header %}
 
-<!-- Passing data from Flask to Javascript -->
 <script>
-    const AUTOCOMPLETE = {{ autocomplete | tojson }};
-    const DEFAULT_PID = {{ default_pid | tojson }};
+
+    // NOTE: this is not in scripts.js because we need the flask templating engine to make the
+    // replacements here.
+
+    // Query string parameters.
+    const QUERY_PARAMS = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+    });
+
+    // Dictionary passed by Flask in the _render() function.
+    const FLASK_CTX = {{ FLASK_CTX | tojson }};
+
+    // Current context.
+    var CTX = {
+        pid: QUERY_PARAMS.pid || FLASK_CTX.DEFAULT_PID, // initial probe UUID
+        tid: QUERY_PARAMS.trial_idx || 0, // trial ID
+        // dur: 0, // session duration
+    };
 </script>
 
 <!-- Custom Array class -->
