@@ -30,6 +30,7 @@ import one.alf.io as alfio
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / 'static/data'
+CACHE_DIR = ROOT_DIR / 'static/cache'
 BRAIN_REGIONS = BrainRegions()
 
 
@@ -288,6 +289,12 @@ class DataLoader:
 
         # Internal fields used by the frontend.
         details['_trial_ids'] = [int(_) for _ in self.trial_idx]
+
+        # Trial intervals.
+        trial_intervals = pd.read_parquet(CACHE_DIR / self.pid / 'trial_intervals.pqt')
+        details['_trial_onsets'] = [float(_) for _ in trial_intervals.t0]
+        details['_trial_offsets'] = [float(_) for _ in trial_intervals.t1]
+
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
         # details['_brain_regions'] = self.brain_regions
@@ -942,19 +949,23 @@ class DataLoader:
 
 if __name__ == '__main__':
 
-    pid = list(DATA_DIR.iterdir())[0]
+    dl = DataLoader()
+    dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
+    dl.get_session_details()
 
-    clusters = load_clusters(pid)
-    channels = load_channels(pid)
-    spikes = load_spikes(pid)
-    trials = load_trials(pid)
-    # cluster_waveforms = load_cluster_waveforms(pid)
+    # pid = list(DATA_DIR.iterdir())[0]
 
-    cluster_idx = clusters.cluster_id[10]
-    trial_idx = len(trials) // 2
+    # clusters = load_clusters(pid)
+    # channels = load_channels(pid)
+    # spikes = load_spikes(pid)
+    # trials = load_trials(pid)
+    # # cluster_waveforms = load_cluster_waveforms(pid)
 
-    # fig = plot_session_raster(spikes, trials, cluster_idx, trial_idx)
+    # cluster_idx = clusters.cluster_id[10]
+    # trial_idx = len(trials) // 2
 
-    plot_spikes_fr_vs_depth(clusters, cluster_idx)
+    # # fig = plot_session_raster(spikes, trials, cluster_idx, trial_idx)
 
-    plt.show()
+    # plot_spikes_fr_vs_depth(clusters, cluster_idx)
+
+    # plt.show()

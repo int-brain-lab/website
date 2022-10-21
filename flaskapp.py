@@ -68,7 +68,7 @@ def add_default_handler(level='DEBUG', logger=logger):
 ROOT_DIR = Path(__file__).parent.resolve()
 DATA_DIR = ROOT_DIR / 'static/data'
 PORT = 4321
-DEFAULT_PID = '7d999a68-0215-4e45-8e6c-879c6ca2b771'
+DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
 
 
 # -------------------------------------------------------------------------------------------------

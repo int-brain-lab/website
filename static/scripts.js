@@ -19,6 +19,28 @@ function clamp(num, min, max) { return Math.min(Math.max(num, min), max); };
 
 
 
+function binarySearch(arr, val) {
+    let start = 0;
+    let end = arr.length - 1;
+
+    while (start <= end) {
+        let mid = Math.floor((start + end) / 2);
+
+        if (arr[mid] === val) {
+            return mid;
+        }
+
+        if (val < arr[mid]) {
+            end = mid - 1;
+        } else {
+            start = mid + 1;
+        }
+    }
+    return -1;
+}
+
+
+
 function isEmpty(obj) {
     // https://stackoverflow.com/a/679937/1595060
     return Object.keys(obj).length === 0;
@@ -495,7 +517,8 @@ async function selectSession(pid) {
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
-    // CTX.dur = details["_duration"];
+    CTX.trial_onsets = details["_trial_onsets"];
+    CTX.trial_offsets = details["_trial_offsets"];
 
     // Make table with session details.
     fillVerticalTable(details, 'sessionDetails')
@@ -540,6 +563,14 @@ function updateTrialTime(t0, t1, time) {
     // right panel: x: 399-1004, y: 60-420
     // takes a float time and renders a red vertical line on the trial plot showing the current position
     var img = document.getElementById("trialPlot");
+
+    // TODO: if t0 and t1 are not provided by the caller of this callback,
+    // we can retrieve them with:
+    // var trial_id = CTX.tid;
+    // // note: this will work as long as trial_onsets/offsets contain all trials, including nan
+    // // ones, such that we can index them by trial_id.
+    // var t0 = CTX.trial_onsets[trial_id];
+    // var t1 = CTX.trial_offsets[trial_id];
 
     var perc = clamp((time - t0) / (t1 - t0), 0, 1);
 
