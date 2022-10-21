@@ -282,6 +282,9 @@ function setupUnityTrial() {
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
         window.unityTrial = unityInstance;
+        console.log(CTX.pid, CTX.tid);
+        window.unityTrial.SendMessage("main", "SetSession", CTX.pid);
+        window.unityTrial.SendMessage("main", "SetTrial", Number(CTX.tid));
     });
 };
 
@@ -469,11 +472,6 @@ function updateSessionPlot(pid) {
 
 
 
-function updateTrialPlot(pid) {
-    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot`);
-};
-
-
 
 async function selectSession(pid) {
     if (!pid) return;
@@ -518,7 +516,7 @@ async function selectSession(pid) {
     setupClusterDropdown(cluster_ids, acronyms, colors);
 
     // Update the other plots.
-    selectTrial(pid, 0);
+    selectTrial(pid, CTX.tid);
 
     // Need to make sure first cluster is a good one, otherwise get error
     if (cluster_ids)
@@ -530,6 +528,11 @@ async function selectSession(pid) {
 /*************************************************************************************************/
 /*  Trial viewer                                                                                 */
 /*************************************************************************************************/
+
+// NOTE: doesn't work, use setupUnityTrial() instead
+function trialViewerLoaded() { };
+
+
 
 function updateTrialTime(t0, t1, time) {
     // png is 1200x500
@@ -569,15 +572,8 @@ function changeTrial(trialNum) {
 
 
 
-function trialViewerLoaded() {
-    // callback when the trial viewer finishes loading, excepts to be sent back the current session pid and trial #
-    // call SetSession(pid)
-    // and SetTrial(int)
-    if (unityTrial) {
-        unityTrial.SendMessage("main", "SetSession", CTX.pid);
-        unityTrial.SendMessage("main", "SetTrial", CTX.tid);
-    }
-    // todo
+function updateTrialPlot(pid) {
+    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot`);
 };
 
 

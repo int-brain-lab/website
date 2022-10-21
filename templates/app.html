@@ -19,7 +19,8 @@
     // Current context.
     var CTX = {
         pid: QUERY_PARAMS.pid || FLASK_CTX.DEFAULT_PID, // initial probe UUID
-        tid: QUERY_PARAMS.trial_idx || 0, // trial ID
+        tid: parseInt(QUERY_PARAMS.trial_idx, 10) || 0, // trial ID
+        cid: 0, // cluster ID
         // dur: 0, // session duration
     };
 </script>
