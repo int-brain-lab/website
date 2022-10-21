@@ -481,6 +481,7 @@ async function selectSession(pid) {
 
     // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
     // which controls which fields are displayed in the session details box.
+    var trial_ids = details['_trial_ids']
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
@@ -503,8 +504,9 @@ async function selectSession(pid) {
     var s = document.getElementById('trialSelector');
     $('#trialSelector option').remove();
     var option = null;
-    for (var i = 0; i < details["N trials"]; i++) {
-        option = new Option(`trial #${i.toString().padStart(3, "0")}`, i);
+    for (var i = 0; i < trial_ids.length; i++) {
+        var trial_id = trial_ids[i]
+        option = new Option(`trial #${trial_id.toString().padStart(3, "0")}`, trial_id);
         if (i == 0)
             option.selected = true;
         s.options[s.options.length] = option;

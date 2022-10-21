@@ -246,7 +246,7 @@ class DataLoader:
         """
         self.spikes = filter_spikes_by_good_clusters(load_spikes(pid))
         self.trials = load_trials(pid)
-        self.trial_intervals = self.compute_trial_intervals()
+        self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
         self.clusters = load_clusters(pid)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
@@ -287,6 +287,7 @@ class DataLoader:
         idx = np.argsort(self.clusters_good.depths)[::-1]
 
         # Internal fields used by the frontend.
+        details['_trial_ids'] = [int(_) for _ in self.trial_idx]
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
         # details['_brain_regions'] = self.brain_regions
@@ -333,10 +334,16 @@ class DataLoader:
         return details
 
     def compute_trial_intervals(self):
+        # Find the nan trials and remove these
+        nan_idx = np.bitwise_or(np.isnan(self.trials['stimOn_times']), np.isnan(self.trials['feedback_times']))
+        trial_no = np.arange(len(self.trials['stimOn_times']))
+
         t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
         t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
+        t0[nan_idx] = np.nan
+        t1[nan_idx] = np.nan
 
-        return np.c_[t0, t1]
+        return np.c_[t0, t1], trial_no[~nan_idx]
 
     # Plotting functions
     # ---------------------------------------------------------------------------------------------
