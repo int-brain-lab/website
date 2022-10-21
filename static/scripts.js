@@ -282,7 +282,6 @@ function setupUnityTrial() {
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
         window.unityTrial = unityInstance;
-        console.log(CTX.pid, CTX.tid);
         window.unityTrial.SendMessage("main", "SetSession", CTX.pid);
         window.unityTrial.SendMessage("main", "SetTrial", Number(CTX.tid));
     });
@@ -290,14 +289,15 @@ function setupUnityTrial() {
 
 
 
-function setupTrialDropdown(n_trials, trial_idx = 0) {
+function setupTrialDropdown(trial_ids, trial_id = -1) {
     // Set the trial selector.
     var s = document.getElementById('trialSelector');
     $('#trialSelector option').remove();
     var option = null;
-    for (var i = 0; i < n_trials; i++) {
-        option = new Option(`trial #${i.toString().padStart(3, "0")}`, i);
-        if (i == (trial_idx || 0))
+    for (var i = 0; i < trial_ids.length; i++) {
+        var tid = trial_ids[i]
+        option = new Option(`trial #${tid.toString().padStart(3, "0")}`, tid);
+        if (((trial_id == -1) && (i == 0)) || (tid == trial_id))
             option.selected = true;
         s.options[s.options.length] = option;
     }
@@ -472,7 +472,6 @@ function updateSessionPlot(pid) {
 
 
 
-
 async function selectSession(pid) {
     if (!pid) return;
     CTX.pid = pid;
@@ -492,6 +491,7 @@ async function selectSession(pid) {
 
     // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
     // which controls which fields are displayed in the session details box.
+    var trial_ids = details['_trial_ids']
     var cluster_ids = details["_cluster_ids"];
     var acronyms = details["_acronyms"];
     var colors = details["_colors"];
@@ -507,10 +507,10 @@ async function selectSession(pid) {
     updateTrialPlot(pid);
 
     // Setup the trial selector.
-    var trial_idx = 0;
-    if (QUERY_PARAMS.pid == pid && QUERY_PARAMS.trial_idx)
-        trial_idx = QUERY_PARAMS.trial_idx;
-    setupTrialDropdown(details["N trials"], trial_idx);
+    var trial_id = 0;
+    if (QUERY_PARAMS.pid == pid && QUERY_PARAMS.trial_id)
+        trial_id = QUERY_PARAMS.trial_id;
+    setupTrialDropdown(trial_ids, trial_id);
 
     // Setup the cluster selector.
     setupClusterDropdown(cluster_ids, acronyms, colors);

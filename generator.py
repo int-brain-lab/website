@@ -223,7 +223,8 @@ class Generator:
         logger.debug(f"saving session details for session {pid}")
         save_json(path, self.session_details)
 
-        self.n_trials = int(self.session_details['N trials'])
+        self.trial_idxs = self.session_details['_trial_ids']
+        self.n_trials = len(self.trial_idxs)
         self.cluster_idxs = self.session_details['_cluster_ids']
         self.n_clusters = len(self.cluster_idxs)
 
@@ -231,7 +232,7 @@ class Generator:
     # -------------------------------------------------------------------------------------------------
 
     def iter_trial(self):
-        yield from range(self.n_trials)
+        yield from sorted(self.trial_idxs)
 
     def iter_cluster(self):
         yield from sorted(self.cluster_idxs)
@@ -460,7 +461,7 @@ class Generator:
 
 
 def make_session_plots(pid):
-    Generator(pid).make_all_session_plots()
+    Generator(pid)  # .make_all_session_plots()
 
 
 def make_all_plots():
