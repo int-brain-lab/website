@@ -569,12 +569,23 @@ async function selectSession(pid) {
 /*  Trial viewer                                                                                 */
 /*************************************************************************************************/
 
-// NOTE: doesn't work, use setupUnityTrial() instead
-function trialViewerLoaded() { };
+function trialViewerLoaded() {
+    if (unityTrial) {
+        unityTrial.SendMessage("main", "SetSession", CTX.pid);
+    }
+}
 
 
+function trialViewerDataLoaded() {
+    // callback when the data finishes loading, expects to be sent back the current trial #
+    if (unityTrial) {
+        unityTrial.SendMessage("main", "SetTrial", CTX.tid);
+    }
+}
 
-function updateTrialTime(t0, t1, time) {
+function updateTrialTime(time) {
+    return;
+    
     // png is 1200x500
     // left panel:  x: 80-540,   y: 60-420
     // right panel: x: 399-1004, y: 60-420
@@ -583,11 +594,11 @@ function updateTrialTime(t0, t1, time) {
 
     // TODO: if t0 and t1 are not provided by the caller of this callback,
     // we can retrieve them with:
-    // var trial_id = CTX.tid;
+    var trial_id = CTX.tid;
     // // note: this will work as long as trial_onsets/offsets contain all trials, including nan
     // // ones, such that we can index them by trial_id.
-    // var t0 = CTX.trial_onsets[trial_id];
-    // var t1 = CTX.trial_offsets[trial_id];
+    var t0 = CTX.trial_onsets[trial_id];
+    var t1 = CTX.trial_offsets[trial_id];
 
     var perc = clamp((time - t0) / (t1 - t0), 0, 1);
 

@@ -15,17 +15,20 @@ using UnityEngine.Video;
 public class TrialViewerManager : MonoBehaviour
 {
     [DllImport("__Internal")]
-    private static extern void UpdateTrialTime(float t0, float t1, float t);
+    private static extern void UpdateTrialTime(float t);
     [DllImport("__Internal")]
     private static extern void ChangeTrial(int trialInc);
     [DllImport("__Internal")]
     private static extern void TrialViewerLoaded();
+    [DllImport("__Internal")]
+    private static extern void DataLoaded();
 
     #region exposed fields
     [SerializeField] private Button prevTrialButton;
     [SerializeField] private Button nextTrialButton;
     [SerializeField] private Button playButton;
-    [SerializeField] private Button stopButton;
+    [SerializeField] private Sprite playSprite;
+    [SerializeField] private Sprite stopSprite;
 
     [SerializeField] private GameObject _loadingScreen;
     [SerializeField] private GameObject _waitingScreen;
@@ -109,11 +112,10 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
-        WaitToLoad("03c42ea1-1e04-4a3e-9b04-46d8568dcd02");
-        Stop();
-
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
+#elif UNITY_EDITOR
+        LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86");
 #endif
     }
 
@@ -232,9 +234,16 @@ public class TrialViewerManager : MonoBehaviour
 
         Debug.Log("LOADED");
         _loadingScreen.SetActive(false);
+
+#if !UNITY_EDITOR && UNITY_WEBGL
+        DataLoaded();
+#endif
     }
 
     #endregion 
+
+    private int _prevFrame;
+    private int _frame;
 
     private void Update()
     {
@@ -250,111 +259,109 @@ public class TrialViewerManager : MonoBehaviour
 
         if (playing)
         {
-            int frameIdx = (int)videoPlayer.frame;
+            _frame = (int)videoPlayer.frame;
 
-            // catch in case the video hasn"t finished loading
-            if (frameIdx == -1)
+            // check whether we are on a repeated frame or if the video hasn't loaded
+            if (_frame == _prevFrame || _frame < 0)
                 return;
+            _prevFrame = _frame;
 
-            time = timestampData["left_ts"][frameIdx];
+            time = timestampData["left_ts"][_frame];
 
 #if !UNITY_EDITOR && UNITY_WEBGL
-            UpdateTrialTime(timestampData["left_ts"][currentTrialData.start], timestampData["left_ts"][nextTrialData.start], time);
+            UpdateTrialTime(time);
 #endif
 
-            if (frameIdx >= nextTrialData.start)
+            if (_frame >= nextTrialData.start)
             {
                 trial++;
                 UpdateTrial();
 
-        #if !UNITY_EDITOR && UNITY_WEBGL
+#if !UNITY_EDITOR && UNITY_WEBGL
                 ChangeTrial(trial);
-        #endif
+#endif
             }
 
             // wheel properties
-            wheel.SetRotation(timestampData["wheel"][frameIdx]);
+            wheel.SetRotation(timestampData["wheel"][_frame]);
 
 
             // stimulus properties
-            if (currentTrialData.correct)
+            if (_frame >= currentTrialData.stimOn && _frame <= currentTrialData.feedback)
             {
-                if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
+                // show stimulus and set position
+                if (currentTrialData.contrast > 0)
                 {
                     stimulus.gameObject.SetActive(true);
 
                     float deg = wheel.Degrees();
                     Mathf.InverseLerp(initDeg, endDeg, deg);
-                    stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+
+                    if (currentTrialData.correct)
+                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                    else
+                    {
+                        stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                    }
                 }
-                else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
+
+                // check if we played the go cue
+                if (!playedGo)
+                {
+                    playedGo = true;
+
+                    audmanager.PlayGoTone();
+
+                    infoImage.sprite = goSprite;
+                    infoImage.color = Color.yellow;
+
+                    if (infoCoroutine != null)
+                        StopCoroutine(infoCoroutine);
+                    infoCoroutine = StartCoroutine(ClearSprite(0.1f));
+                }
+            }
+            else if (_frame >= currentTrialData.feedback && _frame <= nextTrialData.start)
+            {
+                if (currentTrialData.contrast > 0)
                 {
                     stimulus.gameObject.SetActive(true);
-                    stimulus.SetPosition(0f);
+
+                    if (currentTrialData.correct)
+                        stimulus.SetPosition(0f);
+                    else
+                        stimulus.SetPosition(1.5f);
                 }
-                else
-                    stimulus.gameObject.SetActive(false);
+
+                // check if we displayed the feedback data
+                if (!playedFeedback)
+                {
+                    playedFeedback = true;
+                    if (currentTrialData.correct)
+                    {
+                        infoImage.sprite = correctSprite;
+                        infoImage.color = Color.blue;
+
+                        if (infoCoroutine != null)
+                            StopCoroutine(infoCoroutine);
+                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
+                    }
+                    else
+                    {
+                        audmanager.PlayWhiteNoise();
+                        infoImage.sprite = wrongSprite;
+                        infoImage.color = Color.red;
+
+                        if (infoCoroutine != null)
+                            StopCoroutine(infoCoroutine);
+                        infoCoroutine = StartCoroutine(ClearSprite(0.5f));
+                    }
+                }
             }
             else
-            {
-                if (frameIdx >= currentTrialData.stimOn && frameIdx <= currentTrialData.feedback)
-                {
-                    stimulus.gameObject.SetActive(true);
-
-                    float deg = wheel.Degrees();
-                    Mathf.InverseLerp(initDeg, endDeg, deg);
-                    stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
-                }
-                else if (frameIdx >= currentTrialData.feedback && frameIdx <= nextTrialData.start)
-                {
-                    stimulus.gameObject.SetActive(true);
-                    stimulus.SetPosition(2f);
-                }
-                else
-                    stimulus.gameObject.SetActive(false);
-            }
-
-            if (frameIdx >= currentTrialData.stimOn && !playedGo)
-            {
-                // stim on
-                playedGo = true;
-                
-                audmanager.PlayGoTone();
-
-                infoImage.sprite = goSprite;
-                infoImage.color = Color.yellow;
-
-                if (infoCoroutine != null)
-                    StopCoroutine(infoCoroutine);
-                infoCoroutine = StartCoroutine(ClearSprite(0.1f));
-            }
-
-            if (frameIdx >= currentTrialData.feedback && !playedFeedback)
-            {
-                playedFeedback = true;
-                if (currentTrialData.correct)
-                {
-                    infoImage.sprite = correctSprite;
-                    infoImage.color = Color.blue;
-
-                    if (infoCoroutine != null)
-                        StopCoroutine(infoCoroutine);
-                    infoCoroutine = StartCoroutine(ClearSprite(0.5f));
-                }
-                else
-                {
-                    audmanager.PlayWhiteNoise();
-                    infoImage.sprite = wrongSprite;
-                    infoImage.color = Color.red;
-
-                    if (infoCoroutine != null)
-                        StopCoroutine(infoCoroutine);
-                    infoCoroutine = StartCoroutine(ClearSprite(0.5f));
-                }
-            }
+                stimulus.gameObject.SetActive(false);
 
             // Set DLC points
-            SetDLC2Frame(frameIdx);
+            SetDLC2Frame(_frame);
         }
     }
 
@@ -475,6 +482,23 @@ public class TrialViewerManager : MonoBehaviour
         trial = newTrial;
         UpdateTrial(playing);
     }
+
+    public void Play()
+    {
+        playing = true;
+
+        videoPlayer.Play();
+    }
+
+    public void Stop()
+    {
+        playing = false;
+
+        videoPlayer.Pause();
+
+        ////reset the current trial
+        //UpdateTrial();
+    }
     #endregion
 
     #region button controls
@@ -499,21 +523,18 @@ public class TrialViewerManager : MonoBehaviour
 #endif
     }
 
-    public void Play()
+    public void PlayButton()
     {
-        playing = true;
-
-        videoPlayer.Play();
-    }
-
-    public void Stop()
-    {
-        playing = false;
-
-        videoPlayer.Pause();
-
-        ////reset the current trial
-        //UpdateTrial();
+        if (playing)
+        {
+            Stop();
+            playButton.image.sprite = playSprite;
+        }
+        else
+        {
+            Play();
+            playButton.image.sprite = stopSprite;
+        }
     }
     #endregion
 }
