@@ -252,6 +252,26 @@ function getUnique(array) {
 
 
 /*************************************************************************************************/
+/*  Share button                                                                                 */
+/*************************************************************************************************/
+
+function setupShare() {
+    let share = document.getElementById("share");
+    share.addEventListener("click", function (e) {
+        let url = new URL(window.location);
+        let params = url.searchParams;
+        params.set("pid", CTX.pid);
+        params.set("tid", CTX.tid);
+        params.set("cid", CTX.cid);
+        navigator.clipboard.writeText(url.toString());
+        share.children[0].innerHTML = "copied!";
+        setTimeout(() => { share.children[0].innerHTML = "share"; }, 1500);
+    });
+};
+
+
+
+/*************************************************************************************************/
 /*  Unity callback functions                                                                     */
 /*************************************************************************************************/
 
@@ -581,12 +601,15 @@ function trialViewerLoaded() {
 }
 
 
+
 function trialViewerDataLoaded() {
     // callback when the data finishes loading, expects to be sent back the current trial #
     if (unityTrial) {
         unityTrial.SendMessage("main", "SetTrial", CTX.tid);
     }
 }
+
+
 
 function updateTrialTime(time) {
     // png is 1200x500
@@ -742,6 +765,8 @@ async function selectCluster(pid, cid) {
 /*************************************************************************************************/
 
 function load() {
+    setupShare();
+
     loadAutoComplete();
 
     setupUnitySession();
