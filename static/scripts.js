@@ -359,20 +359,20 @@ function setupTrialCallback() {
 /*  Setup cluster selection                                                                     */
 /*************************************************************************************************/
 
-function setupClusterDropdown(cluster_ids, acronyms, colors) {
+function setupClusterDropdown(cluster_ids, acronyms, colors, cluster_id = -1) {
     // Set the cluster selector.
     var s = document.getElementById('clusterSelector');
     $('#clusterSelector option').remove();
     for (var i = 0; i < cluster_ids.length; i++) {
-        var cluster_id = cluster_ids[i];
+        var cid = cluster_ids[i];
         var acronym = acronyms[i];
         var color = colors[i];
-        option = new Option(`${acronym} — #${cluster_id}`, cluster_id);
+        option = new Option(`${acronym} — #${cid}`, cid);
         var r = color[0];
         var g = color[1];
         var b = color[2];
         option.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        if (i == 0)
+        if (((cluster_id == -1) && (i == 0)) || (cid == cluster_id))
             option.selected = true;
         s.options[s.options.length] = option;
     }
@@ -548,19 +548,24 @@ async function selectSession(pid) {
 
     // Setup the trial selector.
     var trial_id = 0;
-    if (QUERY_PARAMS.pid == pid && QUERY_PARAMS.trial_id)
-        trial_id = QUERY_PARAMS.trial_id;
+    if (CTX.pid == pid && CTX.tid)
+        trial_id = CTX.tid;
     setupTrialDropdown(trial_ids, trial_id);
 
     // Setup the cluster selector.
-    setupClusterDropdown(cluster_ids, acronyms, colors);
+    setupClusterDropdown(cluster_ids, acronyms, colors, cluster_id = CTX.cid);
 
     // Update the other plots.
     selectTrial(pid, CTX.tid);
 
     // Need to make sure first cluster is a good one, otherwise get error
-    if (cluster_ids)
-        selectCluster(pid, cluster_ids[0]);
+    var cluster_id = null;
+    if (CTX.pid == pid && CTX.cid)
+        cluster_id = CTX.cid;
+    else if (cluster_ids)
+        cluster_id = cluster_ids[0];
+    if (cluster_id !== null)
+        selectCluster(pid, cluster_id);
 };
 
 
@@ -585,7 +590,7 @@ function trialViewerDataLoaded() {
 
 function updateTrialTime(time) {
     return;
-    
+
     // png is 1200x500
     // left panel:  x: 80-540,   y: 60-420
     // right panel: x: 399-1004, y: 60-420
