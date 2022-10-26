@@ -5,6 +5,7 @@
 
 // Passing data from Flask to Javascript
 
+const ENABLE_UNITY = true;  // disable for debugging
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
@@ -298,7 +299,7 @@ function selectPID(pid) {
 
 function setupUnitySession() {
     // Disable Unity widget on smartphones.
-    if (isOnMobile()) return;
+    if (isOnMobile() || !ENABLE_UNITY) return;
 
     // Session selector widget.
     createUnityInstance(document.querySelector("#unity-canvas"), {
@@ -324,7 +325,7 @@ function setupUnitySession() {
 
 function setupUnityTrial() {
     // Disable Unity widget on smartphones.
-    if (isOnMobile()) return;
+    if (isOnMobile() || !ENABLE_UNITY) return;
 
     // Trial viewer.
     createUnityInstance(document.querySelector("#unity-canvas-trial"), {

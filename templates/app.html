@@ -82,13 +82,19 @@
 </div>
 
 
+
+
+
+<!------------------------------------------------------------------------------------------------>
+<!--                                       SESSION OVERVIEW                                     -->
+<!------------------------------------------------------------------------------------------------>
+
 <!-- SESSION DROPDOWN -->
 <div class="row">
     <div id="sessionSelector" class="u-full-width"></div>
     <!-- onClick="this.select();"> -->
     <!-- value="{{ default_pid }}"> -->
 </div>
-
 
 <!-- ROW WITH UNITY AND SESSION DETAILS -->
 <div class="row">
@@ -103,14 +109,14 @@
     </div>
 </div>
 
-
-<!-- SESSION OVERVIEW -->
+<!-- SESSION HEADER -->
 <div class="row">
     <div class="twelve columns">
         <h2>Session overview</h2>
     </div>
 </div>
 
+<!-- SESSION TEXT -->
 <div class="row">
     <div class="twelve columns">
         <p>Glimpse over example informative features computed on either the electrophysiology or behavior signals
@@ -128,9 +134,6 @@
     </div>
 </div>
 
-
-
-
 <!-- SESSION PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
@@ -138,9 +141,14 @@
         <img id="sessionPlot">
         <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
             class="loading">
+        <details>
+            <summary>Click to read the figure legend</summary>
+            TODO LEGEND 1
+        </details>
     </div>
 </div>
 
+<!-- POST-PLOT TEXT -->
 <div class="row">
     <div class="twelve columns">
         <p>Get insights on the behavior performance thanks to psychometric curves, chronometric functions or reaction
@@ -149,6 +157,13 @@
 </div>
 
 
+
+
+
+<!------------------------------------------------------------------------------------------------>
+<!--                                    SINGLE TRIAL OVERVIEW                                   -->
+<!------------------------------------------------------------------------------------------------>
+
 <!-- TRIAL -->
 <div class="row">
     <div class="twelve columns">
@@ -156,6 +171,7 @@
     </div>
 </div>
 
+<!-- TRIAL TEXT -->
 <div class="row">
     <div class="twelve columns">
         <p>Select a trial from the dropdown menu to see its associated parameters and outcome. Notice its position
@@ -163,9 +179,8 @@
     </div>
 </div>
 
-
+<!-- TRIAL SELECTOR -->
 <div class="row">
-    <!-- Trial selector -->
     <div class="three columns">
 
         <!-- Select -->
@@ -186,7 +201,6 @@
     </div>
 </div>
 
-
 <!-- TRIAL PLOTS -->
 <div>
     <!-- Trial raster plot -->
@@ -198,6 +212,10 @@
                     class="loading">
                 <div id="trialTime"></div>
             </div>
+            <details>
+                <summary>Click to read the figure legend</summary>
+                TODO LEGEND 2
+            </details>
         </div>
     </div>
 
@@ -214,25 +232,37 @@
             <img id="trialEventPlot">
             <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
+            <details>
+                <summary>Click to read the figure legend</summary>
+                TODO LEGEND 3
+            </details>
         </div>
     </div>
 </div>
 
 
-<!-- CLUSTER -->
+
+
+
+<!------------------------------------------------------------------------------------------------>
+<!--                                   SINGLE CLUSTER OVERVIEW                                  -->
+<!------------------------------------------------------------------------------------------------>
+
+<!-- CLUSTER HEADER -->
 <div class="row">
     <div class="twelve columns">
         <h2>Single cluster overview</h2>
     </div>
 </div>
 
+<!-- CLUSTER TEXT -->
 <div class="row">
     <div class="twelve columns">
         <p>Select a good cluster from the dropdown menu to visualize its properties.</p>
     </div>
 </div>
 
-
+<!-- CLUSTER SELECTOR -->
 <div class="row">
     <!-- Cluster selector -->
     <div class="three columns">
@@ -256,7 +286,6 @@
 
 </div>
 
-
 <!-- CLUSTER PLOTS -->
 <div class="row">
     <div class="twelve columns">
@@ -264,7 +293,15 @@
         <img id="clusterPlot">
         <img id="clusterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
             class="loading">
+        <details>
+            <summary>Click to read the figure legend</summary>
+            TODO LEGEND 4
+        </details>
     </div>
 </div>
+
+
+
+
 
 {% endblock %}
