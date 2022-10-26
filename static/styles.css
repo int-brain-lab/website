@@ -89,12 +89,14 @@ form img {
 
 body img.loading {
     position: absolute;
-    left: 20px;
+    top: 10px;
+    left: 10px;
 
     width: 30px;
     min-width: 30px;
     min-height: 30px;
     visibility: hidden;
+    border: 0;
 }
 
 
