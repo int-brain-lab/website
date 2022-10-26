@@ -580,11 +580,11 @@ async function selectSession(pid) {
 
     // Need to make sure first cluster is a good one, otherwise get error
     var cluster_id = null;
-    if (CTX.pid == pid && CTX.cid)
+    if ((CTX.pid == pid) && (CTX.cid && CTX.cid >= 0))
         cluster_id = CTX.cid;
     else if (cluster_ids)
         cluster_id = cluster_ids[0];
-    if (cluster_id !== null)
+    if ((cluster_id !== null) && (cluster_ids.includes(cluster_id)))
         selectCluster(pid, cluster_id);
 };
 
@@ -743,7 +743,6 @@ async function onClusterClick(canvas, event) {
 
 
 async function selectCluster(pid, cid) {
-
     console.log(`select cluster #${cid}`);
     CTX.cid = cid;
     var url = `/api/session/${pid}/cluster_plot/${cid}`;
