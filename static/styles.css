@@ -58,76 +58,6 @@ body {
 
 
 /*************************************************************************************************/
-/*  Body                                                                                         */
-/*************************************************************************************************/
-
-figure {
-    margin-left: 0;
-    margin-right: 0;
-}
-
-
-caption {
-    text-align: center;
-}
-
-
-select.multiple {
-    height: 100px !important;
-}
-
-
-
-form img {
-    /* changed this from 100% but now scaling with page doesn't work */
-    width: 100%;
-    min-height: 100px;
-    border: 0;
-}
-
-
-
-body img.loading {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-
-    width: 30px;
-    min-width: 30px;
-    min-height: 30px;
-    visibility: hidden;
-    border: 0;
-}
-
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: roboto-condensed;
-    text-transform: uppercase;
-    font-size: 24pt;
-    margin: 30px 0;
-    /* font-variant: small-caps; */
-}
-
-h2 {
-    text-align: center;
-    border-style: solid;
-    border-width: 2px 0;
-    border-color: #eee;
-    font-weight: 300;
-    padding: 20px 0;
-    margin: 60px 0 40px 0;
-    color: #999;
-    background-color: #fcfcfc;
-}
-
-
-
-/*************************************************************************************************/
 /*  Header                                                                                       */
 /*************************************************************************************************/
 
@@ -182,6 +112,106 @@ h2 {
 
 
 /*************************************************************************************************/
+/*  Body                                                                                         */
+/*************************************************************************************************/
+
+figure {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+
+caption {
+    text-align: center;
+}
+
+
+select.multiple {
+    height: 100px !important;
+}
+
+
+
+form img {
+    /* changed this from 100% but now scaling with page doesn't work */
+    width: 100%;
+    min-height: 100px;
+    border: 0;
+}
+
+
+
+body img.loading {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    width: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    visibility: hidden;
+    border: 0;
+    z-index: 10;
+}
+
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: roboto-condensed;
+    text-transform: uppercase;
+    font-size: 24pt;
+    margin: 30px 0;
+    /* font-variant: small-caps; */
+}
+
+h2 {
+    text-align: center;
+    border-style: solid;
+    border-width: 2px 0;
+    border-color: #eee;
+    font-weight: 300;
+    padding: 20px 0;
+    margin: 60px 0 40px 0;
+    color: #999;
+    background-color: #fcfcfc;
+}
+
+
+
+/*************************************************************************************************/
+/*  Figure legends                                                                               */
+/*************************************************************************************************/
+
+body .row figure {
+    position: relative;
+    top: 0;
+    left: 0;
+    border: 1px solid #ccc;
+}
+
+body .row figure summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+body .row figure details {
+    margin: 10px 0 0 0;
+    padding: 7px 10px;
+    background-color: #f3f3f3;
+}
+
+body .row figure details div {
+    margin: 10px 0 5px 5px;
+}
+
+
+
+/*************************************************************************************************/
 /*  Footer                                                                                       */
 /*************************************************************************************************/
 
@@ -195,8 +225,6 @@ h2 {
 /*************************************************************************************************/
 /*  Dropdowns                                                                                    */
 /*************************************************************************************************/
-
-#sessionSelector {}
 
 .aa-Panel {
     height: 300px;
@@ -306,28 +334,6 @@ h2 {
 
 .buttonNav .trialLeft {
     margin-right: 5px;
-}
-
-
-
-/*************************************************************************************************/
-/*  Figure legends                                                                               */
-/*************************************************************************************************/
-
-.row img {
-    border: 1px solid #ccc;
-}
-
-.row details {
-    border: 1px solid #ccc;
-    margin: 5px 0 20px 0;
-    padding: 7px 10px;
-    background-color: #f3f3f3;
-}
-
-.row summary {
-    cursor: pointer;
-
 }
 
 
