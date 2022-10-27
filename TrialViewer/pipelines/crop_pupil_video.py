@@ -28,14 +28,15 @@ for pid in selectable_pids:
 
   ftext = pid + '_left'
   rawFile = 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4'
-  if not exists(rawFile):
+  cropFile = f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv'
+  if not exists(rawFile) or not exists(cropFile):
     # copy the left scaled file and just call it the crop file
     scaledFile = f'{PROC_DIR}/{pid}_left_scaled.mp4'
     shutil.copyfile(scaledFile, cropFile)
     continue
 
   # load crop metadata
-  crop_data = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv')
+  crop_data = pd.read_csv(cropFile)
 
   x0 = crop_data.x0[0]
   y0 = crop_data.y0[0]
