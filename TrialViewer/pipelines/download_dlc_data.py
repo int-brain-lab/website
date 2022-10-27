@@ -73,14 +73,6 @@ for pid in selectable_pids:
       video_data = one.load_object(eid, f'{label}Camera', collection='alf')
     except:
       print(f'Failed for {pid} -- skipping')
-
-      # todo: generate DLC files when videos are missing
-      # Save the files
-      # np.save(out_path.joinpath(f'{pid}/{pid}_{label}_times_scaled.npy'), frame_times)
-      # dlc.to_csv(out_path.joinpath(f'{pid}/{pid}_{label}_dlc_scaled.csv'), index = False)
-      # # dlc.to_parquet(data_path.joinpath(f'{eid}_{label}_dlc_scaled.pqt'))
-      # np.save(out_path.joinpath(f'{pid}/{pid}_{label}_wheel_scaled.npy'), wheel_pos)
-
       continue
 
     if 'dlc' not in video_data.keys():

@@ -63,8 +63,6 @@ for pid in selectable_pids:
   start = trials.stim_on_timestamp.values[0] - PAD_S
   end = trials.feedback_timestamp.values[-1] + PAD_S
 
-  # TODO: deal with sessions where you need to drop trials so that the start timestamp comes before the first trial
-
   # calculate the # of frames from start to end at 24fps
   frames = (end - start) * new_fs
   
