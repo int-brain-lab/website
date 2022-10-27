@@ -66,6 +66,11 @@ def load_cluster_waveforms(pid):
     return wfs, wf_chns
 
 
+def load_rms(pid):
+    rms = np.load(DATA_DIR.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
+    return rms[1, :]
+
+
 # -------------------------------------------------------------------------------------------------
 # Filtering
 # -------------------------------------------------------------------------------------------------
@@ -253,6 +258,7 @@ class DataLoader:
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
         self.channels = load_channels(pid)
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
+        self.rms_chns = load_rms(pid)
 
         # # self.brain_regions is a string with the list of brain regions in a given session
         # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
@@ -742,7 +748,7 @@ class DataLoader:
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
-        fig, ax = self.single_cluster_raster(
+        fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
@@ -757,6 +763,26 @@ class DataLoader:
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
+
+        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+        set_axis_style(axs[0], ylabel=ylabel0)
+
+        return fig
+
+    def plot_block_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
+                                                     ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
+
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        trial_idx = np.arange(len(self.trials['probabilityLeft']))
+        dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
+
+        blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
+        colours = np.full(blocks.shape, 'r')
+        colours[np.where(blocks == 0.5)] = 'g'
+        colours[np.where(blocks == 0.8)] = 'b'
+
+        fig, axs = self.single_cluster_raster(spikes.times, self.trials['stimOn_times'], trial_idx, list(dividers), colours,
+                                              blocks, axs=axs)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
@@ -797,33 +823,46 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        for iD in range(len(dividers) - 1):
+        label, lidx = np.unique(labels, return_index=True)
+        label_pos = []
+        for lab, lid in zip(label, lidx):
+            idx = np.where(np.array(labels) == lab)[0]
+            for iD in range(len(idx)):
+                if iD == 0:
+                    t_ids = trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]
+                    t_ints = dividers[idx[iD] + 1] - dividers[idx[iD]]
+                else:
+                    t_ids = np.r_[t_ids, trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]]
+                    t_ints = np.r_[t_ints, dividers[idx[iD] + 1] - dividers[idx[iD]]]
+
             psth_div = np.nanmean(
-                psth[trial_idx[dividers[iD]:dividers[iD + 1]]], axis=0) / psth_bin
-            std_div = (np.nanstd(psth[trial_idx[dividers[iD]:dividers[iD + 1]]], axis=0) / psth_bin) \
-                / np.sqrt(dividers[iD + 1] - dividers[iD])
+                psth[t_ids], axis=0) / psth_bin
+            std_div = (np.nanstd(psth[t_ids], axis=0) / psth_bin) \
+                / np.sqrt(len(t_ids))
 
             axs[0].fill_between(t_psth, psth_div - std_div,
-                                psth_div + std_div, alpha=0.4, color=colors[iD])
-            axs[0].plot(t_psth, psth_div, alpha=1, color=colors[iD])
+                                psth_div + std_div, alpha=0.4, color=colors[lid])
+            axs[0].plot(t_psth, psth_div, alpha=1, color=colors[lid])
+
+            lab_max = idx[np.argmax(t_ints)]
+            label_pos.append((dividers[lab_max + 1] - dividers[lab_max]) / 2 + dividers[lab_max])
 
         axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
                       extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
 
         width = raster_bin * 4
-        label_pos = []
         for iD in range(len(dividers) - 1):
             axs[1].fill_between([post_time + raster_bin / 2, post_time + raster_bin / 2 + width],
                                 [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
-            label_pos.append((dividers[iD + 1] - dividers[iD]) / 2 + dividers[iD])
+
 
         axs[1].set_xlim([-1 * pre_time, post_time + raster_bin / 2 + width])
         secax = axs[1].secondary_yaxis('right')
 
         secax.set_yticks(label_pos)
-        secax.set_yticklabels(labels, rotation=90,
+        secax.set_yticklabels(label, rotation=90,
                               rotation_mode='anchor', ha='center')
-        for ic, c in enumerate(colors):
+        for ic, c in enumerate(np.array(colors)[lidx]):
             secax.get_yticklabels()[ic].set_color(c)
 
         remove_spines(axs[1], spines=['right', 'top'])
@@ -837,7 +876,12 @@ class DataLoader:
     def plot_cluster_waveforms(self, cluster_idx, ax=None):
 
         wfs, wf_chns = filter_wfs_by_cluster_idx(
-            self.cluster_wfs, self.cluster_wf_chns, self.clusters_good, cluster_idx)
+            self.cluster_wfs, self.cluster_wf_chns, self.clusters, cluster_idx)
+
+        clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        amp_norm = self.rms_chns[clusters.channels]
+        # Divide all channels by the noise on the max channel
+        wfs_norm = wfs / amp_norm
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -868,12 +912,15 @@ class DataLoader:
         if wf_peak < 100:
             wf_peak = 100
 
+        wf_peak_norm = np.max(np.abs(wfs_norm))
+
         # peak waveform takes 2 times of each y interval between adjacent channels
         y_scale = (y_max - y_min) / (n_ypos - 1) / wf_peak * 1.5
+        y_scale_norm = (y_max - y_min) / (n_ypos - 1) / wf_peak_norm * 1.5
 
         time = np.arange(time_len) * dt
 
-        for wf, pos in zip(wfs.T * 1e6, wf_chn_pos):
+        for wf, wf_norm, pos in zip(wfs.T * 1e6, wfs_norm.T, wf_chn_pos):
             ax.plot(time * x_scale + pos[0], wf * y_scale + pos[1], color='grey')
 
         # Scale bar
@@ -881,13 +928,62 @@ class DataLoader:
         y0 = y_min - 15
         ax.text(x0, y0 - 10, '1ms')
         ax.text(x0 - 6, y0, '100uV', rotation='vertical')
-        ax.plot([x0, x0 + x_scale], [y0, y0], color='black')
-        ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='black')
+        ax.plot([x0, x0 + x_scale], [y0, y0], color='grey')
+        ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='grey')
+
+        y0 = y0 + y_scale * 100 + 30
+        ax.text(x0 - 6, y0, '5 a.u', rotation='vertical')
+        ax.plot([x0, x0], [y0, y0 + y_scale_norm * 5], color='grey')
 
         ax.set_xlim([x_min - 10, x_max + 15])
         ax.set_ylim([y_min - 30, y_max + 30])
 
+        # add in distance between electrodes in y axis
+        ax.plot([x0, x0], [y_max-40, y_max], color='black')
+        ax.plot([x0 - 2, x0 + 2], [y_max - 40, y_max - 40], color='black')
+        ax.plot([x0 - 2, x0 + 2], [y_max, y_max], color='black')
+        ax.text(x0 - 6, y_max - 35, '40 um', rotation='vertical')
+
         remove_frame(ax)
+
+        return fig
+
+    def plot_channel_probe_location(self, cluster_idx, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        else:
+            fig = ax.get_figure()
+
+        _, wf_chns = filter_wfs_by_cluster_idx(
+            self.cluster_wfs, self.cluster_wf_chns, self.clusters, cluster_idx)
+
+        probe = np.ones((len(np.unique(self.channels.localCoordinates[:, 1])),
+                          len(np.unique(self.channels.localCoordinates[:, 0])))) * 10
+        x0 = np.min(self.channels.localCoordinates[:, 0])
+        xdiff = np.min(np.abs(np.diff(self.channels.localCoordinates[:, 0])))
+
+        y0 = np.min(self.channels.localCoordinates[:, 1])
+        yvals = np.abs(np.diff(self.channels.localCoordinates[:, 1]))
+        ydiff = np.min(yvals[yvals > 0])
+
+        coords_x = ((self.channels.localCoordinates[wf_chns, 0] - x0) / xdiff).astype(int)
+        coords_y = ((self.channels.localCoordinates[wf_chns, 1] - y0) / ydiff).astype(int)
+
+        for x in np.unique(coords_x):
+            idx = np.where(coords_x == x)[0]
+            probe[coords_y[idx], x] = 100
+
+        ax.imshow(probe, extent=[0, 160, np.min(self.channels.localCoordinates[:, 1]),
+                                 np.max(self.channels.localCoordinates[:, 1])], origin='lower', cmap='binary', vmin=0, vmax=100)
+        ax.set_xticks([])
+        ax.set_xticklabels([])
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+        ax.spines['top'].set(alpha=0.2)
+        ax.spines['bottom'].set(alpha=0.2)
+        ax.spines['left'].set(alpha=0.2)
+        ax.spines['right'].set(alpha=0.2)
 
         return fig
 
@@ -939,15 +1035,22 @@ class DataLoader:
             fig = ax.get_figure()
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        amp_norm = self.rms_chns[clusters.channels]
 
         ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
         ax.set_xlim(-10, np.max(self.spikes.times))
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        ax2 = ax.twinx()
+        ax2.scatter(spikes.times, spikes.amps / amp_norm, color='grey', s=0)
+
+        ax.spines['top'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+
+        ax.set_xlabel(xlabel, fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=12)
+        ax2.set_ylabel('Amp (a.u.)', fontsize=12)
 
         return fig
-
-
-if __name__ == '__main__':
 
     dl = DataLoader()
     dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
