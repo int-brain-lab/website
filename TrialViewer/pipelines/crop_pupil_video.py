@@ -7,7 +7,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 from pathlib import Path
-
+import shutil
 import os
 from os.path import exists
 
@@ -25,7 +25,14 @@ with open("selectable.pids", "rb") as fp:   # Unpickling
 for pid in selectable_pids:
   # eid, probe = one.pid2eid(pid) #'0802ced5-33a3-405e-8336-b65ebc5cb07c'
 
+
   ftext = pid + '_left'
+  rawFile = 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4'
+  if not exists(rawFile):
+    # copy the left scaled file and just call it the crop file
+    scaledFile = f'{PROC_DIR}/{pid}_left_scaled.mp4'
+    shutil.copyfile(scaledFile, cropFile)
+    continue
 
   # load crop metadata
   crop_data = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_pupil_rect.csv')
@@ -47,7 +54,7 @@ for pid in selectable_pids:
   if not exists(cropFile):
     call = subprocess.call(['ffmpeg',
                   '-r', f'{framerate}',
-                  '-i', 'D:\\ibl-website-videos\\raw\\'+ftext+'.mp4',
+                  '-i', rawFile,
                   '-vf', f'crop={w}:{h}:{x0}:{y0},scale=160:128', 
                   '-r', '24',
                   cropFile])

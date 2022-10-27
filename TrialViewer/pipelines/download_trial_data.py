@@ -17,7 +17,7 @@ from os.path import exists
 
 data_path = Path(r'D:\ibl-website-videos\proc')
 out_path = Path(r'./data')
-PAD_S = 2
+PAD_S = 0.5
 
 new_fs = 24
 new_width = 160
@@ -51,7 +51,8 @@ for pid in selectable_pids:
   trials['feedback'] = trials_data.feedbackType  # correct = 1, incorrect = -1
 
   # remove any rows with NaNs
-  trials = trials.dropna()
+  nan_idx = np.bitwise_or(np.isnan(trials_data['stimOn_times']), np.isnan(trials_data['feedback_times']))
+  trials = trials.loc[~nan_idx]
 
   if not exists(f'{out_path}/{pid}'):
     os.makedirs(f'{out_path}/{pid}')
@@ -59,7 +60,7 @@ for pid in selectable_pids:
   trials.to_csv(f'{out_path}/{pid}/{pid}_trials.csv', index=False)
 
   # calculate the start and end times 
-  start = trials.start_timestamp.values[0] - PAD_S
+  start = trials.stim_on_timestamp.values[0] - PAD_S
   end = trials.feedback_timestamp.values[-1] + PAD_S
 
   # TODO: deal with sessions where you need to drop trials so that the start timestamp comes before the first trial

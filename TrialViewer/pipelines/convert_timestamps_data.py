@@ -11,8 +11,13 @@ from telnetlib import OUTMRK
 import numpy as np
 import pandas as pd
 import multiprocessing
+import pickle
+from os.path import exists
 
 LIKE_THRESH = 0.9
+
+DATA_DIR = './data'
+OUT_DIR = './final'
 
 def flatten(list_of_list):
   ret = []
@@ -39,9 +44,22 @@ def convert_timestamps(pid):
   left_ts = np.arange(0,end-start,1/24) + start
 
   # Load csv files
-  dlc_right = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_right_dlc_scaled.csv')
-  dlc_left = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_left_dlc_scaled.csv')
-  dlc_body = pd.read_csv(f'{DATA_DIR}/{pid}/{pid}_body_dlc_scaled.csv')
+  dlc_right_file = f'{DATA_DIR}/{pid}/{pid}_right_dlc_scaled.csv'
+  dlc_left_file = f'{DATA_DIR}/{pid}/{pid}_left_dlc_scaled.csv'
+  dlc_body_file = f'{DATA_DIR}/{pid}/{pid}_body_dlc_scaled.csv'
+  right_exists = exists(dlc_right_file)
+  left_exists = exists(dlc_left_file)
+  body_exists = exists(dlc_body_file)
+
+  if right_exists:
+    dlc_right = pd.read_csv(dlc_right_file)
+  
+  if left_exists:
+    dlc_left = pd.read_csv(dlc_left_file)
+
+  if body_exists:
+    dlc_body = pd.read_csv(dlc_body_file)
+
   # Load wheel
   wheel = np.load(f'{DATA_DIR}/{pid}/{pid}_left_wheel_scaled.npy')
   # we will also be adding all the DLC points to this, we'll get them automatically and we'll get both the _x and _y coordinates for each
@@ -78,22 +96,36 @@ def convert_timestamps(pid):
     # pull the data columns
     for key in dlc_body_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_body.iloc[i], key, suffix))
+        if body_exists:
+              row_data.append(get_dlc_coord(dlc_body.iloc[i], key, suffix))
+        else:
+          row_data.append(-1)
+
     for key in dlc_left_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_left.iloc[i], key[3:], suffix))
+        if left_exists:
+          row_data.append(get_dlc_coord(dlc_left.iloc[i], key[3:], suffix))
+        else:
+          row_data.append(-1)
+      
     for key in dlc_right_keys:
       for suffix in suffixes:
-        row_data.append(get_dlc_coord(dlc_right.iloc[i], key[3:], suffix))
+        if right_exists:
+          row_data.append(get_dlc_coord(dlc_right.iloc[i], key[3:], suffix))
+        else:
+          row_data.append(-1)
 
     # get the pupil, and offset by the x0/y0 values
     for key in dlc_left_pupil_keys:
       for j, suffix in enumerate(suffixes):
-        val = get_dlc_coord(dlc_left.iloc[i], key, suffix)
-        if val > -1:
-          row_data.append(val - pupil_xy[j])
+        if left_exists:
+          val = get_dlc_coord(dlc_left.iloc[i], key, suffix)
+          if val > -1:
+            row_data.append(val - pupil_xy[j])
+          else:
+            row_data.append(val)
         else:
-          row_data.append(val)
+          row_data.append(-1)
     
     indexes.loc[i] = row_data
 
@@ -105,10 +137,7 @@ def convert_timestamps(pid):
   print(f'Finished {pid}')
 
 if __name__ == "__main__":
-  DATA_DIR = './data'
-  OUT_DIR = './final'
 
-  import pickle
   with open("selectable.pids", "rb") as fp:   # Unpickling
     selectable_pids = pickle.load(fp)
 

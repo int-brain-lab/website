@@ -20,6 +20,7 @@ with open("selectable.pids", "rb") as fp:   # Unpickling
   selectable_pids = pickle.load(fp)
 
 for pid in selectable_pids:
+  print(pid)
   left_ts = np.load(f'D:/ibl-website-videos/proc/{pid}_left_times.npy')
   right_ts = np.load(f'D:/ibl-website-videos/proc/{pid}_right_times.npy')
   body_ts = np.load(f'D:/ibl-website-videos/proc/{pid}_body_times.npy')
@@ -49,7 +50,7 @@ for pid in selectable_pids:
     
     # check if start is actually before ts[0], that would be bad
     if (ts[0] > start):
-      print('First timestamp is after first trial start... bad')
+      print(f'First timestamp {ts[0]} is after video start {start} -- something went wrong?')
       continue
     
     start_t = ffmpeg_time_format(start - ts[0])
@@ -69,15 +70,3 @@ for pid in selectable_pids:
     '-filter_complex', '[0:v][1:v][2:v][3:v]hstack=inputs=4[v]',
     '-map', '[v]',
     full_out])
-  
-  # print('Getting timestamps')
-  # # pull the timestamps data
-  # f = open(f'{FINAL_FOLDER}/{pid}_timestamps.csv','w')
-  # call = subprocess.call(['ffprobe',
-  #   f'{FINAL_FOLDER}/{pid}.mp4',
-  #   '-select_streams', 'v',
-  #   'show_entries', 'frame=coded_picture_number,pkt_pts_time',
-  #   '-of', 'csv=p=0:nk=1',
-  #   '-v', '0'], shell=True, stdout=f)
-  # f.close()
-  # ffprobe .\03c42ea1-1e04-4a3e-9b04-46d8568dcd02.mp4 -select_streams v -show_entries frame=coded_picture_number,pkt_pts_time -of csv=p=0:nk=1 -v 0 > timestamps.csv 
