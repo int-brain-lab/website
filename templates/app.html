@@ -70,8 +70,7 @@
 
 <div class="row">
     <div class="twelve columns">
-        <p>Select to view one example probe insertion (gray) out of the hundreds recorded across all mice (white),
-            either by clicking on the brain or by selecting its unique identifier (PID).
+        <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the available insertions in the 3D brain.
         </p>
         <p><strong>Examples:</strong>
             <code>cortexlab</code> (lab),
@@ -119,17 +118,17 @@
 <!-- SESSION TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Glimpse over example informative features computed on either the electrophysiology or behavior signals
-            throughout the whole session duration.</p>
+        <p>In each session, the electrical activity recorded on the probe is sorted into "clusters", 
+            groups of spikes that appear to come from the same neuron. We sub-select from these
+        clusters only those that pass three stringent quality control metrics. </p>
 
-        <p> Observe the differences in the raw ephys signals (e.g. RMS of the high-frequency AP signal ; or power in the
-            delta band of the LFP) recorded across the depth of the probe, whose recording channels span multiple brain
-            regions.
-        </p>
+        <p>In the panel below we show the activity of these <i>good</i> clusters throughout the whole session as well 
+        as some metrics computed on the raw ephys signals (e.g. the RMS of the high-frequency AP signal;
+    and the power in the delta band of the LFP). These signals help us identify the boundaries between brain regions.</p>
 
-        <p>
-            Similarly, assess the distribution of multi-units versus single good clusters, or properties of single
-            clusters along the probe (e.g. firing rate).
+        <p>We also show the behavior of the mouse throughout this session, in a trained mouse you expect to see
+            biased performance when stimuli were more likely to appear on one side or the other. Most mice increase their
+            reaction time throughout the session.
         </p>
     </div>
 </div>
@@ -151,12 +150,12 @@
 </div>
 
 <!-- POST-PLOT TEXT -->
-<div class="row">
+<!-- <div class="row">
     <div class="twelve columns">
         <p>Get insights on the behavior performance thanks to psychometric curves, chronometric functions or reaction
             time distribution across the recording session.</p>
     </div>
-</div>
+</div> -->
 
 
 
@@ -176,8 +175,8 @@
 <!-- TRIAL TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Select a trial from the dropdown menu to see its associated parameters and outcome. Notice its position
-            within the recording, and the pattern of ephys activity around important behavioral events.</p>
+        <p>Select a trial from the dropdown menu to see trial parameters and the mouse's behavior. In the lower panels you can see the 
+            position of this trial in the recording and whether any ephys activity is clustering around important behavioral events.</p>
     </div>
 </div>
 
@@ -258,7 +257,7 @@
 <!-- CLUSTER TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Select a good cluster from the dropdown menu to visualize its properties.</p>
+        <p>Select a good cluster from the dropdown menu or by clicking directly on the unit to visualize its properties.</p>
     </div>
 </div>
 
