@@ -2586,7 +2586,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
-    "m_Value": -100.0,
+    "m_Value": -103.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }
@@ -3920,7 +3920,7 @@
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
-    "m_Value": 100.0,
+    "m_Value": 103.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
 }

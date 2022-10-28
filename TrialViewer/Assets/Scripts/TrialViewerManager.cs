@@ -117,6 +117,8 @@ public class TrialViewerManager : MonoBehaviour
 #elif UNITY_EDITOR
         LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86");
 #endif
+
+        Camera.main.transparencySortMode = TransparencySortMode.Orthographic;
     }
 
     //Override the url of the WebRequest, the request passed to the method is what would be used as standard by Addressables.
@@ -140,6 +142,7 @@ public class TrialViewerManager : MonoBehaviour
 
     public void LoadData(string pid)
     {
+        Stop();
         loadDataRoutine = StartCoroutine(LoadDataHelper(pid));
     }
 
@@ -163,6 +166,7 @@ public class TrialViewerManager : MonoBehaviour
         videoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}.mp4", pid);
 
         timestampData = new Dictionary<string, float[]>();
+
         string[] dataTypes = {"left_ts", "wheel", "tail_start_x",
                                "tail_start_y", "cl_nose_tip_x", "cl_nose_tip_y", "cl_paw_l_x",
                                "cl_paw_l_y", "cl_paw_r_x", "cl_paw_r_y", "cl_tube_top_x",
@@ -486,6 +490,7 @@ public class TrialViewerManager : MonoBehaviour
     public void Play()
     {
         playing = true;
+        playButton.image.sprite = stopSprite;
 
         videoPlayer.Play();
     }
@@ -493,11 +498,9 @@ public class TrialViewerManager : MonoBehaviour
     public void Stop()
     {
         playing = false;
+        playButton.image.sprite = playSprite;
 
         videoPlayer.Pause();
-
-        ////reset the current trial
-        //UpdateTrial();
     }
     #endregion
 
@@ -526,15 +529,9 @@ public class TrialViewerManager : MonoBehaviour
     public void PlayButton()
     {
         if (playing)
-        {
             Stop();
-            playButton.image.sprite = playSprite;
-        }
         else
-        {
             Play();
-            playButton.image.sprite = stopSprite;
-        }
     }
     #endregion
 }
