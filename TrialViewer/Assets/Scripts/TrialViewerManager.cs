@@ -384,6 +384,9 @@ public class TrialViewerManager : MonoBehaviour
         if (waitingToLoad)
             return;
 
+        prevTrialButton.enabled = trial > 0;
+        nextTrialButton.enabled = trial < trialData.Count;
+
         //reset trial variables
         playedGo = false;
         playedFeedback = false;
@@ -467,6 +470,7 @@ public class TrialViewerManager : MonoBehaviour
     public void SetSession(string pid)
     {
         Debug.Log(string.Format("(TrailViewer) SetSession called with pid {0}",pid));
+        Stop();
         WaitToLoad(pid);
     }
 
@@ -480,8 +484,6 @@ public class TrialViewerManager : MonoBehaviour
     public void SetTrial(int newTrial)
     {
         Debug.Log(string.Format("(TrialViewer) Setting trial to {0}", newTrial));
-        prevTrialButton.enabled = newTrial > 0;
-        nextTrialButton.enabled = newTrial < trialData.Count;
 
         trial = newTrial;
         UpdateTrial(playing);
