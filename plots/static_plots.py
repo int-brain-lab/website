@@ -4,19 +4,23 @@
 
 import matplotlib.pyplot as plt
 from matplotlib.image import NonUniformImage
+from matplotlib.lines import Line2D
 from pathlib import Path
 import numpy as np
 import pandas as pd
 import copy
 from collections import OrderedDict
+import seaborn as sns
+import yaml
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
 from brainbox.ephys_plots import plot_brain_regions
-from brainbox.plot_base import arrange_channels2banks, ProbePlot, plot_probe
+from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
+from ibllib.plots import Density
 from ibllib.atlas.regions import BrainRegions
 from iblutil.util import Bunch
 import time
@@ -65,6 +69,18 @@ def load_cluster_waveforms(pid):
 
     return wfs, wf_chns
 
+
+def load_rms(pid):
+    rms = np.load(DATA_DIR.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
+    return rms[1, :]
+
+
+def load_raw_data(pid):
+    raw_data = np.load(DATA_DIR.joinpath(pid, 'raw_ephys_data.npy'))
+    with open(DATA_DIR.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
+        raw_info = yaml.safe_load(fp)
+
+    return raw_info, raw_data
 
 # -------------------------------------------------------------------------------------------------
 # Filtering
@@ -253,6 +269,7 @@ class DataLoader:
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
         self.channels = load_channels(pid)
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
+        self.rms_chns = load_rms(pid)
 
         # # self.brain_regions is a string with the list of brain regions in a given session
         # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
@@ -347,6 +364,10 @@ class DataLoader:
 
         t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
         t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
+
+        # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
+        t0[0] = self.trials['stimOn_times'] - 0.18
+
         t0[nan_idx] = np.nan
         t1[nan_idx] = np.nan
 
@@ -482,6 +503,47 @@ class DataLoader:
 
         return fig
 
+    def plot_raw_data(self, axs=None):
+
+        if axs is None:
+            fig, axs = plt.subplots(1, 4, figsize=(9, 6))
+        else:
+            fig = axs[0].get_figure()
+
+        info, raw_ephys = load_raw_data(self.pid)
+        spikes = load_spikes(self.pid)
+
+        times = info['t']
+        ts = info['t_offset']
+        te = info['t_offset'] + info['t_display']
+        fs = info['fs']
+
+        vmin = -0.000050
+        vmax = 0.000050
+        cmap = 'Greys'
+
+        ax0 = axs[0]
+        self.plot_session_raster(ax=ax0)
+        ax0.set_ylim(20, 3840)
+        ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
+
+        for iT, time in enumerate(times):
+            spike_idx = slice(*np.searchsorted(spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
+            spike_channels = self.clusters['channels'][spikes['clusters'][spike_idx]]
+            spike_times = (spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
+            spike_labels = self.clusters['label'][spikes['clusters'][spike_idx]]
+
+            ax = axs[iT + 1]
+
+            _ = Density(-raw_ephys[:, :, iT], fs=fs, taxis=1, ax=ax, vmin=vmin, vmax=vmax, cmap=cmap)
+            ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=8)
+            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=8)
+            ax.set_title(f'T = {time} s')
+            ax.get_yaxis().set_visible(False)
+
+        return fig
+
+
     def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None, xlabel='Time (s)'):
 
         if ax is None:
@@ -549,7 +611,7 @@ class DataLoader:
     def plot_psychometric_curve(self, ax=None, ax_legend=None):
 
         if ax is None:
-            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_rations': [3, 1]})
+            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_ratios': [3, 1]})
             ax = axs[0]
             ax_legend = axs[1]
         else:
@@ -557,12 +619,30 @@ class DataLoader:
 
         plot_psychometric(self.trials, ax=ax)
         set_axis_style(ax, xlabel='Contrasts', ylabel='Probability Choosing Right')
-        leg = ax.get_legend()
-        h = leg.legendHandles
-        l = [str(x._text) for x in leg.texts]
+
         ax.get_legend().remove()
-        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+
+        legend_elements = [Line2D([0], [0], color='w', lw=0, label='80 % of trials on right side'),
+                           Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
+                           Line2D([0], [0], color='w', lw=0, label='20 % of trials on right side'),
+                           Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='model fit', markersize=10),
+                           Line2D([0], [0], color='k', lw=2, label='model fit')]
+
+        leg = ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
         remove_frame(ax_legend)
+        cmap = sns.diverging_palette(20, 220, n=3, center="dark")
+
+        for text, hand in zip(leg.get_texts(), leg.legendHandles):
+            if '80 %' in text.get_text():
+                text.set_color(cmap[2])
+                text.set_position((-40, 0))
+                hand.set_visible(False)
+            elif '20 %' in text.get_text():
+                text.set_color(cmap[0])
+                text.set_position((-40, 0))
+            elif 'equal %' in text.get_text():
+                text.set_color(cmap[1])
+                text.set_position((-40, 0))
 
         return fig
 
@@ -581,8 +661,9 @@ class DataLoader:
         h = leg.legendHandles
         l = [str(x._text) for x in leg.texts]
         ax.get_legend().remove()
-        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
-        remove_frame(ax_legend)
+        if ax_legend is not None:
+            ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+            remove_frame(ax_legend)
 
         return fig
 
@@ -742,7 +823,7 @@ class DataLoader:
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
-        fig, ax = self.single_cluster_raster(
+        fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
@@ -757,6 +838,26 @@ class DataLoader:
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
+
+        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+        set_axis_style(axs[0], ylabel=ylabel0)
+
+        return fig
+
+    def plot_block_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
+                                                     ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
+
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        trial_idx = np.arange(len(self.trials['probabilityLeft']))
+        dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
+
+        blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
+        colours = np.full(blocks.shape, 'r')
+        colours[np.where(blocks == 0.5)] = 'g'
+        colours[np.where(blocks == 0.8)] = 'b'
+
+        fig, axs = self.single_cluster_raster(spikes.times, self.trials['stimOn_times'], trial_idx, list(dividers), colours,
+                                              blocks, axs=axs)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
@@ -797,33 +898,46 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        for iD in range(len(dividers) - 1):
+        label, lidx = np.unique(labels, return_index=True)
+        label_pos = []
+        for lab, lid in zip(label, lidx):
+            idx = np.where(np.array(labels) == lab)[0]
+            for iD in range(len(idx)):
+                if iD == 0:
+                    t_ids = trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]
+                    t_ints = dividers[idx[iD] + 1] - dividers[idx[iD]]
+                else:
+                    t_ids = np.r_[t_ids, trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]]
+                    t_ints = np.r_[t_ints, dividers[idx[iD] + 1] - dividers[idx[iD]]]
+
             psth_div = np.nanmean(
-                psth[trial_idx[dividers[iD]:dividers[iD + 1]]], axis=0) / psth_bin
-            std_div = (np.nanstd(psth[trial_idx[dividers[iD]:dividers[iD + 1]]], axis=0) / psth_bin) \
-                / np.sqrt(dividers[iD + 1] - dividers[iD])
+                psth[t_ids], axis=0) / psth_bin
+            std_div = (np.nanstd(psth[t_ids], axis=0) / psth_bin) \
+                / np.sqrt(len(t_ids))
 
             axs[0].fill_between(t_psth, psth_div - std_div,
-                                psth_div + std_div, alpha=0.4, color=colors[iD])
-            axs[0].plot(t_psth, psth_div, alpha=1, color=colors[iD])
+                                psth_div + std_div, alpha=0.4, color=colors[lid])
+            axs[0].plot(t_psth, psth_div, alpha=1, color=colors[lid])
+
+            lab_max = idx[np.argmax(t_ints)]
+            label_pos.append((dividers[lab_max + 1] - dividers[lab_max]) / 2 + dividers[lab_max])
 
         axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
                       extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
 
         width = raster_bin * 4
-        label_pos = []
         for iD in range(len(dividers) - 1):
             axs[1].fill_between([post_time + raster_bin / 2, post_time + raster_bin / 2 + width],
                                 [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
-            label_pos.append((dividers[iD + 1] - dividers[iD]) / 2 + dividers[iD])
+
 
         axs[1].set_xlim([-1 * pre_time, post_time + raster_bin / 2 + width])
         secax = axs[1].secondary_yaxis('right')
 
         secax.set_yticks(label_pos)
-        secax.set_yticklabels(labels, rotation=90,
+        secax.set_yticklabels(label, rotation=90,
                               rotation_mode='anchor', ha='center')
-        for ic, c in enumerate(colors):
+        for ic, c in enumerate(np.array(colors)[lidx]):
             secax.get_yticklabels()[ic].set_color(c)
 
         remove_spines(axs[1], spines=['right', 'top'])
@@ -837,7 +951,12 @@ class DataLoader:
     def plot_cluster_waveforms(self, cluster_idx, ax=None):
 
         wfs, wf_chns = filter_wfs_by_cluster_idx(
-            self.cluster_wfs, self.cluster_wf_chns, self.clusters_good, cluster_idx)
+            self.cluster_wfs, self.cluster_wf_chns, self.clusters, cluster_idx)
+
+        clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        amp_norm = self.rms_chns[clusters.channels]
+        # Divide all channels by the noise on the max channel
+        wfs_norm = wfs / amp_norm
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -868,12 +987,15 @@ class DataLoader:
         if wf_peak < 100:
             wf_peak = 100
 
+        wf_peak_norm = np.max(np.abs(wfs_norm))
+
         # peak waveform takes 2 times of each y interval between adjacent channels
         y_scale = (y_max - y_min) / (n_ypos - 1) / wf_peak * 1.5
+        y_scale_norm = (y_max - y_min) / (n_ypos - 1) / wf_peak_norm * 1.5
 
         time = np.arange(time_len) * dt
 
-        for wf, pos in zip(wfs.T * 1e6, wf_chn_pos):
+        for wf, wf_norm, pos in zip(wfs.T * 1e6, wfs_norm.T, wf_chn_pos):
             ax.plot(time * x_scale + pos[0], wf * y_scale + pos[1], color='grey')
 
         # Scale bar
@@ -881,13 +1003,62 @@ class DataLoader:
         y0 = y_min - 15
         ax.text(x0, y0 - 10, '1ms')
         ax.text(x0 - 6, y0, '100uV', rotation='vertical')
-        ax.plot([x0, x0 + x_scale], [y0, y0], color='black')
-        ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='black')
+        ax.plot([x0, x0 + x_scale], [y0, y0], color='grey')
+        ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='grey')
+
+        y0 = y0 + y_scale * 100 + 20
+        ax.text(x0 - 6, y0, '5 a.u', rotation='vertical')
+        ax.plot([x0, x0], [y0, y0 + y_scale_norm * 5], color='grey')
 
         ax.set_xlim([x_min - 10, x_max + 15])
         ax.set_ylim([y_min - 30, y_max + 30])
 
+        # add in distance between electrodes in y axis
+        ax.plot([x0, x0], [y_max-40, y_max], color='black')
+        ax.plot([x0 - 2, x0 + 2], [y_max - 40, y_max - 40], color='black')
+        ax.plot([x0 - 2, x0 + 2], [y_max, y_max], color='black')
+        ax.text(x0 - 6, y_max - 35, '40 um', rotation='vertical')
+
         remove_frame(ax)
+
+        return fig
+
+    def plot_channel_probe_location(self, cluster_idx, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        else:
+            fig = ax.get_figure()
+
+        _, wf_chns = filter_wfs_by_cluster_idx(
+            self.cluster_wfs, self.cluster_wf_chns, self.clusters, cluster_idx)
+
+        probe = np.ones((len(np.unique(self.channels.localCoordinates[:, 1])),
+                          len(np.unique(self.channels.localCoordinates[:, 0])))) * 10
+        x0 = np.min(self.channels.localCoordinates[:, 0])
+        xdiff = np.min(np.abs(np.diff(self.channels.localCoordinates[:, 0])))
+
+        y0 = np.min(self.channels.localCoordinates[:, 1])
+        yvals = np.abs(np.diff(self.channels.localCoordinates[:, 1]))
+        ydiff = np.min(yvals[yvals > 0])
+
+        coords_x = ((self.channels.localCoordinates[wf_chns, 0] - x0) / xdiff).astype(int)
+        coords_y = ((self.channels.localCoordinates[wf_chns, 1] - y0) / ydiff).astype(int)
+
+        for x in np.unique(coords_x):
+            idx = np.where(coords_x == x)[0]
+            probe[coords_y[idx], x] = 100
+
+        ax.imshow(probe, extent=[0, 160, np.min(self.channels.localCoordinates[:, 1]),
+                                 np.max(self.channels.localCoordinates[:, 1])], origin='lower', cmap='binary', vmin=0, vmax=100)
+        ax.set_xticks([])
+        ax.set_xticklabels([])
+        ax.set_yticks([])
+        ax.set_yticklabels([])
+        ax.spines['top'].set(alpha=0.2)
+        ax.spines['bottom'].set(alpha=0.2)
+        ax.spines['left'].set(alpha=0.2)
+        ax.spines['right'].set(alpha=0.2)
 
         return fig
 
@@ -939,19 +1110,26 @@ class DataLoader:
             fig = ax.get_figure()
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        amp_norm = self.rms_chns[clusters.channels]
 
         ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
         ax.set_xlim(-10, np.max(self.spikes.times))
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        ax2 = ax.twinx()
+        ax2.scatter(spikes.times, spikes.amps / amp_norm, color='grey', s=0)
+
+        ax.spines['top'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+
+        ax.set_xlabel(xlabel, fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=12)
+        ax2.set_ylabel('Amp (a.u.)', fontsize=12)
 
         return fig
 
-
-if __name__ == '__main__':
-
-    dl = DataLoader()
-    dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
-    dl.get_session_details()
+    # dl = DataLoader()
+    # dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
+    # dl.get_session_details()
 
     # pid = list(DATA_DIR.iterdir())[0]
 

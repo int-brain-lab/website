@@ -13,6 +13,7 @@ from pathlib import Path
 import png
 import sys
 from uuid import UUID
+import numpy as np
 
 from joblib import Parallel, delayed
 from tqdm import tqdm
@@ -167,6 +168,10 @@ def session_overview_path(pid):
     return session_cache_path(pid) / 'overview.png'
 
 
+def raw_data_overview_path(pid):
+    return session_cache_path(pid) / 'raw_overview.png'
+
+
 def trial_event_overview_path(pid):
     return session_cache_path(pid) / 'trial_overview.png'
 
@@ -295,15 +300,14 @@ class Generator:
             remove_frame(ax5)
             remove_frame(ax11)
 
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 5, subplot_spec=gs[1], width_ratios=[3, 1, 3, 1, 4], wspace=0.4)
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[4, 1, 4, 4], wspace=0.4)
             ax13 = fig.add_subplot(gs1[0, 0])
             ax14 = fig.add_subplot(gs1[0, 1])
             ax15 = fig.add_subplot(gs1[0, 2])
             ax16 = fig.add_subplot(gs1[0, 3])
-            ax17 = fig.add_subplot(gs1[0, 4])
             loader.plot_psychometric_curve(ax=ax13, ax_legend=ax14)
-            loader.plot_chronometric_curve(ax=ax15, ax_legend=ax16)
-            loader.plot_reaction_time(ax=ax17)
+            loader.plot_chronometric_curve(ax=ax15)
+            loader.plot_reaction_time(ax=ax16)
 
             set_figure_style(fig)
             fig.subplots_adjust(top=1.02, bottom=0.05)
@@ -312,6 +316,33 @@ class Generator:
             plt.close(fig)
         except Exception as e:
             print(f"error with session overview plot {self.pid}: {str(e)}")
+
+    def make_raw_data_plot(self):
+
+        path = raw_data_overview_path(self.pid)
+        if path.exists():
+            return
+        logger.debug(f"making raw data plot for session {self.pid}")
+        loader = self.dl
+
+        fig = plt.figure(figsize=(12, 5))
+        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax4 = fig.add_subplot(gs[0, 3])
+        ax5 = fig.add_subplot(gs[0, 4])
+
+        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
+        loader.plot_brain_regions(ax5)
+
+        ax5.set_ylim(20, 3840)
+
+        set_figure_style(fig)
+
+        fig.savefig(path)
+        plt.close(fig)
 
     def make_trial_plot(self, trial_idx):
         path = trial_overview_path(self.pid, trial_idx)
@@ -373,44 +404,58 @@ class Generator:
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0])
         ax1 = fig.add_subplot(gs0[0, 0])
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 3, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.2)
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.2)
         ax2 = fig.add_subplot(gs1[0, 0])
         ax3 = fig.add_subplot(gs1[1, 0])
         ax4 = fig.add_subplot(gs1[0, 1])
         ax5 = fig.add_subplot(gs1[1, 1])
         ax6 = fig.add_subplot(gs1[0, 2])
         ax7 = fig.add_subplot(gs1[1, 2])
+        ax8 = fig.add_subplot(gs1[0, 3])
+        ax9 = fig.add_subplot(gs1[1, 3])
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[2])
-        ax8 = fig.add_subplot(gs2[0, 0])
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2], width_ratios=[8, 1])
+        ax10 = fig.add_subplot(gs2[0, 0])
+        ax11 = fig.add_subplot(gs2[0, 1])
 
         gs3 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[3:])
-        ax9 = fig.add_subplot(gs3[0, 0])
-        ax10 = fig.add_subplot(gs3[0, 1])
-        ax11 = fig.add_subplot(gs3[0, 2])
+        ax12 = fig.add_subplot(gs3[0, 0])
+        ax13 = fig.add_subplot(gs3[0, 1])
+        ax14 = fig.add_subplot(gs3[0, 2])
 
         set_figure_style(fig)
 
         loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
 
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
-        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
+        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
+        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax8, ax9], ylabel0=None, ylabel1=None)
         ax2.get_xaxis().set_visible(False)
         ax4.get_xaxis().set_visible(False)
         ax6.get_xaxis().set_visible(False)
+        ax8.get_xaxis().set_visible(False)
         ax5.get_yaxis().set_visible(False)
         ax7.get_yaxis().set_visible(False)
+        ax9.get_yaxis().set_visible(False)
 
-        loader.plot_cluster_waveforms(cluster_idx, ax=ax8)
+        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+        loader.plot_channel_probe_location(cluster_idx, ax=ax11)
 
-        loader.plot_autocorrelogram(cluster_idx, ax=ax9)
-        loader.plot_inter_spike_interval(cluster_idx, ax=ax10)
-        loader.plot_cluster_amplitude(cluster_idx, ax=ax11)
+        loader.plot_autocorrelogram(cluster_idx, ax=ax12)
+        loader.plot_inter_spike_interval(cluster_idx, ax=ax13)
+        loader.plot_cluster_amplitude(cluster_idx, ax=ax14)
 
         ax2.sharex(ax3)
         ax4.sharex(ax5)
         ax6.sharex(ax7)
+        ax8.sharex(ax9)
+
+        yax_to_lim = [ax2, ax4, ax6, ax8]
+        max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
+        min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+        for ax in yax_to_lim:
+            ax.set_ylim(min_ax, max_ax)
 
         fig.savefig(path)
 

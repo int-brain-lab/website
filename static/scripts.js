@@ -529,6 +529,10 @@ function updateSessionPlot(pid) {
 };
 
 
+function updateRawPlot(pid) {
+    showImage('rawPlot', `/api/session/${pid}/raw_data_plot`);
+};
+
 
 async function selectSession(pid) {
     if (!pid) return;
@@ -563,6 +567,9 @@ async function selectSession(pid) {
 
     // Show the session overview plot.
     updateSessionPlot(pid);
+
+    // Show the raw data overview plot.
+    updateRawPlot(pid);
 
     // Show the trial plot.
     updateTrialPlot(pid);
