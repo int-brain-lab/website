@@ -4,19 +4,23 @@
 
 import matplotlib.pyplot as plt
 from matplotlib.image import NonUniformImage
+from matplotlib.lines import Line2D
 from pathlib import Path
 import numpy as np
 import pandas as pd
 import copy
 from collections import OrderedDict
+import seaborn as sns
+import yaml
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
 from brainbox.ephys_plots import plot_brain_regions
-from brainbox.plot_base import arrange_channels2banks, ProbePlot, plot_probe
+from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
+from ibllib.plots import Density
 from ibllib.atlas.regions import BrainRegions
 from iblutil.util import Bunch
 import time
@@ -70,6 +74,13 @@ def load_rms(pid):
     rms = np.load(DATA_DIR.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
     return rms[1, :]
 
+
+def load_raw_data(pid):
+    raw_data = np.load(DATA_DIR.joinpath(pid, 'raw_ephys_data.npy'))
+    with open(DATA_DIR.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
+        raw_info = yaml.safe_load(fp)
+
+    return raw_info, raw_data
 
 # -------------------------------------------------------------------------------------------------
 # Filtering
@@ -353,6 +364,10 @@ class DataLoader:
 
         t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
         t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
+
+        # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
+        t0[0] = self.trials['stimOn_times'] - 0.18
+
         t0[nan_idx] = np.nan
         t1[nan_idx] = np.nan
 
@@ -488,6 +503,47 @@ class DataLoader:
 
         return fig
 
+    def plot_raw_data(self, axs=None):
+
+        if axs is None:
+            fig, axs = plt.subplots(1, 4, figsize=(9, 6))
+        else:
+            fig = axs[0].get_figure()
+
+        info, raw_ephys = load_raw_data(self.pid)
+        spikes = load_spikes(self.pid)
+
+        times = info['t']
+        ts = info['t_offset']
+        te = info['t_offset'] + info['t_display']
+        fs = info['fs']
+
+        vmin = -0.000050
+        vmax = 0.000050
+        cmap = 'Greys'
+
+        ax0 = axs[0]
+        self.plot_session_raster(ax=ax0)
+        ax0.set_ylim(20, 3840)
+        ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
+
+        for iT, time in enumerate(times):
+            spike_idx = slice(*np.searchsorted(spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
+            spike_channels = self.clusters['channels'][spikes['clusters'][spike_idx]]
+            spike_times = (spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
+            spike_labels = self.clusters['label'][spikes['clusters'][spike_idx]]
+
+            ax = axs[iT + 1]
+
+            _ = Density(-raw_ephys[:, :, iT], fs=fs, taxis=1, ax=ax, vmin=vmin, vmax=vmax, cmap=cmap)
+            ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=8)
+            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=8)
+            ax.set_title(f'T = {time} s')
+            ax.get_yaxis().set_visible(False)
+
+        return fig
+
+
     def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None, xlabel='Time (s)'):
 
         if ax is None:
@@ -555,7 +611,7 @@ class DataLoader:
     def plot_psychometric_curve(self, ax=None, ax_legend=None):
 
         if ax is None:
-            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_rations': [3, 1]})
+            fig, axs = plt.subplots(1, 2, figsize=(6, 6), gridspec_kw={'width_ratios': [3, 1]})
             ax = axs[0]
             ax_legend = axs[1]
         else:
@@ -563,12 +619,30 @@ class DataLoader:
 
         plot_psychometric(self.trials, ax=ax)
         set_axis_style(ax, xlabel='Contrasts', ylabel='Probability Choosing Right')
-        leg = ax.get_legend()
-        h = leg.legendHandles
-        l = [str(x._text) for x in leg.texts]
+
         ax.get_legend().remove()
-        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+
+        legend_elements = [Line2D([0], [0], color='w', lw=0, label='80 % of trials on right side'),
+                           Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
+                           Line2D([0], [0], color='w', lw=0, label='20 % of trials on right side'),
+                           Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='model fit', markersize=10),
+                           Line2D([0], [0], color='k', lw=2, label='model fit')]
+
+        leg = ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
         remove_frame(ax_legend)
+        cmap = sns.diverging_palette(20, 220, n=3, center="dark")
+
+        for text, hand in zip(leg.get_texts(), leg.legendHandles):
+            if '80 %' in text.get_text():
+                text.set_color(cmap[2])
+                text.set_position((-40, 0))
+                hand.set_visible(False)
+            elif '20 %' in text.get_text():
+                text.set_color(cmap[0])
+                text.set_position((-40, 0))
+            elif 'equal %' in text.get_text():
+                text.set_color(cmap[1])
+                text.set_position((-40, 0))
 
         return fig
 
@@ -587,8 +661,9 @@ class DataLoader:
         h = leg.legendHandles
         l = [str(x._text) for x in leg.texts]
         ax.get_legend().remove()
-        ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
-        remove_frame(ax_legend)
+        if ax_legend is not None:
+            ax_legend.legend(handles=h, labels=l, frameon=False, loc=7)
+            remove_frame(ax_legend)
 
         return fig
 
@@ -931,7 +1006,7 @@ class DataLoader:
         ax.plot([x0, x0 + x_scale], [y0, y0], color='grey')
         ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='grey')
 
-        y0 = y0 + y_scale * 100 + 30
+        y0 = y0 + y_scale * 100 + 20
         ax.text(x0 - 6, y0, '5 a.u', rotation='vertical')
         ax.plot([x0, x0], [y0, y0 + y_scale_norm * 5], color='grey')
 
@@ -1052,9 +1127,9 @@ class DataLoader:
 
         return fig
 
-    dl = DataLoader()
-    dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
-    dl.get_session_details()
+    # dl = DataLoader()
+    # dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
+    # dl.get_session_details()
 
     # pid = list(DATA_DIR.iterdir())[0]
 
