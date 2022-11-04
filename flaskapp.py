@@ -195,7 +195,7 @@ def make_app():
         return send(session_overview_path(pid))
 
     @app.route('/api/session/<pid>/raw_data_plot')
-    def trial_event_overview_plot(pid):
+    def raw_data_overview_plot(pid):
         return send(raw_data_overview_path(pid))
 
     @app.route('/api/session/<pid>/trial_event_plot')
