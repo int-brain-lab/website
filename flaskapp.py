@@ -121,6 +121,7 @@ def send(path):
 
 def sessions():
     sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
+    sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
 

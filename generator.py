@@ -317,50 +317,6 @@ class Generator:
         except Exception as e:
             print(f"error with session overview plot {self.pid}: {str(e)}")
 
-    def make_raw_data_plot(self):
-
-        path = raw_data_overview_path(self.pid)
-        if path.exists():
-            return
-        logger.debug(f"making raw data plot for session {self.pid}")
-        loader = self.dl
-
-        fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
-
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[0, 2])
-        ax4 = fig.add_subplot(gs[0, 3])
-        ax5 = fig.add_subplot(gs[0, 4])
-
-        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
-        loader.plot_brain_regions(ax5)
-
-        ax5.set_ylim(20, 3840)
-
-        set_figure_style(fig)
-
-        fig.savefig(path)
-        plt.close(fig)
-
-    def make_trial_plot(self, trial_idx):
-        path = trial_overview_path(self.pid, trial_idx)
-        if path.exists():
-            return
-        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
-        loader = self.dl
-
-        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
-        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
-        axs[1].get_yaxis().set_visible(False)
-        loader.plot_brain_regions(axs[2])
-        set_figure_style(fig)
-
-        fig.savefig(path)
-        plt.close(fig)
-
     def make_trial_event_plot(self):
         path = trial_event_overview_path(self.pid)
         if path.exists():
@@ -389,6 +345,56 @@ class Generator:
         df['t0'] = loader.trial_intervals[:, 0]
         df['t1'] = loader.trial_intervals[:, 1]
         df.to_parquet(path_interval)
+
+    def make_raw_data_plot(self):
+
+        path = raw_data_overview_path(self.pid)
+        if path.exists():
+            return
+        logger.debug(f"making raw data plot for session {self.pid}")
+        loader = self.dl
+
+        fig = plt.figure(figsize=(12, 5))
+        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax4 = fig.add_subplot(gs[0, 3])
+        ax5 = fig.add_subplot(gs[0, 4])
+
+        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
+        loader.plot_brain_regions(ax5)
+
+        ax5.set_ylim(20, 3840)
+
+        set_figure_style(fig)
+
+        fig.savefig(path)
+        plt.close(fig)
+
+    # Trial plot
+    # -------------------------------------------------------------------------------------------------
+
+    def make_trial_plot(self, trial_idx):
+        path = trial_overview_path(self.pid, trial_idx)
+        if path.exists():
+            return
+        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
+        loader = self.dl
+
+        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
+        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
+        axs[1].get_yaxis().set_visible(False)
+        loader.plot_brain_regions(axs[2])
+        set_figure_style(fig)
+
+        fig.savefig(path)
+        plt.close(fig)
+
+    # Cluster plot
+    # -------------------------------------------------------------------------------------------------
 
     def make_cluster_plot(self, cluster_idx):
         path = cluster_overview_path(self.pid, cluster_idx)
@@ -501,12 +507,13 @@ class Generator:
         logger.info(f"Making all session plots for session {self.pid}")
         self.make_session_plot()
         self.make_trial_event_plot()
+        self.make_raw_data_plot()
         self.make_all_trial_plots()
         self.make_all_cluster_plots()
 
 
 def make_session_plots(pid):
-    Generator(pid)  # .make_all_session_plots()
+    Generator(pid).make_all_session_plots()
 
 
 def make_all_plots():

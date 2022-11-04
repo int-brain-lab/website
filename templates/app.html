@@ -70,7 +70,8 @@
 
 <div class="row">
     <div class="twelve columns">
-        <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the available insertions in the 3D brain.
+        <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the
+            available insertions in the 3D brain.
         </p>
         <p><strong>Examples:</strong>
             <code>cortexlab</code> (lab),
@@ -118,16 +119,18 @@
 <!-- SESSION TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>In each session, the electrical activity recorded on the probe is sorted into "clusters", 
+        <p>In each session, the electrical activity recorded on the probe is sorted into "clusters",
             groups of spikes that appear to come from the same neuron. We sub-select from these
-        clusters only those that pass three stringent quality control metrics. </p>
+            clusters only those that pass three stringent quality control metrics. </p>
 
-        <p>In the panel below we show the activity of these <i>good</i> clusters throughout the whole session as well 
-        as some metrics computed on the raw ephys signals (e.g. the RMS of the high-frequency AP signal;
-    and the power in the delta band of the LFP). These signals help us identify the boundaries between brain regions.</p>
+        <p>In the panel below we show the activity of these <i>good</i> clusters throughout the whole session as well
+            as some metrics computed on the raw ephys signals (e.g. the RMS of the high-frequency AP signal;
+            and the power in the delta band of the LFP). These signals help us identify the boundaries between brain
+            regions.</p>
 
         <p>We also show the behavior of the mouse throughout this session, in a trained mouse you expect to see
-            biased performance when stimuli were more likely to appear on one side or the other. Most mice increase their
+            biased performance when stimuli were more likely to appear on one side or the other. Most mice increase
+            their
             reaction time throughout the session.
         </p>
     </div>
@@ -143,7 +146,30 @@
                 class="loading">
             <details>
                 <summary>Figure 1: click to read the legend</summary>
-                <div>TODO LEGEND 1</div>
+
+                <p>From top to bottom, left to right :</p>
+                <p>TOP PLOTS:</p>
+                <ul>
+                    <li>Amplitude (uV) of units along the probe depth (um), colored by the quality: good units in green,
+                        multi-units (mua) in red</li>
+                    <li>Amplitude (uV) of units along the probe depth (um), colored by their firing rate (Hz)</li>
+                    <li>Raster plot of the spikes of good units along the probe depth (um), throughout the whole
+                        experiment time (s)</li>
+                    <li>Root mean square (RMS) values of the action potential (AP) band along the probe depth (um)</li>
+                    <li>Power (dB) in the delta band (0-4Hz) of the low-frequency (LFP) band</li>
+                    <li>Brain region acronyms along the probe depth (um)</li>
+                </ul>
+
+                <p>BOTTOM PLOTS:</p>
+                <ul>
+                    <li>Psychometric curves computed in different types of trial block ; for a trial block type, the
+                        probability of the visual stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8
+                        (blue)</li>
+                    <li>Reaction time (s) curves computed in different trial blocks (same color scheme as the
+                        psychometric curve plots)</li>
+                    <li>Reaction time (s) for each trial, plotted throughout the whole experiment</li>
+                </ul>
+
             </details>
         </figure>
     </div>
@@ -164,7 +190,7 @@
     <div class="twelve columns">
         <figure>
             <img id="rawPlot">
-            <img id="rawLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+            <img id="rawPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
             <details>
                 <summary>Figure 2: click to read the legend</summary>
@@ -192,8 +218,10 @@
 <!-- TRIAL TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Select a trial from the dropdown menu to see trial parameters and the mouse's behavior. In the lower panels you can see the 
-            position of this trial in the recording and whether any ephys activity is clustering around important behavioral events.</p>
+        <p>Select a trial from the dropdown menu to see trial parameters and the mouse's behavior. In the lower panels
+            you can see the
+            position of this trial in the recording and whether any ephys activity is clustering around important
+            behavioral events.</p>
     </div>
 </div>
 
@@ -229,7 +257,16 @@
             <div id="trialTime"></div>
             <details>
                 <summary>Figure 3: click to read the legend</summary>
-                <div>TODO LEGEND 3</div>
+
+                <p>From left to right:</p>
+                <ul>
+                    <li>Raster plot of the spikes of all good units along the probe depth (um), throughout the whole
+                        experiment time (s) ; the dash line indicates the trial selected for visualization</li>
+                    <li>Zoomed-in view of the raster around the time of the selected trial ; the lines indicate events
+                        in the trial (go cue in blue, first movement in green, and feedback in red).</li>
+                    <li>Brain region acronyms along the probe depth (um)</li>
+                </ul>
+
             </details>
         </figure>
     </div>
@@ -251,7 +288,9 @@
                 class="loading">
             <details>
                 <summary>Figure 4: click to read the legend</summary>
-                <div>TODO LEGEND 4</div>
+                <p>Average of the firing rate (z-scored) for good units along the probe depths (um), locked to a
+                    particular event: visual stimulus onset (left plot), first movement (middle plot), feedback (right
+                    plot).</p>
             </details>
         </figure>
     </div>
@@ -274,7 +313,8 @@
 <!-- CLUSTER TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Select a good cluster from the dropdown menu or by clicking directly on the unit to visualize its properties.</p>
+        <p>Select a good cluster from the dropdown menu or by clicking directly on the unit to visualize its properties.
+        </p>
     </div>
 </div>
 
@@ -311,7 +351,36 @@
                 class="loading">
             <details>
                 <summary>Figure 5: click to read the legend</summary>
-                <div>TODO LEGEND 5</div>
+
+                <p>From top to bottom, left to right :</p>
+                <p>TOP PLOTS:</p>
+                <ul>
+                    <li>Amplitude (uV) of good units along the probe depth (um), colored by the brain region color ; the
+                        selected unit for visualization is highlighted in black</li>
+                    <li>Raster plot of the spikes of the selected good unit, sorted by visual stimulus contrasts (0,
+                        6.25, 12.5, 25, 100%, from pale to dark gray) and aligned to the visual stimulus onset ;
+                        averages (mean and STD) for each condition are displayed at the top with the same color scheme.
+                        Trial numbers within a condition are kept ascending from bottom to top.</li>
+                    <li>Raster plot of the spikes of the selected good unit, with the trial block type shown (the
+                        probability of the visual stimulus being on the left is either 0.5 (green), 0.2 (red), or 0.8
+                        (blue)) and aligned to the visual stimulus onset ; averages (mean and STD) for each condition
+                        are displayed at the top with the same color scheme. Trial numbers are ascending from bottom to
+                        top, and kept in a similar order as during the experiment.</li>
+                    <li>Raster plot of the spikes of the selected good unit, sorted by visual stimulus side (right in
+                        yellow, left in green) and aligned to the movement onset ; averages (mean and STD) for each
+                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
+                        are kept ascending from bottom to top.</li>
+                    <li>Raster plot of the spikes of the selected good unit, sorted by trial outcome (correct in blue,
+                        incorrect in red) and aligned to the movement onset ; averages (mean and STD) for each condition
+                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
+                        ascending from bottom to top.</li>
+                    <li>Template waveforms (plotted in arbitrary units (blue) and uV (black)) of the selected good unit,
+                        presented for the electrode channels where spikes were detected. The electrode channels layout
+                        over the whole probe is presented on the right.</li>
+                    <li>Autocorrelogram of the selected good unit.</li>
+                    <li>Inter-spike-interval (ISI) distribution (normalized count) for the selected good unit.</li>
+                    <li>Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).</li>
+                </ul>
             </details>
         </figure>
     </div>

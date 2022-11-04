@@ -464,7 +464,7 @@ function loadAutoComplete() {
             if (!pid) return;
             if (pid == CTX.pid) return;
             if (!isValidUUID(pid)) return;
-            CTX.pid = pid;
+            // CTX.pid = pid;
 
             console.log("select " + pid);
             selectSession(pid);
@@ -529,14 +529,15 @@ function updateSessionPlot(pid) {
 };
 
 
+
 function updateRawPlot(pid) {
     showImage('rawPlot', `/api/session/${pid}/raw_data_plot`);
 };
 
 
+
 async function selectSession(pid) {
     if (!pid) return;
-    CTX.pid = pid;
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
@@ -594,6 +595,8 @@ async function selectSession(pid) {
         cluster_id = cluster_ids[0];
     if ((cluster_id !== null) && (cluster_ids.includes(cluster_id)))
         selectCluster(pid, cluster_id);
+
+    CTX.pid = pid;
 };
 
 
