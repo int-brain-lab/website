@@ -308,9 +308,8 @@ class DataLoader:
         details['_trial_ids'] = [int(_) for _ in self.trial_idx]
 
         # Trial intervals.
-        trial_intervals = pd.read_parquet(CACHE_DIR / self.pid / 'trial_intervals.pqt')
-        details['_trial_onsets'] = [float(_) for _ in trial_intervals.t0]
-        details['_trial_offsets'] = [float(_) for _ in trial_intervals.t1]
+        details['_trial_onsets'] = [float(_) for _ in self.trial_intervals[:, 0]]
+        details['_trial_offsets'] = [float(_) for _ in self.trial_intervals[:, 1]]
 
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
