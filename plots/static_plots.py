@@ -366,7 +366,7 @@ class DataLoader:
         t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
 
         # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
-        t0[0] = self.trials['stimOn_times'] - 0.18
+        t0[0] = self.trials['stimOn_times'][0] - 0.18
 
         t0[nan_idx] = np.nan
         t1[nan_idx] = np.nan
