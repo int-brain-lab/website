@@ -190,10 +190,10 @@ function isOnMobile() {
 
 
 
-function showImage(id, url) {
+function showImage(id, url, unityCalled=false) {
     var loading = document.getElementById(id + "Loading");
     loading.style.visibility = "visible";
-    if (unityTrial)
+    if (unityCalled && unityTrial)
         unityTrial.SendMessage("main", "Stop");
 
     var tmpImg = new Image();
@@ -201,7 +201,7 @@ function showImage(id, url) {
         document.getElementById(id).src = tmpImg.src;
         loading.style.visibility = "hidden";
         delete tmpImg;
-        if (unityTrial)
+        if (unityCalled && unityTrial)
             unityTrial.SendMessage("main", "Play");
     }
     tmpImg.src = url;
@@ -718,7 +718,7 @@ async function selectTrial(pid, tid, unityCalled = false) {
 
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_plot/${tid}`;
-    showImage('trialPlot', url);
+    showImage('trialPlot', url, unityCalled);
 
     // Show information about trials in table
     var url = `/api/session/${pid}/trial_details/${tid}`;
