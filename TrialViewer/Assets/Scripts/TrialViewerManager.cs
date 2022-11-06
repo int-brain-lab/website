@@ -66,6 +66,9 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private AudioManager audmanager;
 
+    [SerializeField] private TextAsset pid2eidText;
+    private Dictionary<string, string> pid2eid;
+
     #endregion
 
     #region data
@@ -103,8 +106,8 @@ public class TrialViewerManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("(TrialViewer) v0.1.0");
-        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.10.28.01.21.31.json");
+        Debug.Log("(TrialViewer) v1.0.0");
+        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.11.06.00.02.28.json");
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
@@ -112,13 +115,15 @@ public class TrialViewerManager : MonoBehaviour
 #endif
         Addressables.WebRequestOverride = EditWebRequestURL;
 
+        Camera.main.transparencySortMode = TransparencySortMode.Orthographic;
+
+        LoadPid2Eid();
+
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
 #elif UNITY_EDITOR
         LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86");
 #endif
-
-        Camera.main.transparencySortMode = TransparencySortMode.Orthographic;
     }
 
     //Override the url of the WebRequest, the request passed to the method is what would be used as standard by Addressables.
@@ -129,6 +134,12 @@ public class TrialViewerManager : MonoBehaviour
     }
 
     #region data loading
+
+    private void LoadPid2Eid()
+    {
+        //pid2eidText
+        pid2eid = CSVReader.ParsePid2Eid(pid2eidText.text);
+    }
 
     public void WaitToLoad(string pid)
     {
@@ -148,6 +159,8 @@ public class TrialViewerManager : MonoBehaviour
 
     public IEnumerator LoadDataHelper(string pid)
     {
+        string eid = pid2eid[pid];
+
         waitingToLoad = false;
 
         _loadingScreen.SetActive(true);
@@ -158,12 +171,12 @@ public class TrialViewerManager : MonoBehaviour
 
         // for now we ignore the PID and just load the referenced assets
         Debug.Log("Starting async load calls");
-        string path = string.Format("Assets/AddressableAssets/{0}/{0}.trials.csv", pid);
+        string path = string.Format("Assets/AddressableAssets/{0}/{0}.trials.csv", eid);
         AsyncOperationHandle<TextAsset> trialHandle = Addressables.LoadAssetAsync<TextAsset>(path);
 
         Debug.Log("Passed initial load");
         // videos
-        videoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}.mp4", pid);
+        videoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}.mp4", eid);
 
         timestampData = new Dictionary<string, float[]>();
 
@@ -185,7 +198,7 @@ public class TrialViewerManager : MonoBehaviour
         foreach (string type in dataTypes)
         {
             Debug.Log("Loading: " + type);
-            dataHandles.Add(type, Addressables.LoadAssetAsync<TextAsset>(string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", pid, type)));
+            dataHandles.Add(type, Addressables.LoadAssetAsync<TextAsset>(string.Format("Assets/AddressableAssets/{0}/{0}.{1}.bytes", eid, type)));
         }
 
         foreach (KeyValuePair<string, AsyncOperationHandle<TextAsset>> kvp in dataHandles)
@@ -298,14 +311,11 @@ public class TrialViewerManager : MonoBehaviour
                 {
                     stimulus.gameObject.SetActive(true);
 
-                    float deg = wheel.Degrees();
-                    Mathf.InverseLerp(initDeg, endDeg, deg);
-
                     if (currentTrialData.correct)
-                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, wheel.Degrees()));
                     else
                     {
-                        stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                        stimulus.SetPosition(sideFlip * (1 + Mathf.InverseLerp(initDeg, endDeg, wheel.Degrees())));
                     }
                 }
 
@@ -333,7 +343,7 @@ public class TrialViewerManager : MonoBehaviour
                     if (currentTrialData.correct)
                         stimulus.SetPosition(0f);
                     else
-                        stimulus.SetPosition(1.5f);
+                        stimulus.SetPosition(sideFlip * 2f);
                 }
 
                 // check if we displayed the feedback data

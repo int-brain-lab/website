@@ -190,10 +190,10 @@ function isOnMobile() {
 
 
 
-function showImage(id, url) {
+function showImage(id, url, unityCalled=false) {
     var loading = document.getElementById(id + "Loading");
     loading.style.visibility = "visible";
-    if (unityTrial)
+    if (unityCalled && unityTrial)
         unityTrial.SendMessage("main", "Stop");
 
     var tmpImg = new Image();
@@ -201,7 +201,7 @@ function showImage(id, url) {
         document.getElementById(id).src = tmpImg.src;
         loading.style.visibility = "hidden";
         delete tmpImg;
-        if (unityTrial)
+        if (unityCalled && unityTrial)
             unityTrial.SendMessage("main", "Play");
     }
     tmpImg.src = url;
@@ -464,7 +464,7 @@ function loadAutoComplete() {
             if (!pid) return;
             if (pid == CTX.pid) return;
             if (!isValidUUID(pid)) return;
-            CTX.pid = pid;
+            // CTX.pid = pid;
 
             console.log("select " + pid);
             selectSession(pid);
@@ -529,14 +529,15 @@ function updateSessionPlot(pid) {
 };
 
 
+
 function updateRawPlot(pid) {
     showImage('rawPlot', `/api/session/${pid}/raw_data_plot`);
 };
 
 
+
 async function selectSession(pid) {
     if (!pid) return;
-    CTX.pid = pid;
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
@@ -594,6 +595,8 @@ async function selectSession(pid) {
         cluster_id = cluster_ids[0];
     if ((cluster_id !== null) && (cluster_ids.includes(cluster_id)))
         selectCluster(pid, cluster_id);
+
+    CTX.pid = pid;
 };
 
 
@@ -715,7 +718,7 @@ async function selectTrial(pid, tid, unityCalled = false) {
 
     // Show the trial raster plot.
     var url = `/api/session/${pid}/trial_plot/${tid}`;
-    showImage('trialPlot', url);
+    showImage('trialPlot', url, unityCalled);
 
     // Show information about trials in table
     var url = `/api/session/${pid}/trial_details/${tid}`;
