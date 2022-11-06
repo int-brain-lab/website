@@ -76,11 +76,29 @@ public class CSVReader
             entry.start = int.Parse(values[0], NumberStyles.Any, CultureInfo.InvariantCulture);
             entry.stimOn = int.Parse(values[1], NumberStyles.Any, CultureInfo.InvariantCulture);
             entry.feedback = int.Parse(values[2], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.right = values[3].Equals("R");
-            entry.contrast = float.Parse(values[4], NumberStyles.Any, CultureInfo.InvariantCulture);
-            entry.correct = int.Parse(values[5], NumberStyles.Any, CultureInfo.InvariantCulture)==1;
+            entry.contrast = float.Parse(values[3], NumberStyles.Any, CultureInfo.InvariantCulture);
+            entry.correct = float.Parse(values[4], NumberStyles.Any, CultureInfo.InvariantCulture) == 1;
+            entry.right = values[5].Equals("R");
 
             data.Add(entry);
+        }
+        return data;
+    }
+
+    public static Dictionary<string, string> ParsePid2Eid(string text)
+    {
+        var data = new Dictionary<string, string>();
+
+        var lines = Regex.Split(text, LINE_SPLIT_RE);
+
+        for (var i = 1; i < lines.Length; i++)
+        {
+            var values = Regex.Split(lines[i], SPLIT_RE);
+            if (values.Length == 0 || values[0] == "") continue;
+            for (int j = 0; j < values.Length; j++)
+                values[j] = values[j].TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
+
+            data.Add(values[0], values[1]);
         }
         return data;
     }

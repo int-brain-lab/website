@@ -8688,6 +8688,7 @@ MonoBehaviour:
   stimulus: {fileID: 882634707}
   wheel: {fileID: 979553677}
   audmanager: {fileID: 756582631}
+  pid2eidText: {fileID: 4900000, guid: 326c431c6baa6694caa14b7ba1f61d43, type: 3}
 --- !u!82 &1036566697
 AudioSource:
   m_ObjectHideFlags: 0
