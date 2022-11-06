@@ -311,14 +311,11 @@ public class TrialViewerManager : MonoBehaviour
                 {
                     stimulus.gameObject.SetActive(true);
 
-                    float deg = wheel.Degrees();
-                    Mathf.InverseLerp(initDeg, endDeg, deg);
-
                     if (currentTrialData.correct)
-                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                        stimulus.SetPosition(sideFlip * Mathf.InverseLerp(endDeg, initDeg, wheel.Degrees()));
                     else
                     {
-                        stimulus.SetPosition(1 + -sideFlip * Mathf.InverseLerp(endDeg, initDeg, deg));
+                        stimulus.SetPosition(sideFlip * (1 + Mathf.InverseLerp(initDeg, endDeg, wheel.Degrees())));
                     }
                 }
 
@@ -346,7 +343,7 @@ public class TrialViewerManager : MonoBehaviour
                     if (currentTrialData.correct)
                         stimulus.SetPosition(0f);
                     else
-                        stimulus.SetPosition(1.5f);
+                        stimulus.SetPosition(sideFlip * 2f);
                 }
 
                 // check if we displayed the feedback data
