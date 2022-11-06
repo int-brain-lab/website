@@ -121,6 +121,7 @@ def send(path):
 
 def sessions():
     sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
+    sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
 
@@ -193,6 +194,10 @@ def make_app():
     @app.route('/api/session/<pid>/session_plot')
     def session_overview_plot(pid):
         return send(session_overview_path(pid))
+
+    @app.route('/api/session/<pid>/raw_data_plot')
+    def raw_data_overview_plot(pid):
+        return send(raw_data_overview_path(pid))
 
     @app.route('/api/session/<pid>/trial_event_plot')
     def trial_event_overview_plot(pid):
