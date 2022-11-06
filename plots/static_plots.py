@@ -308,8 +308,8 @@ class DataLoader:
         details['_trial_ids'] = [int(_) for _ in self.trial_idx]
 
         # Trial intervals.
-        details['_trial_onsets'] = [float(_) for _ in self.trial_intervals[:, 0]]
-        details['_trial_offsets'] = [float(_) for _ in self.trial_intervals[:, 1]]
+        details['_trial_onsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 0]]
+        details['_trial_offsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 1]]
 
         details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
@@ -367,8 +367,8 @@ class DataLoader:
         # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
         t0[0] = self.trials['stimOn_times'][0] - 0.18
 
-        t0[nan_idx] = np.nan
-        t1[nan_idx] = np.nan
+        t0[nan_idx] = None
+        t1[nan_idx] = None
 
         return np.c_[t0, t1], trial_no[~nan_idx]
 
