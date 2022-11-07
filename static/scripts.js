@@ -477,8 +477,9 @@ function loadAutoComplete() {
                     getItemInputValue: ({ item }) => item.ID,
                     getItems() {
                         let sessions = FLASK_CTX.SESSIONS;
+
                         // If 1 session is already selected, show all of them.
-                        if (isValidUUID(query_)) return sessions;
+                        if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
 
                         return sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
                             var res = true;
