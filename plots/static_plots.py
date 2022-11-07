@@ -305,6 +305,8 @@ class DataLoader:
         details['N trials'] = f'{self.trials.stimOn_times.size}'
         details['N spikes'] = f'{self.spikes.clusters.size}'
         details['N clusters'] = f'{self.clusters_good.cluster_id.size} good, {self.clusters.cluster_id.size} overall'
+        details['eid'] = self.session_info['eid']
+        details['pid'] = self.pid
 
         # Sort by cluster depth.
         idx = np.argsort(self.clusters_good.depths)[::-1]
