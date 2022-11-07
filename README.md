@@ -1,4 +1,4 @@
-# IBL public website prototype
+# IBL public website
 
 ## Development notes
 

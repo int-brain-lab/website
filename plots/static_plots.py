@@ -86,6 +86,7 @@ def load_raw_data(pid):
 # Filtering
 # -------------------------------------------------------------------------------------------------
 
+
 def _filter(obj, idx):
     obj = Bunch(copy.deepcopy(obj))
     for key in obj.keys():
@@ -250,6 +251,10 @@ class DataLoader:
         self.features = self.features.reset_index()
 
     def session_init(self, pid):
+        assert self.session_df is not None
+        if pid not in self.session_df.index:
+            raise ValueError(f"session {pid} is not in session.table.pqt")
+
         self.pid = pid
         self.load_session_data(pid)
         # self.get_session_details()
@@ -541,7 +546,6 @@ class DataLoader:
             ax.get_yaxis().set_visible(False)
 
         return fig
-
 
     def plot_session_raster(self, cluster_idx=None, trial_idx=None, ax=None, xlabel='Time (s)'):
 
@@ -844,7 +848,7 @@ class DataLoader:
         return fig
 
     def plot_block_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
-                                                     ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
+                                         ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         trial_idx = np.arange(len(self.trials['probabilityLeft']))
@@ -929,7 +933,6 @@ class DataLoader:
             axs[1].fill_between([post_time + raster_bin / 2, post_time + raster_bin / 2 + width],
                                 [dividers[iD + 1], dividers[iD + 1]], [dividers[iD], dividers[iD]], color=colors[iD])
 
-
         axs[1].set_xlim([-1 * pre_time, post_time + raster_bin / 2 + width])
         secax = axs[1].secondary_yaxis('right')
 
@@ -1013,7 +1016,7 @@ class DataLoader:
         ax.set_ylim([y_min - 30, y_max + 30])
 
         # add in distance between electrodes in y axis
-        ax.plot([x0, x0], [y_max-40, y_max], color='black')
+        ax.plot([x0, x0], [y_max - 40, y_max], color='black')
         ax.plot([x0 - 2, x0 + 2], [y_max - 40, y_max - 40], color='black')
         ax.plot([x0 - 2, x0 + 2], [y_max, y_max], color='black')
         ax.text(x0 - 6, y_max - 35, '40 um', rotation='vertical')
@@ -1033,7 +1036,7 @@ class DataLoader:
             self.cluster_wfs, self.cluster_wf_chns, self.clusters, cluster_idx)
 
         probe = np.ones((len(np.unique(self.channels.localCoordinates[:, 1])),
-                          len(np.unique(self.channels.localCoordinates[:, 0])))) * 10
+                         len(np.unique(self.channels.localCoordinates[:, 0])))) * 10
         x0 = np.min(self.channels.localCoordinates[:, 0])
         xdiff = np.min(np.abs(np.diff(self.channels.localCoordinates[:, 0])))
 
