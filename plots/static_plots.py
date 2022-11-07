@@ -624,7 +624,7 @@ class DataLoader:
         legend_elements = [Line2D([0], [0], color='w', lw=0, label='80 % of trials on right side'),
                            Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
                            Line2D([0], [0], color='w', lw=0, label='20 % of trials on right side'),
-                           Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data fit', markersize=10),
+                           Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data', markersize=10),
                            Line2D([0], [0], color='k', lw=2, label='model fit')]
 
         leg = ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
