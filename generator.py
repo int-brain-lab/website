@@ -2,19 +2,22 @@
 # Imports
 # -------------------------------------------------------------------------------------------------
 
-import argparse
 from datetime import datetime, date
-import functools
+# from pathlib import Path
+# from pprint import pprint
+from uuid import UUID
+# import argparse
+# import functools
 import io
 import json
 import locale
 import logging
-from pathlib import Path
+import logging
+import os.path as op
 import png
 import sys
-from uuid import UUID
-import numpy as np
 
+import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm
 import pandas as pd
@@ -29,16 +32,48 @@ from plots.static_plots import *
 # Settings
 # -------------------------------------------------------------------------------------------------
 
-logger = logging.getLogger('ibl_website')
 mpl.use('Agg')
 # mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
+
+# -------------------------------------------------------------------------------------------------
+# Logging
+# -------------------------------------------------------------------------------------------------
+
+_logger_fmt = '%(asctime)s.%(msecs)03d [%(levelname)s] %(caller)s %(message)s'
+_logger_date_fmt = '%H:%M:%S'
+
+
+class _Formatter(logging.Formatter):
+    def format(self, record):
+        # Only keep the first character in the level name.
+        record.levelname = record.levelname[0]
+        filename = op.splitext(op.basename(record.pathname))[0]
+        record.caller = '{:s}:{:d}'.format(filename, record.lineno).ljust(20)
+        message = super(_Formatter, self).format(record)
+        color_code = {'D': '90', 'I': '0', 'W': '33', 'E': '31'}.get(record.levelname, '7')
+        message = '\33[%sm%s\33[0m' % (color_code, message)
+        return message
+
+
+def add_default_handler(logger, level='DEBUG'):
+    handler = logging.StreamHandler()
+    handler.setLevel(level)
+
+    formatter = _Formatter(fmt=_logger_fmt, datefmt=_logger_date_fmt)
+    handler.setFormatter(formatter)
+
+    logger.addHandler(handler)
+
+
+logger = logging.getLogger('ibl_website')
+logger.setLevel(logging.DEBUG)
+add_default_handler(logger, level='DEBUG')
 
 
 # -------------------------------------------------------------------------------------------------
 # CONSTANTS
 # -------------------------------------------------------------------------------------------------
-
 # ROOT_DIR and DATA_DIR are loaded from static_plots.py
 # ROOT_DIR = Path(__file__).parent.resolve()
 # DATA_DIR = ROOT_DIR / 'static/data'
@@ -257,12 +292,15 @@ class Generator:
         path = cluster_details_path(self.pid, cluster_idx)
         save_json(path, details)
 
-    # Plot functions
+    # -------------------------------------------------------------------------------------------------
+    # SESSION OVERVIEW
     # -------------------------------------------------------------------------------------------------
 
-    def make_session_plot(self):
+    # FIGURE 1
+
+    def make_session_plot(self, force=False):
         path = session_overview_path(self.pid)
-        if path.exists():
+        if not force and path.exists():
             return
         logger.debug(f"making session overview plot for session {self.pid}")
         loader = self.dl
@@ -317,9 +355,61 @@ class Generator:
         except Exception as e:
             print(f"error with session overview plot {self.pid}: {str(e)}")
 
-    def make_trial_event_plot(self):
+    # FIGURE 2
+    def make_raw_data_plot(self, force=False):
+
+        path = raw_data_overview_path(self.pid)
+        if not force and path.exists():
+            return
+        logger.debug(f"making raw data plot for session {self.pid}")
+        loader = self.dl
+
+        fig = plt.figure(figsize=(12, 5))
+        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
+
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax4 = fig.add_subplot(gs[0, 3])
+        ax5 = fig.add_subplot(gs[0, 4])
+
+        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
+        loader.plot_brain_regions(ax5)
+
+        ax5.set_ylim(20, 3840)
+
+        set_figure_style(fig)
+
+        fig.savefig(path)
+        plt.close(fig)
+
+    # -------------------------------------------------------------------------------------------------
+    # SINGLE TRIAL OVERVIEW
+    # -------------------------------------------------------------------------------------------------
+
+    # FIGURE 3
+
+    def make_trial_plot(self, trial_idx, force=False):
+        path = trial_overview_path(self.pid, trial_idx)
+        if not force and path.exists():
+            return
+        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
+        loader = self.dl
+
+        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
+        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
+        axs[1].get_yaxis().set_visible(False)
+        loader.plot_brain_regions(axs[2])
+        set_figure_style(fig)
+
+        fig.savefig(path)
+        plt.close(fig)
+
+    # FIGURE 4
+    def make_trial_event_plot(self, force=False):
         path = trial_event_overview_path(self.pid)
-        if path.exists():
+        if not force and path.exists():
             return
         logger.debug(f"making trial event plot for session {self.pid}")
         loader = self.dl
@@ -346,59 +436,15 @@ class Generator:
         df['t1'] = loader.trial_intervals[:, 1]
         df.to_parquet(path_interval)
 
-    def make_raw_data_plot(self):
-
-        path = raw_data_overview_path(self.pid)
-        if path.exists():
-            return
-        logger.debug(f"making raw data plot for session {self.pid}")
-        loader = self.dl
-
-        fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
-
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[0, 2])
-        ax4 = fig.add_subplot(gs[0, 3])
-        ax5 = fig.add_subplot(gs[0, 4])
-
-        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
-        loader.plot_brain_regions(ax5)
-
-        ax5.set_ylim(20, 3840)
-
-        set_figure_style(fig)
-
-        fig.savefig(path)
-        plt.close(fig)
-
-    # Trial plot
+    # -------------------------------------------------------------------------------------------------
+    # SINGLE CLUSTER OVERVIEW
     # -------------------------------------------------------------------------------------------------
 
-    def make_trial_plot(self, trial_idx):
-        path = trial_overview_path(self.pid, trial_idx)
-        if path.exists():
-            return
-        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
-        loader = self.dl
+    # FIGURE 5
 
-        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
-        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
-        axs[1].get_yaxis().set_visible(False)
-        loader.plot_brain_regions(axs[2])
-        set_figure_style(fig)
-
-        fig.savefig(path)
-        plt.close(fig)
-
-    # Cluster plot
-    # -------------------------------------------------------------------------------------------------
-
-    def make_cluster_plot(self, cluster_idx):
+    def make_cluster_plot(self, cluster_idx, force=False):
         path = cluster_overview_path(self.pid, cluster_idx)
-        if path.exists():
+        if not force and path.exists():
             return
         logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
         loader = self.dl
@@ -485,47 +531,45 @@ class Generator:
     # Plot generator functions
     # -------------------------------------------------------------------------------------------------
 
-    def make_all_trial_plots(self):
+    def make_all_trial_plots(self, force=False):
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
             self.save_trial_details(trial_idx)
             try:
-                self.make_trial_plot(trial_idx)
+                self.make_trial_plot(trial_idx, force=force)
             except Exception as e:
                 print(f"error with session {self.pid} trial  # {trial_idx}: {str(e)}")
 
-    def make_all_cluster_plots(self):
+    def make_all_cluster_plots(self, force=False):
         desc = "Making all cluster plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
             self.save_cluster_details(cluster_idx)
             try:
-                self.make_cluster_plot(cluster_idx)
+                self.make_cluster_plot(cluster_idx, force=force)
             except Exception as e:
                 print(f"error with session {self.pid} cluster  # {cluster_idx}: {str(e)}")
 
-    def make_all_session_plots(self):
+    def make_all_plots(self, force=False):
         logger.info(f"Making all session plots for session {self.pid}")
-        self.make_session_plot()
-        self.make_trial_event_plot()
-        self.make_raw_data_plot()
-        self.make_all_trial_plots()
-        self.make_all_cluster_plots()
+        self.make_session_plot(force=force)
+        # self.make_trial_event_plot(force=force)
+        # self.make_raw_data_plot(force=force)
+        # self.make_all_trial_plots(force=force)
+        # self.make_all_cluster_plots(force=force)
 
 
-def make_session_plots(pid):
-    Generator(pid).make_all_session_plots()
-
-
-def make_all_plots():
-    Parallel(n_jobs=-3)(delayed(make_session_plots)(pid) for pid in iter_session())
+def make_all_plots(pid):
+    logger.info(f"Generating all plots for session {pid}")
+    Generator(pid).make_all_plots(force=True)
 
 
 if __name__ == '__main__':
+
     if len(sys.argv) == 1:
-        make_all_plots()
+        Parallel(n_jobs=-3)(delayed(make_all_plots)(pid) for pid in iter_session())
+
     elif len(sys.argv) == 2:
         pid = sys.argv[1]
         if not is_valid_uuid(pid):
             raise ValueError(f"{pid} not a valid insertion UUID")
-        gen = Generator(pid)
-        gen.make_all_session_plots()
+        make_all_plots(pid)
