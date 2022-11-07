@@ -83,6 +83,8 @@ def send(path):
 # -------------------------------------------------------------------------------------------------
 
 def sessions():
+    pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
+    pids = [pid for pid in pids if is_valid_uuid(pid)]
     sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
     sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))

@@ -572,7 +572,7 @@ class Generator:
             self.make_all_cluster_plots(force=True)
 
 
-def make_all_plots(pid, nums=None):
+def make_all_plots(pid, nums=()):
     logger.info(f"Generating all plots for session {pid}")
     Generator(pid).make_all_plots(nums=nums)
 
