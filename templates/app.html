@@ -136,6 +136,7 @@
     </div>
 </div>
 
+<!--                                          FIGURE 1                                          -->
 <!-- SESSION PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
@@ -170,6 +171,17 @@
                     <li>Reaction time (s) for each trial, plotted throughout the whole experiment</li>
                 </ul>
 
+                <p>CODE:</p>
+                <ul>
+                    <li><a href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_trials_data.html">Example
+                            to load trials data and plot a psychometric curve</a></li>
+                    <li><a
+                            href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_spikesorting_data.html">Example
+                            to load spike sorting data and plot a raster</a></li>
+
+                    <li><a href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_ephys_data.html">Example
+                            to load LFP data and compute the power spectrum</a></li>
+                </ul>
             </details>
         </figure>
     </div>
@@ -184,6 +196,7 @@
 </div> -->
 
 
+<!--                                          FIGURE 2                                          -->
 <!-- RAW DATA PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
@@ -194,7 +207,18 @@
                 class="loading">
             <details>
                 <summary>Figure 2: click to read the legend</summary>
-                <div>TODO LEGEND 2</div>
+                <p>From left to right:</p>
+                <ul>
+                    <li>Raster plot of the spikes of good units along the probe depth (um), throughout the whole
+                        experiment time (s) ; the vertical dashed lines indicate the 3 times points at which the raw
+                        data snippets (right-plots) are taken.</li>
+                    <li>3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s,
+                        1800s, and 3000s). The raw data recorded on each channel is plotted as a gray code, and ordered
+                        along the probe depth. Divergence from the gray color (black or white) indicates a shift from
+                        baseline activity. Overlaid dots indicate when spikes were detected (green: good units, red:
+                        multi-units)</li>
+                    <li>Brain region acronyms along the probe depth (um)</li>
+                </ul>
             </details>
         </figure>
     </div>
@@ -247,6 +271,7 @@
     </div>
 </div>
 
+<!--                                          FIGURE 3                                          -->
 <!-- TRIAL PLOTS -->
 <div class="row">
     <div class="twelve columns">
@@ -279,6 +304,7 @@
     </div>
 </div>
 
+<!--                                          FIGURE 4                                          -->
 <!-- Trial event plot -->
 <div class="row">
     <div class="twelve columns">
@@ -342,6 +368,7 @@
 
 </div>
 
+<!--                                          FIGURE 5                                          -->
 <!-- CLUSTER PLOTS -->
 <div class="row">
     <div class="twelve columns">
@@ -377,6 +404,9 @@
                     <li>Template waveforms (plotted in arbitrary units (blue) and uV (black)) of the selected good unit,
                         presented for the electrode channels where spikes were detected. The electrode channels layout
                         over the whole probe is presented on the right.</li>
+                </ul>
+                <p>BOTTOM PLOTS:</p>
+                <ul>
                     <li>Autocorrelogram of the selected good unit.</li>
                     <li>Inter-spike-interval (ISI) distribution (normalized count) for the selected good unit.</li>
                     <li>Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).</li>
