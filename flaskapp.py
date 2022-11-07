@@ -29,7 +29,6 @@ locale.setlocale(locale.LC_ALL, '')
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).parent.resolve()
-DATA_DIR = ROOT_DIR / 'static/data'
 PORT = 4321
 DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
 
@@ -85,7 +84,7 @@ def send(path):
 def sessions():
     pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
-    sessions = [load_json(session_details_path(pid)) for pid in get_pids()]
+    sessions = [load_json(session_details_path(pid)) for pid in pids]
     sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
