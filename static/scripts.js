@@ -190,7 +190,7 @@ function isOnMobile() {
 
 
 
-function showImage(id, url, unityCalled=false) {
+function showImage(id, url, unityCalled = false) {
     var loading = document.getElementById(id + "Loading");
     loading.style.visibility = "visible";
     if (unityCalled && unityTrial)
@@ -691,6 +691,9 @@ function clickTrial(event) {
     var rect = img.getBoundingClientRect();
     var x = (event.clientX - rect.left) - x0;
     var y = Math.abs((event.clientY - rect.bottom)) - y0;
+
+    // Limit the click to the left panel.
+    if (x >= x1 - x0) return;
 
     x = x / (x1 - x0);
     y = y / (y1 - y0);
