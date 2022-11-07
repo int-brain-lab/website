@@ -549,27 +549,50 @@ class Generator:
             except Exception as e:
                 print(f"error with session {self.pid} cluster  # {cluster_idx}: {str(e)}")
 
-    def make_all_plots(self, force=False):
+    def make_all_plots(self, nums=()):
+        # nums is a list of numbers 1-5 (figure numbers)
+
         logger.info(f"Making all session plots for session {self.pid}")
-        self.make_session_plot(force=force)
-        # self.make_trial_event_plot(force=force)
-        # self.make_raw_data_plot(force=force)
-        # self.make_all_trial_plots(force=force)
-        # self.make_all_cluster_plots(force=force)
+
+        # Figure 1
+        self.make_session_plot(force=1 in nums)
+
+        # Figure 2
+        self.make_raw_data_plot(force=2 in nums)
+
+        # Figure 3 (one plot per trial)
+        if 3 in nums:
+            self.make_all_trial_plots(force=True)
+
+        # Figure 4
+        self.make_trial_event_plot(force=4 in nums)
+
+        # Figure 5 (one plot per cluster)
+        if 5 in nums:
+            self.make_all_cluster_plots(force=True)
 
 
-def make_all_plots(pid):
+def make_all_plots(pid, nums=None):
     logger.info(f"Generating all plots for session {pid}")
-    Generator(pid).make_all_plots(force=True)
+    Generator(pid).make_all_plots(nums=nums)
 
 
 if __name__ == '__main__':
 
+    # Regenerate all figures.
     if len(sys.argv) == 1:
         Parallel(n_jobs=-3)(delayed(make_all_plots)(pid) for pid in iter_session())
 
-    elif len(sys.argv) == 2:
-        pid = sys.argv[1]
-        if not is_valid_uuid(pid):
-            raise ValueError(f"{pid} not a valid insertion UUID")
-        make_all_plots(pid)
+    # Regenerate some figures for all sessions.
+    elif len(sys.argv) == 2 and not is_valid_uuid(sys.argv[1]):
+        which = sys.argv[1]
+
+        # which figure numbers to regenerate
+        nums = list(map(int, which.split(',')))
+        logger.info(f"Regenerating figures {', '.join('#%d' % _ for _ in nums)}")
+
+        Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
+
+    # Regenerate figures for 1 session.
+    elif len(sys.argv) == 2 and is_valid_uuid(sys.argv[1]):
+        make_all_plots(sys.argv[1])
