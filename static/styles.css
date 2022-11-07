@@ -197,16 +197,32 @@ body .row figure {
 body .row figure summary {
     cursor: pointer;
     font-weight: bold;
+    padding: 5px 5px 5px 0;
 }
 
 body .row figure details {
+    font-size: .95em;
     margin: 10px 0 0 0;
-    padding: 7px 10px;
+    padding: 7px 15px 7px 20px;
     background-color: #f3f3f3;
 }
 
 body .row figure details div {
     margin: 10px 0 5px 5px;
+}
+
+body .row figure details p {
+    margin-bottom: 5px;
+}
+
+body .row figure details ul {
+    list-style-position: outside;
+    margin-left: 20px;
+}
+
+body .row figure details ul li {
+    list-style-type: disc;
+    margin: 10px 0
 }
 
 
