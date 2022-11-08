@@ -542,8 +542,8 @@ class DataLoader:
             ax = axs[iT + 1]
 
             _ = Density(-raw_ephys[:, :, iT], fs=fs, taxis=1, ax=ax, vmin=vmin, vmax=vmax, cmap=cmap)
-            ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=8)
-            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=8)
+            ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
+            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=3)
             ax.set_title(f'T = {time} s')
             ax.get_yaxis().set_visible(False)
 
@@ -627,9 +627,9 @@ class DataLoader:
 
         ax.get_legend().remove()
 
-        legend_elements = [Line2D([0], [0], color='w', lw=0, label='80 % of trials on right side'),
+        legend_elements = [Line2D([0], [0], color='w', lw=0, label='20 % of trials on left side'),
                            Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
-                           Line2D([0], [0], color='w', lw=0, label='20 % of trials on right side'),
+                           Line2D([0], [0], color='w', lw=0, label='80 % of trials on left side'),
                            Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data', markersize=10),
                            Line2D([0], [0], color='k', lw=2, label='model fit')]
 
@@ -639,11 +639,11 @@ class DataLoader:
 
         for text, hand in zip(leg.get_texts(), leg.legendHandles):
             if '80 %' in text.get_text():
-                text.set_color(cmap[0])
+                text.set_color(cmap[2])
                 text.set_position((-40, 0))
                 hand.set_visible(False)
             elif '20 %' in text.get_text():
-                text.set_color(cmap[2])
+                text.set_color(cmap[0])
                 text.set_position((-40, 0))
             elif 'equal %' in text.get_text():
                 text.set_color(cmap[1])
@@ -857,9 +857,10 @@ class DataLoader:
         dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
 
         blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
-        colours = np.full(blocks.shape, 'r')
-        colours[np.where(blocks == 0.5)] = 'g'
-        colours[np.where(blocks == 0.8)] = 'b'
+        cmap = sns.diverging_palette(20, 220, n=3, center="dark")
+        colours = np.full((blocks.shape[0], 3), np.array([*cmap[0]]))
+        colours[np.where(blocks == 0.5)] = np.array([*cmap[1]])
+        colours[np.where(blocks == 0.8)] = np.array([*cmap[2]])
 
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['stimOn_times'], trial_idx, list(dividers), colours,
                                               blocks, axs=axs)
@@ -1011,7 +1012,7 @@ class DataLoader:
         ax.plot([x0, x0], [y0, y0 + y_scale * 100], color='grey')
 
         y0 = y0 + y_scale * 100 + 20
-        ax.text(x0 - 6, y0, '5 a.u', rotation='vertical')
+        ax.text(x0 - 6, y0, '5 x noise', rotation='vertical')
         ax.plot([x0, x0], [y0, y0 + y_scale_norm * 5], color='grey')
 
         ax.set_xlim([x_min - 10, x_max + 15])
@@ -1066,7 +1067,7 @@ class DataLoader:
 
         return fig
 
-    def plot_autocorrelogram(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='AutoCorr'):
+    def plot_autocorrelogram(self, cluster_idx, ax=None, xlabel='Time from spike (ms)', ylabel='Spike count'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -1077,17 +1078,16 @@ class DataLoader:
 
         x_corr = xcorr(spikes.times, spikes.clusters, 1 / 1e3, 50 / 1e3)
         corr = x_corr[0, 0, :]
-        m_corr = np.max(corr)
-        if m_corr == 0:
-            m_corr = 1
-        corr = corr / m_corr  # normalise
-
-        ax.bar(np.arange(corr.size), height=corr, width=0.8, color='grey')
+        # m_corr = np.max(corr)
+        # if m_corr == 0:
+        #     m_corr = 1
+        # corr = corr / m_corr  # normalise
+        ax.bar(np.arange(corr.size) - 50 / 2, height=corr, width=0.8, color='grey')
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
 
-    def plot_inter_spike_interval(self, cluster_idx, ax=None, xlabel='T (ms)', ylabel='ISI'):
+    def plot_inter_spike_interval(self, cluster_idx, ax=None, xlabel='Inter spike interval (ms)', ylabel='No. of intervals'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
@@ -1098,15 +1098,16 @@ class DataLoader:
 
         isi, bins = _compute_histogram(np.diff(spikes.times), 0.01, 0, 50)
         bins = bins * 1e3
-        m_isi = np.max(isi)
-        if m_isi == 0:
-            m_isi = 1
-        ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
+        # m_isi = np.max(isi)
+        # if m_isi == 0:
+        #     m_isi = 1
+        # ax.bar(bins[:-1], height=isi / m_isi, width=0.8 * np.diff(bins)[0], color='grey')
+        ax.bar(bins[:-1], height=isi, width=0.8 * np.diff(bins)[0], color='grey')
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
 
         return fig
 
-    def plot_cluster_amplitude(self, cluster_idx, ax=None, xlabel='T (s)', ylabel='Amp (uV)'):
+    def plot_cluster_amplitude(self, cluster_idx, ax=None, xlabel='T in session (s)', ylabel='Amp (uV)'):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(5, 5))
