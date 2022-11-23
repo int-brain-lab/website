@@ -531,8 +531,8 @@ function updateSessionPlot(pid) {
 
 
 
-function updateRawPlot(pid) {
-    showImage('rawPlot', `/api/session/${pid}/raw_data_plot`);
+function updateBehaviourPlot(pid) {
+    showImage('behaviourPlot', `/api/session/${pid}/behaviour_plot`);
 };
 
 
@@ -570,8 +570,8 @@ async function selectSession(pid) {
     // Show the session overview plot.
     updateSessionPlot(pid);
 
-    // Show the raw data overview plot.
-    updateRawPlot(pid);
+    // Show the behaviour overview plot.
+    updateBehaviourPlot(pid);
 
     // Show the trial plot.
     updateTrialPlot(pid);

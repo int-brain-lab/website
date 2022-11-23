@@ -163,12 +163,12 @@
 
                 <p><strong>Bottom:</strong></p>
                 <ul>
-                    <li>Psychometric curves computed in different types of trial block ; for a trial block type, the
-                        probability of the visual stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8
-                        (blue)</li>
-                    <li>Reaction time (s) curves computed in different trial blocks (same color scheme as the
-                        psychometric curve plots)</li>
-                    <li>Reaction time (s) for each trial, plotted throughout the whole experiment</li>
+                    <li>3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s,
+                        1800s, and 3000s). The raw data recorded on each channel is plotted as a gray code, and ordered
+                        along the probe depth. Divergence from the gray color (black or white) indicates a shift from
+                        baseline activity. Overlaid dots indicate when spikes were detected (green: good units, red:
+                        multi-units)</li>
+                    <li>Brain region acronyms along the probe depth (um)</li>
                 </ul>
 
                 <p><strong>Code:</strong></p>
@@ -197,27 +197,58 @@
 
 
 <!--                                          FIGURE 2                                          -->
-<!-- RAW DATA PLOTS -->
+<!-- BEHAVIOUR DATA PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
     <div class="twelve columns">
         <figure>
-            <img id="rawPlot">
-            <img id="rawPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+            <img id="behaviourPlot">
+            <img id="behaviourPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
             <details>
                 <summary>Figure 2: click to read the legend</summary>
-                <p>From left to right:</p>
+                <p>From top to bottom, left to right:</p>
+                <p><strong>Top:</strong></p>
                 <ul>
-                    <li>Raster plot of the spikes of good units along the probe depth (um), throughout the whole
-                        experiment time (s) ; the vertical dashed lines indicate the 3 times points at which the raw
-                        data snippets (right-plots) are taken.</li>
-                    <li>3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s,
-                        1800s, and 3000s). The raw data recorded on each channel is plotted as a gray code, and ordered
-                        along the probe depth. Divergence from the gray color (black or white) indicates a shift from
-                        baseline activity. Overlaid dots indicate when spikes were detected (green: good units, red:
-                        multi-units)</li>
-                    <li>Brain region acronyms along the probe depth (um)</li>
+                    <li>Psychometric curves computed in different types of trial block ; for a trial block type, the
+                        probability of the visual stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8
+                        (blue)</li>
+                    <li>Reaction time (s) curves computed in different trial blocks (same color scheme as the
+                        psychometric curve plots)</li>
+                    <li>Reaction time (s) for each trial, plotted throughout the whole experiment</li>
+                </ul>
+
+                <p><strong>Bottom:</strong></p>
+                <ul>
+                    <li>Raster plot of the left paw speed, sorted by trial outcome (correct in blue, incorrect in red)
+                        and aligned to the visual stimulus onset; averages (mean and STD) for each condition
+                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
+                        ascending from bottom to top. Left paw speed has been computed from DLC points detected on the
+                        left camera</li>
+                    <li>Raster plot of the nose tip speed, sorted by trial outcome (correct in blue, incorrect in red)
+                        and aligned to the visual stimulus onset; averages (mean and STD) for each condition
+                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
+                        ascending from bottom to top. Nose tip speed has been computed from DLC points detected on the
+                        left camera</li>
+                    <li>Raster plot of the whisker pad motion energy, sorted by trial outcome (correct in blue,
+                        incorrect in red) and aligned to the visual stimulus onset; averages (mean and STD) for each
+                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
+                        are kept ascending from bottom to top. Motion energy has been computed using the left
+                        camera </li>
+                    <li>Raster plot of pupil diameter, sorted by trial outcome (correct in blue,
+                        incorrect in red) and aligned to the visual stimulus onset; averages (mean and STD) for each
+                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
+                        are kept ascending from bottom to top. The pupil diameter has been computed from DLC points on
+                        the left camera </li>
+                    <li>Raster plot of wheel velocity, sorted by visual stimulus side (right in
+                        yellow, left in green) and aligned to the movement onset ; averages (mean and STD) for each
+                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
+                        are kept ascending from bottom to top </li>
+                    <li>Raster plot of lick events, sorted by visual stimulus side (right in
+                        yellow, left in green) and aligned to feedback time  ; averages (mean and STD) for each
+                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
+                        are kept ascending from bottom to top. Lick events have been computed using DLC points detected
+                        on both the left and right cameras</li>
                 </ul>
             </details>
         </figure>
@@ -398,7 +429,7 @@
                         condition are displayed at the top with the same color scheme. Trial numbers within a condition
                         are kept ascending from bottom to top.</li>
                     <li>Raster plot of the spikes of the selected good unit, sorted by trial outcome (correct in blue,
-                        incorrect in red) and aligned to the movement onset ; averages (mean and STD) for each condition
+                        incorrect in red) and aligned to feedback time ; averages (mean and STD) for each condition
                         are displayed at the top with the same color scheme. Trial numbers within a condition are kept
                         ascending from bottom to top.</li>
                     <li>Template waveforms of the selected good unit, presented for the electrode channels where spikes

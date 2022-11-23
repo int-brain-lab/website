@@ -203,8 +203,8 @@ def session_overview_path(pid):
     return session_cache_path(pid) / 'overview.png'
 
 
-def raw_data_overview_path(pid):
-    return session_cache_path(pid) / 'raw_overview.png'
+def behaviour_overview_path(pid):
+    return session_cache_path(pid) / 'behaviour_overview.png'
 
 
 def trial_event_overview_path(pid):
@@ -232,7 +232,9 @@ def trial_intervals_path(pid):
 # -------------------------------------------------------------------------------------------------
 
 def get_pids():
-    pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
+    df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
+    pids = df.pid.values
+    # pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
     assert pids
     return pids
@@ -309,8 +311,8 @@ class Generator:
             fig = plt.figure(figsize=(15, 10))
             gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[10, 4], wspace=0.2)
 
-            gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[1, 1, 8, 1, 1, 1], height_ratios=[1, 10],
-                                                   wspace=0.1)
+            gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[1, 1, 8, 1, 1, 1],
+                                                   height_ratios=[1, 10], wspace=0.1)
             ax1 = fig.add_subplot(gs0[0, 0])
             ax2 = fig.add_subplot(gs0[1, 0])
             ax3 = fig.add_subplot(gs0[0, 1])
@@ -338,14 +340,15 @@ class Generator:
             remove_frame(ax5)
             remove_frame(ax11)
 
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[4, 1, 4, 4], wspace=0.4)
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[4, 4, 4, 1], wspace=0.1)
             ax13 = fig.add_subplot(gs1[0, 0])
             ax14 = fig.add_subplot(gs1[0, 1])
             ax15 = fig.add_subplot(gs1[0, 2])
             ax16 = fig.add_subplot(gs1[0, 3])
-            loader.plot_psychometric_curve(ax=ax13, ax_legend=ax14)
-            loader.plot_chronometric_curve(ax=ax15)
-            loader.plot_reaction_time(ax=ax16)
+
+            loader.plot_raw_data(axs=[ax13, ax14, ax15], raster=False)
+            loader.plot_brain_regions(ax16)
+            ax16.set_ylim(20, 3840)
 
             set_figure_style(fig)
             fig.subplots_adjust(top=1.02, bottom=0.05)
@@ -356,27 +359,72 @@ class Generator:
             print(f"error with session overview plot {self.pid}: {str(e)}")
 
     # FIGURE 2
-    def make_raw_data_plot(self, force=False):
+    def make_behavior_plot(self, force=False):
 
-        path = raw_data_overview_path(self.pid)
+        path = behaviour_overview_path(self.pid)
         if not force and path.exists():
             return
-        logger.debug(f"making raw data plot for session {self.pid}")
+        logger.debug(f"making behavior plot for session {self.pid}")
         loader = self.dl
 
-        fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(1, 5, figure=fig, width_ratios=[5, 5, 5, 5, 1], wspace=0.1)
+        fig = plt.figure(figsize=(15, 10))
 
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[0, 2])
-        ax4 = fig.add_subplot(gs[0, 3])
-        ax5 = fig.add_subplot(gs[0, 4])
+        gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[1, 3], hspace=0.3)
 
-        loader.plot_raw_data(axs=[ax1, ax2, ax3, ax4])
-        loader.plot_brain_regions(ax5)
+        gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[0], width_ratios=[4, 1, 4, 4], wspace=0.4)
+        ax1 = fig.add_subplot(gs1[0, 0])
+        ax2 = fig.add_subplot(gs1[0, 1])
+        ax3 = fig.add_subplot(gs1[0, 2])
+        ax4 = fig.add_subplot(gs1[0, 3])
+        loader.plot_psychometric_curve(ax=ax1, ax_legend=ax2)
+        loader.plot_chronometric_curve(ax=ax3)
+        loader.plot_reaction_time(ax=ax4)
 
-        ax5.set_ylim(20, 3840)
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.5)
+        ax5 = fig.add_subplot(gs1[0, 0])
+        ax6 = fig.add_subplot(gs1[1, 0])
+        ax7 = fig.add_subplot(gs1[0, 1])
+        ax8 = fig.add_subplot(gs1[1, 1])
+        ax9 = fig.add_subplot(gs1[0, 2])
+        ax10 = fig.add_subplot(gs1[1, 2])
+        ax11 = fig.add_subplot(gs1[0, 3])
+        ax12 = fig.add_subplot(gs1[1, 3])
+        ax13 = fig.add_subplot(gs1[0, 4])
+        ax14 = fig.add_subplot(gs1[1, 4])
+        ax15 = fig.add_subplot(gs1[0, 5])
+        ax16 = fig.add_subplot(gs1[1, 5])
+
+
+        loader.plot_dlc_feature_raster('left', 'paw_r_speed', axs=[ax5, ax6], ylabel0='Speed (px/s)', title='Left paw')
+        loader.plot_dlc_feature_raster('left', 'nose_tip_speed', axs=[ax7, ax8], ylabel0='Speed (px/s)', ylabel1=None,
+                                       title='Nose tip')
+        loader.plot_dlc_feature_raster('left', 'motion_energy', axs=[ax9, ax10], zscore_flag=True, ylabel0='ME (z-score)',
+                                       ylabel1=None, title='Motion energy')
+        loader.plot_dlc_feature_raster('left', 'pupilDiameter_smooth', axs=[ax11, ax12], zscore_flag=True, norm=True,
+                                       ylabel0='Pupil (z-score)', ylabel1=None, title='Smoothed pupil diameter')
+        loader.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
+        loader.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
+
+
+        ax5.get_xaxis().set_visible(False)
+        ax7.get_xaxis().set_visible(False)
+        ax9.get_xaxis().set_visible(False)
+        ax11.get_xaxis().set_visible(False)
+        ax13.get_xaxis().set_visible(False)
+        ax15.get_xaxis().set_visible(False)
+
+        ax8.get_yaxis().set_visible(False)
+        ax10.get_yaxis().set_visible(False)
+        ax12.get_yaxis().set_visible(False)
+        ax14.get_yaxis().set_visible(False)
+        ax16.get_yaxis().set_visible(False)
+
+        ax5.sharex(ax6)
+        ax7.sharex(ax8)
+        ax9.sharex(ax10)
+        ax11.sharex(ax12)
+        ax13.sharex(ax14)
+        ax15.sharex(ax16)
 
         set_figure_style(fig)
 
@@ -558,7 +606,7 @@ class Generator:
         self.make_session_plot(force=1 in nums)
 
         # Figure 2
-        self.make_raw_data_plot(force=2 in nums)
+        self.make_behavior_plot(force=2 in nums)
 
         # Figure 3 (one plot per trial)
         if 3 in nums:
