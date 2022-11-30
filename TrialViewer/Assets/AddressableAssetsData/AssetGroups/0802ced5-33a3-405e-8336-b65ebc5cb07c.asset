@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: 0802ced5-33a3-405e-8336-b65ebc5cb07c
   m_Data:
     m_SerializedData: []
-  m_GUID: 7ffdf35881791224d987819e76526e18
+  m_GUID: e975db143662caa468f608366e25eb3f
   m_SerializeEntries:
   - m_GUID: dc90ac8dcb680f74eb4a942ab93e357d
     m_Address: Assets/AddressableAssets/0802ced5-33a3-405e-8336-b65ebc5cb07c/0802ced5-33a3-405e-8336-b65ebc5cb07c.cl_nose_tip_x.bytes

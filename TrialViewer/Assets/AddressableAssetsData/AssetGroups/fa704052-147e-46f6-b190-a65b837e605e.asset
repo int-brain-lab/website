@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: fa704052-147e-46f6-b190-a65b837e605e
   m_Data:
     m_SerializedData: []
-  m_GUID: fe00939ed3b114a4b8df22d92bebe8d4
+  m_GUID: 229c50ec19c17d54694d3063eaef4e14
   m_SerializeEntries:
   - m_GUID: 43196a99cbbeb3349a958940258f57bc
     m_Address: Assets/AddressableAssets/fa704052-147e-46f6-b190-a65b837e605e/fa704052-147e-46f6-b190-a65b837e605e.cl_nose_tip_x.bytes

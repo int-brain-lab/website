@@ -107,7 +107,7 @@ public class TrialViewerManager : MonoBehaviour
     private void Awake()
     {
         Debug.Log("(TrialViewer) v1.0.0");
-        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.11.06.00.02.28.json");
+        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.11.29.17.57.11.json");
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs

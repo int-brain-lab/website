@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: 3dd347df-f14e-40d5-9ff2-9c49f84d2157
   m_Data:
     m_SerializedData: []
-  m_GUID: a52869818e2697047a372bf1d4fd14aa
+  m_GUID: 5cefa9bfb8dd78043bffd2fc38342c02
   m_SerializeEntries:
   - m_GUID: fa3489e1dc306b247bd9b8a417b63d9f
     m_Address: Assets/AddressableAssets/3dd347df-f14e-40d5-9ff2-9c49f84d2157/3dd347df-f14e-40d5-9ff2-9c49f84d2157.cl_nose_tip_x.bytes
