@@ -160,7 +160,11 @@ def filter_wfs_by_cluster_idx(waveforms, waveform_channels, clusters, cluster_id
 
 def filter_features_by_pid(features, pid, column):
     feat = features[features['pid'] == pid]
-    return feat[column].values
+    values = feat[column].values
+    if len(values) == 0:
+        return np.full(384, np.nan)
+    else:
+        return feat[column].values
 
 
 # -------------------------------------------------------------------------------------------------
