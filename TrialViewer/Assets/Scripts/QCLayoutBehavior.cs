@@ -29,22 +29,7 @@ public class QCLayoutBehavior : MonoBehaviour
 
     private bool layoutA = true;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SwitchLayout();
-        }
-    }
-
-    private void SwitchLayout()
+    public void SwitchLayout()
     {
         layoutA = !layoutA;
 
