@@ -1,7 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Globalization;
 
 public class CSVReader
 {
@@ -9,9 +7,9 @@ public class CSVReader
 	static string LINE_SPLIT_RE = @"\r\n|\n\r|\n|\r";
 	static char[] TRIM_CHARS = { '\"' };
 
-	public static List<Dictionary<string, object>> ParseText(string text)
+	public static List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)> ParseText(string text)
 	{
-		var list = new List<Dictionary<string, object>>();
+		var list = new List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)>();
 
 		var lines = Regex.Split(text, LINE_SPLIT_RE);
 
@@ -24,28 +22,18 @@ public class CSVReader
 			var values = Regex.Split(lines[i], SPLIT_RE);
 			if (values.Length == 0 || values[0] == "") continue;
 
-			var entry = new Dictionary<string, object>();
-			for (var j = 0; j < header.Length && j < values.Length; j++)
-			{
-				string value = values[j];
-				value = value.TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
-				object finalvalue = value;
-				float f;
-				if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out f))
-				{
-					finalvalue = f;
-				}
-				entry[header[j]] = finalvalue;
-			}
-			list.Add(entry);
+			// pid, eid, depth, theta, phi, ml, ap, dv
+			string pid = values[0].ToLower();
+			string eid = values[1].ToLower();
+			float depth = float.Parse(values[2]);
+			float theta = float.Parse(values[3]);
+			float phi = float.Parse(values[4]);
+			float ml = float.Parse(values[5]);
+			float ap = float.Parse(values[6]);
+			float dv = float.Parse(values[7]);
+
+			list.Add((pid, eid, depth, theta, phi, ml, ap, dv));
 		}
 		return list;
-	}
-
-	public static List<Dictionary<string, object>> ReadFromResources(string file)
-	{
-		TextAsset data = Resources.Load(file) as TextAsset;
-
-		return ParseText(data.text);
 	}
 }

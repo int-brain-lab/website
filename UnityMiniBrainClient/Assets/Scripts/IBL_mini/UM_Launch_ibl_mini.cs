@@ -45,7 +45,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("v0.2.1");
+        Debug.Log("v0.2.2");
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
@@ -126,45 +126,38 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         probeT.RotateAround(probeT.position, Vector3.up, -angles.x - 90f);
         // then elevation
         probeT.RotateAround(probeT.position, probeT.right, angles.y);
-        // then spin
-        probeT.RotateAround(probeT.position, probeT.up, angles.z);
+        // then spin (no spin, it's depth)
+        //probeT.RotateAround(probeT.position, probeT.up, angles.z);
 
-        if (angles.z < 3840)
-        {
-            //resize the probe object
-            Vector3 scale = probeT.GetChild(0).transform.localScale;
-            scale.y = angles.z / 1000f;
-            probeT.GetChild(0).transform.localScale = scale;
-            probeT.Translate(probeT.up * -(scale.y / 2f));
-        }
+        //resize the probe object
+        float probeSize = angles.z < 3840f ? angles.z : 3840f;
+
+        Transform childTransform = probeT.GetChild(0);
+        Vector3 scale = childTransform.localScale;
+        scale.y = probeSize / 1000f;
+        childTransform.localScale = scale;
+        childTransform.localPosition = new Vector3(0f, scale.y / 2f, 0f);
     }
 
     private void LoadProbes()
     {
-        List<Dictionary<string,object>> data = CSVReader.ParseText(probeData.text);
+        List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)> data = CSVReader.ParseText(probeData.text);
 
-        foreach (Dictionary<string,object> row in data)
+        foreach ((string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv) row in data)
         {
             GameObject newProbe = Instantiate(probeLinePrefab, probeParentT);
-            string pid = (string)row["pid"];
-            pid = pid.ToLower();
-            string lab = (string)row["lab"];
-            string subject = (string)row["subject"];
-            string date = (string)row["date"];
-            string selectable = (string)row["selectable"];
 
-            Vector3 pos = new Vector3((float)row["ml_ccf_tip"], (float)row["ap_ccf_tip"], (float)row["dv_ccf_tip"]);
-            Vector3 angles = new Vector3((float)row["phi"], (float)row["theta"], (float)row["depth"]);
+            Vector3 pos = new Vector3(row.ml, row.ap, row.dv);
+            Vector3 angles = new Vector3(row.phi, row.theta, row.depth);
 
             newProbe.GetComponentInChildren<BoxCollider>().enabled = false;
 
-            pid2probe.Add(pid, newProbe);
-            newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(pid, lab, subject, date);
+            pid2probe.Add(row.pid, newProbe);
+            newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(row.pid);
 
             SetProbePositionAndAngles(newProbe.transform, pos, angles);
-            
-            if (selectable.Equals("TRUE"))
-                ActivateProbe(pid);
+
+            ActivateProbe(row.pid);
         }
     }
 
