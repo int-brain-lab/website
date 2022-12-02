@@ -141,9 +141,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void LoadProbes()
     {
-        List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)> data = CSVReader.ParseText(probeData.text);
+        List<(string pid, string eid, string lab, float depth, float theta, float phi, float ml, float ap, float dv)> data = CSVReader.ParseText(probeData.text);
 
-        foreach ((string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv) row in data)
+        foreach ((string pid, string eid, string lab, float depth, float theta, float phi, float ml, float ap, float dv) row in data)
         {
             GameObject newProbe = Instantiate(probeLinePrefab, probeParentT);
 
@@ -153,7 +153,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             newProbe.GetComponentInChildren<BoxCollider>().enabled = false;
 
             pid2probe.Add(row.pid, newProbe);
-            newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(row.pid);
+            newProbe.GetComponentInChildren<ProbeComponent>().SetInfo(row.pid, row.lab);
 
             SetProbePositionAndAngles(newProbe.transform, pos, angles);
 
@@ -163,20 +163,22 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
-        GameObject probe = pid2probe[pid];
+        GameObject probeGO = pid2probe[pid];
         Debug.Log("Activate: " + pid);
-        probe.GetComponentInChildren<Renderer>().material.color = defaultColor;
+        probeGO.GetComponentInChildren<Renderer>().material.color = defaultColor;
         //pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
-        probe.GetComponentInChildren<BoxCollider>().enabled = true;
-        probe.GetComponentInChildren<BoxCollider>().isTrigger = true;
+        probeGO.GetComponentInChildren<BoxCollider>().enabled = true;
+        probeGO.GetComponentInChildren<BoxCollider>().isTrigger = true;
         // make it bigger
-        probe.transform.localScale = new Vector3(5f, 1f, 5f);
+        probeGO.transform.localScale = new Vector3(5f, 1f, 5f);
     }
 
     public void DeactivateProbe(string pid)
     {
-        pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
-        pid2probe[pid].transform.localScale = Vector3.one;
+        GameObject probeGO = pid2probe[pid];
+        probeGO.GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
+        probeGO.GetComponentInChildren<BoxCollider>().enabled = false;
+        probeGO.transform.localScale = Vector3.one;
     }
 
     public void HoverProbe(GameObject probe)

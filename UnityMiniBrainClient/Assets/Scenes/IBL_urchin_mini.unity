@@ -2731,7 +2731,7 @@ MonoBehaviour:
   probeLinePrefab: {fileID: 2507564506256405100, guid: bbfd294d9a4375144b5214e4196f5d20,
     type: 3}
   probeParentT: {fileID: 1878764715}
-  probeData: {fileID: 4900000, guid: 966ee82c7c00d214fb48673058917151, type: 3}
+  probeData: {fileID: 4900000, guid: cbaa353028344a94a9d7e33dc38892e3, type: 3}
   loadDefaults: 0
   colors:
   - {r: 0.18431373, g: 0.6509804, b: 0.98039216, a: 1}

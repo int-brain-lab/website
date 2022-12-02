@@ -546,4 +546,9 @@ public class TrialViewerManager : MonoBehaviour
             Play();
     }
     #endregion
+
+    public void SetSpeed(float speed)
+    {
+        videoPlayer.playbackSpeed = speed;
+    }
 }

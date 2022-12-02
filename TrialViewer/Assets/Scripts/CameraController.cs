@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class CameraController : MonoBehaviour
 {
@@ -15,14 +16,27 @@ public class CameraController : MonoBehaviour
     float rotation = 180f;
     float rotDelta = 100f;
 
+    private Vector2 _cameraOffset = new Vector2(0f, 0f);
+
     // Update is called once per frame
     void Update()
     {
+        float scroll = -Input.GetAxis("Mouse ScrollWheel");
+
+        if (Input.GetMouseButton(0) || scroll != 0)
+        {
+            UpdateCamera(scroll);
+        }
+    }
+    
+    private void UpdateCamera(float scroll = 0f)
+    {
+        Camera.main.transform.localPosition = new Vector3(0f, 0f, -22.4f);
         Camera.main.transform.LookAt(cameraTarget);
+        Camera.main.transform.Translate(_cameraOffset);
 
         float fov = Camera.main.fieldOfView;
 
-        float scroll = -Input.GetAxis("Mouse ScrollWheel");
         fov += fovDelta * scroll;
         fov = Mathf.Clamp(fov, minFoV, maxFoV);
 
@@ -40,4 +54,11 @@ public class CameraController : MonoBehaviour
             cameraRotator.rotation = Quaternion.Euler(pitch, rotation, 0f);
         }
     }
+
+    public void SetOffset(Vector2 cameraOffset)
+    {
+        _cameraOffset = cameraOffset;
+        UpdateCamera();
+    }
+
 }

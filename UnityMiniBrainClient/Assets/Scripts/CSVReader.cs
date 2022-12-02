@@ -7,9 +7,9 @@ public class CSVReader
 	static string LINE_SPLIT_RE = @"\r\n|\n\r|\n|\r";
 	static char[] TRIM_CHARS = { '\"' };
 
-	public static List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)> ParseText(string text)
+	public static List<(string pid, string eid, string lab, float depth, float theta, float phi, float ml, float ap, float dv)> ParseText(string text)
 	{
-		var list = new List<(string pid, string eid, float depth, float theta, float phi, float ml, float ap, float dv)>();
+		var list = new List<(string pid, string eid, string lab, float depth, float theta, float phi, float ml, float ap, float dv)>();
 
 		var lines = Regex.Split(text, LINE_SPLIT_RE);
 
@@ -25,14 +25,15 @@ public class CSVReader
 			// pid, eid, depth, theta, phi, ml, ap, dv
 			string pid = values[0].ToLower();
 			string eid = values[1].ToLower();
-			float depth = float.Parse(values[2]);
-			float theta = float.Parse(values[3]);
-			float phi = float.Parse(values[4]);
-			float ml = float.Parse(values[5]);
-			float ap = float.Parse(values[6]);
-			float dv = float.Parse(values[7]);
+			string lab = values[2].ToLower();
+			float depth = float.Parse(values[3]);
+			float theta = float.Parse(values[4]);
+			float phi = float.Parse(values[5]);
+			float ml = float.Parse(values[6]);
+			float ap = float.Parse(values[7]);
+			float dv = float.Parse(values[8]);
 
-			list.Add((pid, eid, depth, theta, phi, ml, ap, dv));
+			list.Add((pid, eid, lab, depth, theta, phi, ml, ap, dv));
 		}
 		return list;
 	}

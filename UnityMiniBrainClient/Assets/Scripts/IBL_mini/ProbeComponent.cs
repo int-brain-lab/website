@@ -40,10 +40,10 @@ public class ProbeComponent : MonoBehaviour
         lineRenderer.enabled = state;
     }
 
-    public void SetInfo(string pid)
+    public void SetInfo(string pid, string lab)
     {
         this.pid = pid;
-        //this.lab = lab;
+        this.lab = lab;
         //this.mouse = mouse;
         //this.date = date;
     }
