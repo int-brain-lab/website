@@ -175,7 +175,19 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void DeactivateProbe(string pid)
     {
-        GameObject probeGO = pid2probe[pid];
+        DeactivateProbeGO(pid2probe[pid]);
+    }
+
+    public void DeactivateAllProbes()
+    {
+        foreach (GameObject probeGO in pid2probe.Values)
+        {
+            DeactivateProbeGO(probeGO);
+        }
+    }
+
+    private void DeactivateProbeGO(GameObject probeGO)
+    {
         probeGO.GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
         probeGO.GetComponentInChildren<BoxCollider>().enabled = false;
         probeGO.transform.localScale = Vector3.one;

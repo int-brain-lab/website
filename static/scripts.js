@@ -612,6 +612,15 @@ function trialViewerLoaded() {
     }
 }
 
+function trialViewerActivatePIDs(pidList) {
+    // takes as input a list of PIDs and activates these
+    if (unityTrial) {
+        unityTrial.SendMessage("main", "DeactivateAllProbes");
+        for (pid in pidList) {
+            unityTrial.SendMessage("main", "ActivateProbe", pid);
+        }
+    }
+}
 
 
 function trialViewerDataLoaded() {
