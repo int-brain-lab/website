@@ -163,14 +163,18 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
-        GameObject probeGO = pid2probe[pid];
-        Debug.Log("Activate: " + pid);
-        probeGO.GetComponentInChildren<Renderer>().material.color = defaultColor;
-        //pid2probe[pid].GetComponentInChildren<Renderer>().material.SetColor("_Color", colors[probeLabs[pid]]);
-        probeGO.GetComponentInChildren<BoxCollider>().enabled = true;
-        probeGO.GetComponentInChildren<BoxCollider>().isTrigger = true;
-        // make it bigger
-        probeGO.transform.localScale = new Vector3(5f, 1f, 5f);
+        if (pid2probe.ContainsKey(pid))
+        {
+            GameObject probeGO = pid2probe[pid];
+            Debug.Log(string.Format("(IBLMini) Activate: {0}", pid));
+            probeGO.GetComponentInChildren<Renderer>().material.color = defaultColor;
+            probeGO.GetComponentInChildren<BoxCollider>().enabled = true;
+            probeGO.GetComponentInChildren<BoxCollider>().isTrigger = true;
+            // make it bigger
+            probeGO.transform.localScale = new Vector3(5f, 1f, 5f);
+        }
+        else
+            Debug.Log(string.Format("(IBLMini) {0} is not a selectable insertion", pid));
     }
 
     public void DeactivateProbe(string pid)
@@ -188,7 +192,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     private void DeactivateProbeGO(GameObject probeGO)
     {
-        probeGO.GetComponentInChildren<Renderer>().material.SetColor("Color", Color.white);
+        probeGO.GetComponentInChildren<Renderer>().material.color = Color.white;
         probeGO.GetComponentInChildren<BoxCollider>().enabled = false;
         probeGO.transform.localScale = Vector3.one;
     }
