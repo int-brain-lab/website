@@ -82,6 +82,7 @@ def send(path):
 # -------------------------------------------------------------------------------------------------
 
 def sessions():
+    CACHE_DIR.mkdir(exist_ok=True, parents=True)
     pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
     sessions = [load_json(session_details_path(pid)) for pid in pids]
