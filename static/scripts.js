@@ -481,15 +481,16 @@ function loadAutoComplete() {
                         // If 1 session is already selected, show all of them.
                         if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
 
-                        return sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
+                        let out = sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
-                                // console.log(q);
                                 res &= filterQuery(q, Lab, Subject, ID, _acronyms);
                             }
                             return res;
-                        }
-                        );
+                        });
+                        let pids = out.map(({ ID }) => ID);
+                        // trialViewerActivatePIDs(out);
+                        return out;
                     },
                     templates: {
                         item({ item, html }) {
@@ -510,7 +511,7 @@ function loadAutoComplete() {
                             <div class="item item-date">${item['Recording date']}</div>
                             <div class="item item-acronyms">${acronyms}</div>
                             <div class="item item-ID">${item.ID}</div>
-                            </div >`
+                            </div>`
                                 ;
                         },
                         noResults() {
