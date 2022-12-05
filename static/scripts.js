@@ -10,6 +10,7 @@ const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
+var isLoading = false;
 
 
 /*************************************************************************************************/
@@ -441,10 +442,11 @@ function arrowButton(name, dir) {
 
 
 
-function filterQuery(query_, Lab, Subject, ID, _acronyms) {
+function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
     return Lab.toLowerCase().includes(query_) ||
         Subject.toLowerCase().includes(query_) ||
-        getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
+        _regions.includes(query_) ||
+        // getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
         ID.toLowerCase().includes(query_);
 };
 
@@ -466,7 +468,6 @@ function loadAutoComplete() {
             if (!isValidUUID(pid)) return;
             // CTX.pid = pid;
 
-            console.log("select " + pid);
             selectSession(pid);
         },
         getSources({ query }) {
@@ -481,15 +482,16 @@ function loadAutoComplete() {
                         // If 1 session is already selected, show all of them.
                         if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
 
-                        return sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
+                        let out = sessions.filter(function ({ Lab, Subject, ID, _acronyms, _regions }) {
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
-                                console.log(q);
-                                res &= filterQuery(q, Lab, Subject, ID, _acronyms);
+                                res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
                             }
                             return res;
-                        }
-                        );
+                        });
+                        let pids = out.map(({ ID }) => ID);
+                        // trialViewerActivatePIDs(out);
+                        return out;
                     },
                     templates: {
                         item({ item, html }) {
@@ -510,7 +512,7 @@ function loadAutoComplete() {
                             <div class="item item-date">${item['Recording date']}</div>
                             <div class="item item-acronyms">${acronyms}</div>
                             <div class="item item-ID">${item.ID}</div>
-                            </div >`
+                            </div>`
                                 ;
                         },
                         noResults() {
@@ -531,14 +533,17 @@ function updateSessionPlot(pid) {
 
 
 
-function updateRawPlot(pid) {
-    showImage('rawPlot', `/api/session/${pid}/raw_data_plot`);
+function updateBehaviourPlot(pid) {
+    showImage('behaviourPlot', `/api/session/${pid}/behaviour_plot`);
 };
 
 
 
 async function selectSession(pid) {
+    if (isLoading) return;
     if (!pid) return;
+    isLoading = true;
+    console.log("select session " + pid);
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
@@ -570,8 +575,8 @@ async function selectSession(pid) {
     // Show the session overview plot.
     updateSessionPlot(pid);
 
-    // Show the raw data overview plot.
-    updateRawPlot(pid);
+    // Show the behaviour overview plot.
+    updateBehaviourPlot(pid);
 
     // Show the trial plot.
     updateTrialPlot(pid);
@@ -598,6 +603,7 @@ async function selectSession(pid) {
         selectCluster(pid, cluster_id);
 
     CTX.pid = pid;
+    isLoading = false;
 };
 
 

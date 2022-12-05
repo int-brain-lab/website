@@ -12,11 +12,13 @@ import copy
 from collections import OrderedDict
 import seaborn as sns
 import yaml
+from scipy.stats import zscore
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
+from brainbox.behavior.wheel import velocity
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
@@ -57,8 +59,8 @@ def load_spikes(pid):
     return spikes
 
 
-def load_trials(pid):
-    trials = alfio.load_object(DATA_DIR.joinpath(pid), object='trials')
+def load_trials(eid):
+    trials = alfio.load_object(DATA_DIR.joinpath(eid), object='trials')
     return trials
 
 
@@ -81,6 +83,22 @@ def load_raw_data(pid):
         raw_info = yaml.safe_load(fp)
 
     return raw_info, raw_data
+
+
+def load_camera(eid, camera):
+    camera = alfio.load_object(DATA_DIR.joinpath(eid), object=f'{camera}Camera')
+    return camera
+
+
+def load_licks(eid):
+    licks = np.load(DATA_DIR.joinpath(eid, 'licks.times.npy'))
+    return licks
+
+
+def load_wheel(eid):
+    wheel = alfio.load_object(DATA_DIR.joinpath(eid), object='wheel')
+    return wheel
+
 
 # -------------------------------------------------------------------------------------------------
 # Filtering
@@ -142,7 +160,11 @@ def filter_wfs_by_cluster_idx(waveforms, waveform_channels, clusters, cluster_id
 
 def filter_features_by_pid(features, pid, column):
     feat = features[features['pid'] == pid]
-    return feat[column].values
+    values = feat[column].values
+    if len(values) == 0:
+        return np.full(384, np.nan)
+    else:
+        return feat[column].values
 
 
 # -------------------------------------------------------------------------------------------------
@@ -164,6 +186,10 @@ def bin_spikes(spike_times, align_times, pre_time, post_time, bin_size, weights=
             np.floor((spike_times[ep[0]:ep[1]] - t[0]) / bin_size)).astype(np.int64)
         w = weights[ep[0]:ep[1]] if weights is not None else None
         r = np.bincount(xind, minlength=tscale.shape[0], weights=w)
+        if w is not None:
+            r_norm = np.bincount(xind, minlength=tscale.shape[0])
+            r_norm[r_norm == 0] = 1
+            r = r / r_norm
         bins[i, :] = r[:-1]
 
     tscale = (tscale[:-1] + tscale[1:]) / 2
@@ -266,14 +292,15 @@ class DataLoader:
         :param pid:
         :return:
         """
+        self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
+        self.eid = self.session_info['eid']
         self.spikes = filter_spikes_by_good_clusters(load_spikes(pid))
-        self.trials = load_trials(pid)
+        self.trials = load_trials(self.eid)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
         self.clusters = load_clusters(pid)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
         self.channels = load_channels(pid)
-        self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.rms_chns = load_rms(pid)
 
         # # self.brain_regions is a string with the list of brain regions in a given session
@@ -323,6 +350,14 @@ class DataLoader:
         # details['_brain_regions'] = self.brain_regions
         # details['_brain_regions'] = sorted(set(details['_acronyms']))
         details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
+
+        regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).name))
+        regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).acronym))
+        regions += regions_acronyms
+        regions = [_.lower() for _ in regions]
+        regions = ', '.join(regions)
+
+        details['_regions'] = regions
         details['_duration'] = np.max(self.spikes.times)
 
         return details
@@ -509,7 +544,7 @@ class DataLoader:
 
         return fig
 
-    def plot_raw_data(self, axs=None):
+    def plot_raw_data(self, axs=None, raster=True):
 
         if axs is None:
             fig, axs = plt.subplots(1, 4, figsize=(9, 6))
@@ -528,10 +563,11 @@ class DataLoader:
         vmax = 0.000050
         cmap = 'Greys'
 
-        ax0 = axs[0]
-        self.plot_session_raster(ax=ax0)
-        ax0.set_ylim(20, 3840)
-        ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
+        if raster:
+            ax0 = axs[0]
+            self.plot_session_raster(ax=ax0)
+            ax0.set_ylim(20, 3840)
+            ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
 
         for iT, time in enumerate(times):
             spike_idx = slice(*np.searchsorted(spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
@@ -539,13 +575,18 @@ class DataLoader:
             spike_times = (spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
             spike_labels = self.clusters['label'][spikes['clusters'][spike_idx]]
 
-            ax = axs[iT + 1]
+            ax = axs[iT + 1] if raster else axs[iT]
 
             _ = Density(-raw_ephys[:, :, iT], fs=fs, taxis=1, ax=ax, vmin=vmin, vmax=vmax, cmap=cmap)
             ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
             ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=3)
             ax.set_title(f'T = {time} s')
-            ax.get_yaxis().set_visible(False)
+            if not raster and iT != 0:
+                ax.get_yaxis().set_visible(False)
+            else:
+                ax.images[0].set_extent([0, 50, 20, 3840])
+                ax.set_ylim(20, 3840)
+                ax.set_ylabel('Depth (um)')
 
         return fig
 
@@ -823,6 +864,54 @@ class DataLoader:
 
         return fig
 
+    def plot_dlc_feature_raster(self, camera, feature, axs=None, xlabel='T from Stim On (s)', ylabel0='Speed (px/s)',
+                                ylabel1='Sorted Trial Number', title=None, zscore_flag=False, norm=False):
+
+        camera = load_camera(self.eid, camera)
+        feature = camera.computedFeatures[feature]
+
+        if zscore_flag:
+            feature = zscore(feature, nan_policy='omit')
+
+        trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
+        fig, axs = self.single_cluster_raster(camera.times, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
+                                              ['correct', 'incorrect'], weights=feature, axs=axs, fr=False, norm=norm)
+
+        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+        set_axis_style(axs[0], ylabel=ylabel0, title=title)
+
+        return fig
+
+    def plot_lick_raster(self, axs=None, xlabel='T from Feedback (s)', ylabel0='Licks (count)',
+                         ylabel1='Sorted Trial Number', title=None):
+
+        licks = load_licks(self.eid)
+
+        trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
+        fig, axs = self.single_cluster_raster(licks, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
+                                              ['correct', 'incorrect'], axs=axs, fr=False)
+
+        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+        set_axis_style(axs[0], ylabel=ylabel0, title=title)
+
+        return fig
+
+    def plot_wheel_raster(self, axs=None, xlabel='T from First Move (s)', ylabel0='Wheel velocity (rad/s)',
+                          ylabel1='Sorted Trial Number', title=None):
+
+        wheel = load_wheel(self.eid)
+        speed = velocity(wheel.timestamps, wheel.position)
+
+        trial_idx, dividers = find_trial_ids(self.trials, sort='side')
+        fig, axs = self.single_cluster_raster(
+            wheel.timestamps, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'],
+            weights=speed, fr=False, axs=axs)
+
+        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+        set_axis_style(axs[0], ylabel=ylabel0, title=title)
+
+        return fig
+
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
@@ -887,16 +976,24 @@ class DataLoader:
 
         return fig
 
-    def single_cluster_raster(self, spike_times, events, trial_idx, dividers, colors, labels, axs=None):
+    def single_cluster_raster(self, spike_times, events, trial_idx, dividers, colors, labels, weights=None, fr=True, norm=False,
+                              axs=None):
 
         pre_time = 0.4
         post_time = 1
         raster_bin = 0.01
         psth_bin = 0.05
         raster, t_raster = bin_spikes(
-            spike_times, events, pre_time=pre_time, post_time=post_time, bin_size=raster_bin)
+            spike_times, events, pre_time=pre_time, post_time=post_time, bin_size=raster_bin, weights=weights)
         psth, t_psth = bin_spikes(
-            spike_times, events, pre_time=pre_time, post_time=post_time, bin_size=psth_bin)
+            spike_times, events, pre_time=pre_time, post_time=post_time, bin_size=psth_bin, weights=weights)
+
+        if fr:
+            psth = psth / psth_bin
+
+        if norm:
+            psth = psth - np.repeat(psth[:, 0][:, np.newaxis], psth.shape[1], axis=1)
+            raster = raster - np.repeat(raster[:, 0][:, np.newaxis], raster.shape[1], axis=1)
 
         dividers = [0] + dividers + [len(trial_idx)]
         if axs is None:
@@ -916,10 +1013,8 @@ class DataLoader:
                     t_ids = np.r_[t_ids, trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]]
                     t_ints = np.r_[t_ints, dividers[idx[iD] + 1] - dividers[idx[iD]]]
 
-            psth_div = np.nanmean(
-                psth[t_ids], axis=0) / psth_bin
-            std_div = (np.nanstd(psth[t_ids], axis=0) / psth_bin) \
-                / np.sqrt(len(t_ids))
+            psth_div = np.nanmean(psth[t_ids], axis=0)
+            std_div = np.nanstd(psth[t_ids], axis=0) / np.sqrt(len(t_ids))
 
             axs[0].fill_between(t_psth, psth_div - std_div,
                                 psth_div + std_div, alpha=0.4, color=colors[lid])
