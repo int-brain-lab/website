@@ -490,7 +490,7 @@ function loadAutoComplete() {
                             return res;
                         });
                         let pids = out.map(({ ID }) => ID);
-                        trialViewerActivatePIDs(pids);
+                        miniBrainActivatePIDs(pids);
                         return out;
                     },
                     templates: {
@@ -606,7 +606,20 @@ async function selectSession(pid) {
     isLoading = false;
 };
 
+/*************************************************************************************************/
+/*  Unity mini brain                                                                             */
+/*************************************************************************************************/
 
+
+function miniBrainActivatePIDs(pidList) {
+    // takes as input a list of PIDs and activates these
+    if (unitySession) {
+        unitySession.SendMessage("main", "DeactivateAllProbes");
+        for (pid in pidList) {
+            unitySession.SendMessage("main", "ActivateProbe", pid);
+        }
+    }
+}
 
 /*************************************************************************************************/
 /*  Trial viewer                                                                                 */
@@ -615,16 +628,6 @@ async function selectSession(pid) {
 function trialViewerLoaded() {
     if (unityTrial) {
         unityTrial.SendMessage("main", "SetSession", CTX.pid);
-    }
-}
-
-function trialViewerActivatePIDs(pidList) {
-    // takes as input a list of PIDs and activates these
-    if (unityTrial) {
-        unityTrial.SendMessage("main", "DeactivateAllProbes");
-        for (pid in pidList) {
-            unityTrial.SendMessage("main", "ActivateProbe", pid);
-        }
     }
 }
 
