@@ -394,7 +394,6 @@ class Generator:
         ax15 = fig.add_subplot(gs1[0, 5])
         ax16 = fig.add_subplot(gs1[1, 5])
 
-
         loader.plot_dlc_feature_raster('left', 'paw_r_speed', axs=[ax5, ax6], ylabel0='Speed (px/s)', title='Left paw')
         loader.plot_dlc_feature_raster('left', 'nose_tip_speed', axs=[ax7, ax8], ylabel0='Speed (px/s)', ylabel1=None,
                                        title='Nose tip')
@@ -404,7 +403,6 @@ class Generator:
                                        ylabel0='Pupil (z-score)', ylabel1=None, title='Smoothed pupil diameter')
         loader.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
         loader.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
-
 
         ax5.get_xaxis().set_visible(False)
         ax7.get_xaxis().set_visible(False)
@@ -609,15 +607,13 @@ class Generator:
         self.make_behavior_plot(force=2 in nums)
 
         # Figure 3 (one plot per trial)
-        if 3 in nums:
-            self.make_all_trial_plots(force=True)
+        self.make_all_trial_plots(force=3 in nums)
 
         # Figure 4
         self.make_trial_event_plot(force=4 in nums)
 
         # Figure 5 (one plot per cluster)
-        if 5 in nums:
-            self.make_all_cluster_plots(force=True)
+        self.make_all_cluster_plots(force=5 in nums)
 
 
 def make_all_plots(pid, nums=()):
