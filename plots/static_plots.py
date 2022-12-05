@@ -350,6 +350,14 @@ class DataLoader:
         # details['_brain_regions'] = self.brain_regions
         # details['_brain_regions'] = sorted(set(details['_acronyms']))
         details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
+
+        regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).name))
+        regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).acronym))
+        regions += regions_acronyms
+        regions = [_.lower() for _ in regions]
+        regions = ', '.join(regions)
+
+        details['_regions'] = regions
         details['_duration'] = np.max(self.spikes.times)
 
         return details
@@ -889,7 +897,7 @@ class DataLoader:
         return fig
 
     def plot_wheel_raster(self, axs=None, xlabel='T from First Move (s)', ylabel0='Wheel velocity (rad/s)',
-                                ylabel1='Sorted Trial Number', title=None):
+                          ylabel1='Sorted Trial Number', title=None):
 
         wheel = load_wheel(self.eid)
         speed = velocity(wheel.timestamps, wheel.position)
@@ -904,7 +912,6 @@ class DataLoader:
 
         return fig
 
-
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
@@ -917,7 +924,6 @@ class DataLoader:
         set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
-
 
     def plot_correct_incorrect_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Feedback (s)',
                                                      ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):

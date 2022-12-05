@@ -596,6 +596,8 @@ class Generator:
                 print(f"error with session {self.pid} cluster  # {cluster_idx}: {str(e)}")
 
     def make_all_plots(self, nums=()):
+        if 0 in nums:  # used to regenerate the session.json only
+            return
         # nums is a list of numbers 1-5 (figure numbers)
 
         logger.info(f"Making all session plots for session {self.pid}")

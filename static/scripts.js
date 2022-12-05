@@ -442,10 +442,11 @@ function arrowButton(name, dir) {
 
 
 
-function filterQuery(query_, Lab, Subject, ID, _acronyms) {
+function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
     return Lab.toLowerCase().includes(query_) ||
         Subject.toLowerCase().includes(query_) ||
-        getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
+        _regions.includes(query_) ||
+        // getUnique(_acronyms).join(", ").toLowerCase().includes(query_) ||
         ID.toLowerCase().includes(query_);
 };
 
@@ -481,10 +482,10 @@ function loadAutoComplete() {
                         // If 1 session is already selected, show all of them.
                         if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
 
-                        let out = sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
+                        let out = sessions.filter(function ({ Lab, Subject, ID, _acronyms, _regions }) {
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
-                                res &= filterQuery(q, Lab, Subject, ID, _acronyms);
+                                res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
                             }
                             return res;
                         });
