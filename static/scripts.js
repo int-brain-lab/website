@@ -10,6 +10,7 @@ const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
+var isLoading = false;
 
 
 /*************************************************************************************************/
@@ -466,7 +467,6 @@ function loadAutoComplete() {
             if (!isValidUUID(pid)) return;
             // CTX.pid = pid;
 
-            console.log("select " + pid);
             selectSession(pid);
         },
         getSources({ query }) {
@@ -484,7 +484,7 @@ function loadAutoComplete() {
                         return sessions.filter(function ({ Lab, Subject, ID, _acronyms }) {
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
-                                console.log(q);
+                                // console.log(q);
                                 res &= filterQuery(q, Lab, Subject, ID, _acronyms);
                             }
                             return res;
@@ -538,7 +538,10 @@ function updateBehaviourPlot(pid) {
 
 
 async function selectSession(pid) {
+    if (isLoading) return;
     if (!pid) return;
+    isLoading = true;
+    console.log("select session " + pid);
 
     if (unitySession)
         unitySession.SendMessage("main", "HighlightProbe", pid);
@@ -598,6 +601,7 @@ async function selectSession(pid) {
         selectCluster(pid, cluster_id);
 
     CTX.pid = pid;
+    isLoading = false;
 };
 
 
