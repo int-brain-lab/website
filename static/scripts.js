@@ -490,7 +490,7 @@ function loadAutoComplete() {
                             return res;
                         });
                         let pids = out.map(({ ID }) => ID);
-                        // trialViewerActivatePIDs(out);
+                        trialViewerActivatePIDs(pids);
                         return out;
                     },
                     templates: {
