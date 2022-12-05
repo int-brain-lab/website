@@ -615,7 +615,7 @@ function miniBrainActivatePIDs(pidList) {
     // takes as input a list of PIDs and activates these
     if (unitySession) {
         unitySession.SendMessage("main", "DeactivateAllProbes");
-        for (pid in pidList) {
+        for (pid of pidList) {
             unitySession.SendMessage("main", "ActivateProbe", pid);
         }
     }
