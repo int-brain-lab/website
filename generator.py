@@ -262,7 +262,7 @@ class Generator:
         self.session_details = self.dl.get_session_details()
 
         # Save the session details to a JSON file.
-        logger.debug(f"saving session details for session {pid}")
+        logger.debug(f"Saving session details for session {pid}")
         save_json(path, self.session_details)
 
         self.trial_idxs = self.session_details['_trial_ids']
@@ -273,8 +273,14 @@ class Generator:
     # Iterators
     # -------------------------------------------------------------------------------------------------
 
+    def first_trial(self):
+        return sorted(self.trial_idxs)[0]
+
     def iter_trial(self):
         yield from sorted(self.trial_idxs)
+
+    def first_cluster(self):
+        return sorted(self.cluster_idxs)[0]
 
     def iter_cluster(self):
         yield from sorted(self.cluster_idxs)
@@ -283,13 +289,13 @@ class Generator:
     # -------------------------------------------------------------------------------------------------
 
     def save_trial_details(self, trial_idx):
-        logger.debug(f"saving trial details for session {self.pid}")
+        logger.debug(f"saving trial #{trial_idx:04} details for session {self.pid}")
         details = self.dl.get_trial_details(trial_idx)
         path = trial_details_path(self.pid, trial_idx)
         save_json(path, details)
 
     def save_cluster_details(self, cluster_idx):
-        logger.debug(f"saving cluster details for session {self.pid}")
+        logger.debug(f"saving cluster #{cluster_idx:04} details for session {self.pid}")
         details = self.dl.get_cluster_details(cluster_idx)
         path = cluster_details_path(self.pid, cluster_idx)
         save_json(path, details)
@@ -578,6 +584,12 @@ class Generator:
     # -------------------------------------------------------------------------------------------------
 
     def make_all_trial_plots(self, force=False):
+
+        path = trial_overview_path(self.pid, self.first_trial())
+        if not force and path.exists():
+            logger.debug("Skipping trial plot generation as they seem to already exist")
+            return
+
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
             self.save_trial_details(trial_idx)
@@ -587,6 +599,12 @@ class Generator:
                 print(f"error with session {self.pid} trial  # {trial_idx}: {str(e)}")
 
     def make_all_cluster_plots(self, force=False):
+
+        path = cluster_overview_path(self.pid, self.first_cluster())
+        if not force and path.exists():
+            logger.debug("Skipping cluster plot generation as they seem to already exist")
+            return
+
         desc = "Making all cluster plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
             self.save_cluster_details(cluster_idx)

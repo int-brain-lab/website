@@ -325,7 +325,7 @@ class DataLoader:
         details['Subject'] = self.session_info['subject']
         details['Lab'] = self.session_info['lab']
         details['DOB'] = self.session_info['dob']
-        details['Recording date'] = self.session_info['date'],
+        details['Recording date'] = self.session_info['date']
         details['Recording length'] = f'{int(np.max(self.spikes.times) / 60)} minutes'
         details['Probe name'] = self.session_info['probe']
         details['Probe type'] = self.session_info['probe_model']
@@ -334,6 +334,9 @@ class DataLoader:
         details['N clusters'] = f'{self.clusters_good.cluster_id.size} good, {self.clusters.cluster_id.size} overall'
         details['eid'] = self.session_info['eid']
         details['pid'] = self.pid
+
+        details['dset_bwm'] = self.session_info['2022_Q4_IBL_et_al_BWM']
+        details['dset_rs'] = self.session_info['2022_Q2_IBL_et_al_RepeatedSite']
 
         # Sort by cluster depth.
         idx = np.argsort(self.clusters_good.depths)[::-1]
