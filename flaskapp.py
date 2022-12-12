@@ -31,6 +31,7 @@ locale.setlocale(locale.LC_ALL, '')
 ROOT_DIR = Path(__file__).parent.resolve()
 PORT = 4321
 DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -111,6 +112,7 @@ def make_app():
             FLASK_CTX={
                 "SESSIONS": sessions(),
                 "DEFAULT_PID": DEFAULT_PID,
+                "DEFAULT_DSET": DEFAULT_DSET,
             },
         )
 

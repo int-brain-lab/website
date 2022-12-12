@@ -596,7 +596,7 @@ class Generator:
             try:
                 self.make_trial_plot(trial_idx, force=force)
             except Exception as e:
-                print(f"error with session {self.pid} trial  # {trial_idx}: {str(e)}")
+                print(f"error with session {self.pid} trial #{trial_idx}: {str(e)}")
 
     def make_all_cluster_plots(self, force=False):
 
@@ -611,7 +611,7 @@ class Generator:
             try:
                 self.make_cluster_plot(cluster_idx, force=force)
             except Exception as e:
-                print(f"error with session {self.pid} cluster  # {cluster_idx}: {str(e)}")
+                print(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
 
     def make_all_plots(self, nums=()):
         if 0 in nums:  # used to regenerate the session.json only
@@ -624,7 +624,10 @@ class Generator:
         self.make_session_plot(force=1 in nums)
 
         # Figure 2
-        self.make_behavior_plot(force=2 in nums)
+        try:
+            self.make_behavior_plot(force=2 in nums)
+        except Exception as e:
+            print(f"error with session {self.pid} behavior plot: {str(e)}")
 
         # Figure 3 (one plot per trial)
         self.make_all_trial_plots(force=3 in nums)

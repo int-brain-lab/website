@@ -262,6 +262,7 @@ function setupShare() {
     share.addEventListener("click", function (e) {
         let url = new URL(window.location);
         let params = url.searchParams;
+        params.set("dset", CTX.dset);
         params.set("pid", CTX.pid);
         params.set("tid", CTX.tid);
         params.set("cid", CTX.cid);
@@ -452,6 +453,24 @@ function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
 
 
 
+function onDatasetChanged(ev) {
+    let dset = null;
+    if (ev.target.id == "dset-1") dset = "bwm";
+    else if (ev.target.id == "dset-2") dset = "rs";
+    else { console.log("unknown dset name " + dset); return; }
+    CTX.dset = dset;
+}
+
+function setupDataset() {
+    document.getElementById('dset-1').onclick = onDatasetChanged;
+    document.getElementById('dset-2').onclick = onDatasetChanged;
+
+    if (CTX.dset == "bwm") document.getElementById('dset-1').checked = true;
+    if (CTX.dset == "rs") document.getElementById('dset-2').checked = true;
+}
+
+
+
 function loadAutoComplete() {
     autoCompleteJS = autocomplete({
         container: '#sessionSelector',
@@ -482,11 +501,20 @@ function loadAutoComplete() {
                         // If 1 session is already selected, show all of them.
                         if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
 
-                        let out = sessions.filter(function ({ Lab, Subject, ID, _acronyms, _regions }) {
+                        let out = sessions.filter(function (
+                            { Lab, Subject, ID, _acronyms, _regions, dset_bwm, dset_rs }) {
+
                             var res = true;
                             for (let q of query_.split(/(\s+)/)) {
                                 res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
                             }
+
+                            // Dataset selection
+                            if (CTX.dset == 'bwm')
+                                res &= dset_bwm;
+                            if (CTX.dset == 'rs')
+                                res &= dset_rs;
+
                             return res;
                         });
                         let pids = out.map(({ ID }) => ID);
@@ -606,10 +634,11 @@ async function selectSession(pid) {
     isLoading = false;
 };
 
+
+
 /*************************************************************************************************/
 /*  Unity mini brain                                                                             */
 /*************************************************************************************************/
-
 
 function miniBrainActivatePIDs(pidList) {
     // takes as input a list of PIDs and activates these
@@ -621,6 +650,8 @@ function miniBrainActivatePIDs(pidList) {
     }
 }
 
+
+
 /*************************************************************************************************/
 /*  Trial viewer                                                                                 */
 /*************************************************************************************************/
@@ -630,6 +661,7 @@ function trialViewerLoaded() {
         unityTrial.SendMessage("main", "SetSession", CTX.pid);
     }
 }
+
 
 
 function trialViewerDataLoaded() {
@@ -799,6 +831,7 @@ async function selectCluster(pid, cid) {
 function load() {
     setupShare();
 
+    setupDataset();
     loadAutoComplete();
 
     setupUnitySession();
