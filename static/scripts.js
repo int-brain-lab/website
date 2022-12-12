@@ -498,15 +498,16 @@ function loadAutoComplete() {
                     getItems() {
                         let sessions = FLASK_CTX.SESSIONS;
 
-                        // If 1 session is already selected, show all of them.
-                        if (isValidUUID(query_) && query_ == CTX.pid) return sessions;
-
                         let out = sessions.filter(function (
                             { Lab, Subject, ID, _acronyms, _regions, dset_bwm, dset_rs }) {
 
                             var res = true;
-                            for (let q of query_.split(/(\s+)/)) {
-                                res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
+
+                            // If 1 session is already selected, show all of them.
+                            if (!isValidUUID(query_) || query_ != CTX.pid) {
+                                for (let q of query_.split(/(\s+)/)) {
+                                    res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
+                                }
                             }
 
                             // Dataset selection
