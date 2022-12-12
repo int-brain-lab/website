@@ -184,6 +184,52 @@ h2 {
 
 
 /*************************************************************************************************/
+/*  Dataset tabs                                                                                 */
+/*************************************************************************************************/
+
+/* https://codepen.io/CesarVMB/pen/kPOrQb */
+
+#dset-container {
+    margin-bottom: 0;
+}
+
+#dset-container input {
+    visibility: hidden;
+    margin-bottom: 0;
+}
+
+#dset-container label {
+    background-color: #fafafa;
+    border-radius: 1em 1em 0 0;
+    color: #aaa;
+    cursor: pointer;
+    display: block;
+    float: left;
+    font-size: 1em;
+    height: 2.5em;
+    line-height: 2.5em;
+    margin-right: .25em;
+    margin-bottom: 0;
+    padding: 0 1.5em;
+    text-align: center;
+}
+
+#dset-container input:hover+label {
+    background-color: #ddd;
+    color: #666;
+}
+
+#dset-container input:checked+label {
+    background-color: #eee;
+    color: #444;
+    position: relative;
+    z-index: 6;
+}
+
+
+
+
+/*************************************************************************************************/
 /*  Figure legends                                                                               */
 /*************************************************************************************************/
 

@@ -62,12 +62,18 @@
 
 {% block content %}
 
+<!------------------------------------------------------------------------------------------------>
+<!--                                       SESSION SELECTOR                                     -->
+<!------------------------------------------------------------------------------------------------>
+
+<!-- SESSION SELECTOR HEADER -->
 <div class="row">
     <div class="twelve columns">
         <h2>Session selector</h2>
     </div>
 </div>
 
+<!-- SESSION SELECTION TEXT -->
 <div class="row">
     <div class="twelve columns">
         <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the
@@ -82,12 +88,20 @@
 </div>
 
 
+<!-- SESSION SELECTION TEXT -->
+<div class="row">
+    <div class="twelve columns">
+        <!-- <div>Dataset selector</div> -->
 
+        <div id="dset-container">
+            <input id="dset-1" type="radio" name="dset-group" checked="checked" />
+            <label for="dset-1">Brain wide map</label>
 
-
-<!------------------------------------------------------------------------------------------------>
-<!--                                       SESSION OVERVIEW                                     -->
-<!------------------------------------------------------------------------------------------------>
+            <input id="dset-2" type="radio" name="dset-group" />
+            <label for="dset-2">Repeated sites</label>
+        </div>
+    </div>
+</div>
 
 <!-- SESSION DROPDOWN -->
 <div class="row">
@@ -109,7 +123,15 @@
     </div>
 </div>
 
-<!-- SESSION HEADER -->
+
+
+
+
+<!------------------------------------------------------------------------------------------------>
+<!--                                       SESSION OVERVIEW                                     -->
+<!------------------------------------------------------------------------------------------------>
+
+<!-- SESSION OVERVIEW HEADER -->
 <div class="row">
     <div class="twelve columns">
         <h2>Session overview</h2>
@@ -245,7 +267,7 @@
                         condition are displayed at the top with the same color scheme. Trial numbers within a condition
                         are kept ascending from bottom to top </li>
                     <li>Raster plot of lick events, sorted by visual stimulus side (right in
-                        yellow, left in green) and aligned to feedback time  ; averages (mean and STD) for each
+                        yellow, left in green) and aligned to feedback time ; averages (mean and STD) for each
                         condition are displayed at the top with the same color scheme. Trial numbers within a condition
                         are kept ascending from bottom to top. Lick events have been computed using DLC points detected
                         on both the left and right cameras</li>
