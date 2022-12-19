@@ -618,7 +618,7 @@ class Generator:
             return
         # nums is a list of numbers 1-5 (figure numbers)
 
-        logger.info(f"Making all session plots for session {self.pid}")
+        logger.info(f"Making all session plots for session {self.pid} {nums}")
 
         # Figure 1
         self.make_session_plot(force=1 in nums)
@@ -651,7 +651,7 @@ if __name__ == '__main__':
         Parallel(n_jobs=-3)(delayed(make_all_plots)(pid) for pid in iter_session())
 
     # Regenerate some figures for all sessions.
-    elif len(sys.argv) == 2 and not is_valid_uuid(sys.argv[1]):
+    elif len(sys.argv) >= 2 and not is_valid_uuid(sys.argv[1]):
         which = sys.argv[1]
 
         # which figure numbers to regenerate
@@ -661,5 +661,6 @@ if __name__ == '__main__':
         Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
 
     # Regenerate figures for 1 session.
-    elif len(sys.argv) == 2 and is_valid_uuid(sys.argv[1]):
-        make_all_plots(sys.argv[1])
+    elif len(sys.argv) >= 2 and is_valid_uuid(sys.argv[1]):
+        nums = tuple(map(int, sys.argv[2].split(','))) if len(sys.argv) >= 3 else ()
+        make_all_plots(sys.argv[1], nums=nums)

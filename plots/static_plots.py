@@ -393,7 +393,8 @@ class DataLoader:
 
         details = {
             'Cluster #': cluster_idx,
-            'Brain region': BRAIN_REGIONS.id2acronym(cluster.atlas_id, mapping='Beryl')[0],
+            # 'Brain region': BRAIN_REGIONS.id2acronym(cluster.atlas_id, mapping='Beryl')[0],
+            'Brain region': BRAIN_REGIONS.get(cluster.atlas_id)['name'][0],
             'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, cluster_idx)['times']),
             'Overall firing rate': f'{np.round(cluster["firing_rate"], 2)} Hz',
             'Max amplitude': f'{np.round(cluster["amp_max"] * 1e6, 2)} uV'
