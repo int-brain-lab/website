@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class BrainCameraController : MonoBehaviour
 {
@@ -81,14 +77,14 @@ public class BrainCameraController : MonoBehaviour
             brainCamera.fieldOfView = fov;
 
         // Now check if the mouse wheel is being held down
-        if (Input.GetMouseButton(1) && !blockBrainControl && !EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetMouseButton(1) && !blockBrainControl)
         {
             mouseDownOverBrain = true;
             mouseButtonDown = 1;
         }
 
         // Now deal with dragging
-        if (Input.GetMouseButtonDown(0) && !blockBrainControl && !EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetMouseButtonDown(0) && !blockBrainControl)
         {
             //BrainCameraDetectTargets();
             mouseDownOverBrain = true;

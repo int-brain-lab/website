@@ -13,7 +13,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     //[SerializeField] private CCFModelControl modelControl;
     [SerializeField] private BrainCameraController cameraController;
-    [SerializeField] private UM_CameraController umCamera;
 
     [SerializeField] private GameObject probeLinePrefab;
     [SerializeField] private Transform probeParentT;
@@ -70,7 +69,6 @@ public class UM_Launch_ibl_mini : MonoBehaviour
     void Start()
     {        
         cameraController.SetBrainAxisAngles(new Vector3(0f, 45f, 135f));
-        umCamera.SwitchCameraMode(false);
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         UnityLoaded();
@@ -220,7 +218,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
             if (!probeComponent.Highlighted)
             {
                 probeComponent.SetTrackActive(false);
-                hoveredProbe.GetComponent<Renderer>().material.color = defaultColor;
+                // If probe is active, set to defaultColor, or set to white
+                hoveredProbe.GetComponent<Renderer>().material.color = hoveredProbe.GetComponent<BoxCollider>().enabled ?
+                    defaultColor :
+                    Color.white;
             }
         }
         hoveredProbe = null;
@@ -269,7 +270,9 @@ public class UM_Launch_ibl_mini : MonoBehaviour
         {
             ProbeComponent probeComponent = highlightedProbe.GetComponentInChildren<ProbeComponent>();
 
-            highlightedProbe.GetComponentInChildren<Renderer>().material.color = defaultColor;
+            highlightedProbe.GetComponentInChildren<Renderer>().material.color = highlightedProbe.GetComponentInChildren<BoxCollider>().enabled ?
+                defaultColor :
+                Color.white;
             probeComponent.SetTrackActive(false);
             probeComponent.Highlighted = false; 
         }
