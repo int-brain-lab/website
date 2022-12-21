@@ -107,7 +107,7 @@ public class TrialViewerManager : MonoBehaviour
     private void Awake()
     {
         Debug.Log("(TrialViewer) v1.0.0");
-        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.11.29.17.57.11.json");
+        catalogHandle = Addressables.LoadContentCatalogAsync("https://viz.internationalbrainlab.org/WebGL/catalog_2022.12.21.22.26.50.json");
 
 #if !UNITY_EDITOR && UNITY_WEBGL
         // disable WebGLInput.captureAllKeyboardInput so elements in web page can handle keyboard inputs
@@ -122,7 +122,7 @@ public class TrialViewerManager : MonoBehaviour
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
 #elif UNITY_EDITOR
-        LoadData("decc8d40-cf74-4263-ae9d-a0cc68b47e86");
+        LoadData("5246af08-0730-40f7-83de-29b5d62b9b6d");
 #endif
     }
 
