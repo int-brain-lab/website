@@ -459,6 +459,7 @@ function onDatasetChanged(ev) {
     else if (ev.target.id == "dset-2") dset = "rs";
     else { console.log("unknown dset name " + dset); return; }
     CTX.dset = dset;
+    autoCompleteJS.refresh();
 }
 
 function setupDataset() {
