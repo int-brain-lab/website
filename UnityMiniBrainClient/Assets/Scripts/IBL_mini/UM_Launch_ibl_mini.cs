@@ -161,10 +161,10 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void ActivateProbe(string pid)
     {
+        pid = pid.ToLowerInvariant();
         if (pid2probe.ContainsKey(pid))
         {
             GameObject probeGO = pid2probe[pid];
-            Debug.Log(string.Format("(IBLMini) Activate: {0}", pid));
             probeGO.GetComponentInChildren<Renderer>().material.color = defaultColor;
             probeGO.GetComponentInChildren<BoxCollider>().enabled = true;
             probeGO.GetComponentInChildren<BoxCollider>().isTrigger = true;
@@ -177,6 +177,7 @@ public class UM_Launch_ibl_mini : MonoBehaviour
 
     public void DeactivateProbe(string pid)
     {
+        pid = pid.ToLowerInvariant();
         DeactivateProbeGO(pid2probe[pid]);
     }
 

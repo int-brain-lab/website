@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 public class CSVReader
@@ -23,15 +24,15 @@ public class CSVReader
 			if (values.Length == 0 || values[0] == "") continue;
 
 			// pid, eid, depth, theta, phi, ml, ap, dv
-			string pid = values[0].ToLower();
-			string eid = values[1].ToLower();
-			string lab = values[2].ToLower();
-			float depth = float.Parse(values[3]);
-			float theta = float.Parse(values[4]);
-			float phi = float.Parse(values[5]);
-			float ml = float.Parse(values[6]);
-			float ap = float.Parse(values[7]);
-			float dv = float.Parse(values[8]);
+			string pid = values[0].ToLowerInvariant();
+			string eid = values[1].ToLowerInvariant();
+			string lab = values[2].ToLowerInvariant();
+			float depth = float.Parse(values[3], NumberStyles.Any, CultureInfo.InvariantCulture);
+			float theta = float.Parse(values[4], NumberStyles.Any, CultureInfo.InvariantCulture);
+			float phi = float.Parse(values[5], NumberStyles.Any, CultureInfo.InvariantCulture);
+			float ml = float.Parse(values[6], NumberStyles.Any, CultureInfo.InvariantCulture);
+			float ap = float.Parse(values[7], NumberStyles.Any, CultureInfo.InvariantCulture);
+			float dv = float.Parse(values[8], NumberStyles.Any, CultureInfo.InvariantCulture);
 
 			list.Add((pid, eid, lab, depth, theta, phi, ml, ap, dv));
 		}
