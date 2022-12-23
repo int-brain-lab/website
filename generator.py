@@ -448,11 +448,26 @@ class Generator:
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
         loader = self.dl
 
-        fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
-        loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
-        axs[1].get_yaxis().set_visible(False)
-        loader.plot_brain_regions(axs[2])
+        fig = plt.figure(figsize=(12, 5))
+
+        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[5, 10,1], hspace= 0.4, wspace=0.05)
+        # gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[0], width_ratios=[4, 1, 4, 4], wspace=0.4)
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax4 = fig.add_subplot(gs[1, 1])
+
+        #fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
+        # loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
+        # loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
+        # axs[1].get_yaxis().set_visible(False)
+        # loader.plot_brain_regions(axs[2])
+
+        loader.plot_session_raster(trial_idx=trial_idx, ax=ax1, xlabel='T in session (s)')
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=ax2, xlabel='T in trial(s)')
+        ax2.get_yaxis().set_visible(False)
+        loader.plot_brain_regions(ax3)
+        loader.plot_wheel_trace(trial_idx=trial_idx, ax=ax4)
         set_figure_style(fig)
 
         fig.savefig(path)
