@@ -914,7 +914,45 @@ class DataLoader:
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0, title=title)
 
-        return fig
+        return fig 
+
+    def plot_wheel_trace(self, trial_idx, ax=None): 
+        import brainbox.behavior.wheel as wh 
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(9, 6))
+        else:
+            fig = ax.get_figure()
+
+        wheel = load_wheel(self.eid)
+        speed = velocity(wheel.timestamps, wheel.position)
+
+        trials = filter_trials_by_trial_idx(self.trials, trial_idx)
+        t0 = self.trial_intervals[trial_idx, 0]
+        t1 = self.trial_intervals[trial_idx, 1]
+
+        goCue = self.trials.goCue_times[trial_idx]
+        responses = self.trials.response_times[trial_idx]
+        firstMovement = self.trials.firstMovement_times[trial_idx]
+
+        # Cut up the wheel vectors
+        pos, t = wh.interpolate_position(wheel.timestamps, wheel.position)
+        traces = wh.traces_by_trial(t, pos, start=[t0], end=[t1])[0]
+
+        ax.plot(traces[0], traces[1], 'k-') 
+        ax.axvline(x=goCue, color='b', label='Go Cue', linestyle=':')
+        ax.axvline(x=firstMovement, color='g', label='First Move', linestyle=':') 
+        ax.axvline(x=responses, color='r', label='Feedback', linestyle=':')
+        ax.legend() 
+        # ax.set_title('Trial #'+str(trial_idx))
+
+        # Add labels
+        # ax.set_xlabel('time / sec')
+        # ax.set_ylabel('position / rad')
+        set_axis_style(ax, xlabel='time / sec', ylabel='position / rad')
+        remove_spines(ax, spines=['right', 'top'])
+
+        return ax
+
 
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
