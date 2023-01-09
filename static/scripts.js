@@ -252,6 +252,10 @@ function getUnique(array) {
 };
 
 
+function filter_by_good(_, index) {
+        return this[index] === true;
+};
+
 
 /*************************************************************************************************/
 /*  Share button                                                                                 */
@@ -525,7 +529,13 @@ function loadAutoComplete() {
                     },
                     templates: {
                         item({ item, html }) {
-                            var acronyms = item['_acronyms'];
+                            var good_idx = item['_good_ids'];
+                            if (CTX.qc) {
+                                var acronyms = item['_acronyms'];
+                            } else {
+                                var acronyms = item["_acronyms"].filter(filter_by_good, good_idx);
+                            }
+
                             acronyms = getUnique(acronyms);
                             acronyms = acronyms.filter(item => item !== "void");
 
@@ -593,19 +603,15 @@ async function selectSession(pid) {
     var trial_ids = details['_trial_ids']
     var good_idx = details["_good_ids"];
 
-    function filter_by_good(_, index, {good_units}) {
-        console.log(index)
-        return good_units[index] === true;
-    }
 
     if (CTX.qc) {
-        var cluster_ids = details["_cluster_ids"].filter(filter_by_good, {good_idx});
-        var acronyms = details["_acronyms"].filter(filter_by_good, {good_idx});
-        var colors = details["_colors"].filter(filter_by_good, {good_idx});
-    } else {
         var cluster_ids = details["_cluster_ids"];
         var acronyms = details["_acronyms"];
         var colors = details["_colors"];
+    } else {
+        var cluster_ids = details["_cluster_ids"].filter(filter_by_good, good_idx);
+        var acronyms = details["_acronyms"].filter(filter_by_good, good_idx);
+        var colors = details["_colors"].filter(filter_by_good, good_idx);
     }
 
 

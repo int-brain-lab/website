@@ -368,7 +368,8 @@ class DataLoader:
         details['dset_rs'] = self.session_info['2022_Q2_IBL_et_al_RepeatedSite']
 
         # Sort by cluster depth.
-        idx = np.argsort(self.clusters_good.depths)[::-1]
+        idx = np.argsort(self.clusters.depths)[::-1]
+        idx_good = np.argsort(self.clusters_good.depths)[::-1]
 
         # Internal fields used by the frontend.
         details['_trial_ids'] = [int(_) for _ in self.trial_idx]
@@ -383,9 +384,9 @@ class DataLoader:
         # details['_brain_regions'] = self.brain_regions
         # details['_brain_regions'] = sorted(set(details['_acronyms']))
         details['_colors'] = BRAIN_REGIONS.get(self.clusters.atlas_id[idx]).rgb.tolist()
-        good_ids = np.zeros(self.clusters.label.size, dtype=bool)
+        good_ids = np.zeros(self.clusters.label.size)
         good_ids[self.clusters.label == 1] = 1
-        details['_good_ids'] = good_ids
+        details['_good_ids'] = [bool(_) for _ in good_ids[idx]]
 
         # details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
         # details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
@@ -393,8 +394,8 @@ class DataLoader:
         # # details['_brain_regions'] = sorted(set(details['_acronyms']))
         # details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
 
-        regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).name))
-        regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).acronym))
+        regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).name))
+        regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).acronym))
         regions += regions_acronyms
         regions = [_.lower() for _ in regions]
         regions = ', '.join(regions)
