@@ -6,6 +6,7 @@
 // Passing data from Flask to Javascript
 
 const ENABLE_UNITY = true;  // disable for debugging
+
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
@@ -105,24 +106,24 @@ function throttle(func, wait, options) {
 
 
 
-// Display an array buffer.
-function show(arrbuf) {
-    const blob = new Blob([arrbuf]);
-    const url = URL.createObjectURL(blob);
-    const img = document.getElementById('imgRaster');
-    let w = img.offsetWidth;
+// // Display an array buffer.
+// function show(arrbuf) {
+//     const blob = new Blob([arrbuf]);
+//     const url = URL.createObjectURL(blob);
+//     const img = document.getElementById('imgRaster');
+//     let w = img.offsetWidth;
 
-    var t0 = px2time(0);
-    var t1 = px2time(w);
-    var t = .5 * (t0 + t1);
+//     var t0 = px2time(0);
+//     var t1 = px2time(w);
+//     var t = .5 * (t0 + t1);
 
-    Plotly.update('imgRaster', {}, {
-        "images[0].source": url,
-        "xaxis.ticktext": [t0.toFixed(3), t.toFixed(3), t1.toFixed(3)],
-    });
+//     Plotly.update('imgRaster', {}, {
+//         "images[0].source": url,
+//         "xaxis.ticktext": [t0.toFixed(3), t.toFixed(3), t1.toFixed(3)],
+//     });
 
-    setLineOffset();
-};
+//     setLineOffset();
+// };
 
 
 
@@ -788,6 +789,48 @@ async function selectTrial(pid, tid, unityCalled = false) {
 
 
 /*************************************************************************************************/
+/*  Cluster legends                                                                              */
+/*************************************************************************************************/
+
+function addPanelLetter(fig, letter, coords, legend) {
+    const div = document.createElement("div");
+    div.appendChild(document.createTextNode(letter));
+    div.classList.add('panel-letter');
+    fig.parentNode.appendChild(div);
+
+    let [xmin, ymin, xmax, ymax] = coords;
+    div.style.top = (ymin * 100 - 4) + "%";
+    div.style.left = (xmin * 100 - 1) + "%";
+    div.style.height = ((ymax - ymin) * 100) + "%";
+    div.style.width = ((xmax - xmin) * 100) + "%";
+
+    div.addEventListener("mouseover", function (e) {
+        clusterPlotLegend.innerHTML = `<strong>Legend of panel ${letter}</strong>: ${legend}`;
+    });
+}
+
+
+
+async function setupClusterLegends() {
+    let plot = document.getElementById('clusterPlot');
+
+    // Show information about trials in table
+    var url = `/api/figures/details`;
+    var r = await fetch(url).then();
+    var details = await r.json();
+    for (let letter in details['cluster']) {
+        // console.log(letter);
+        // let [xmin, ymin, xmax, ymax] = details['cluster'][panel];
+        // console.log(xmin, ymin, xmax, ymax);
+        let panel = details['cluster'][letter];
+        addPanelLetter(plot, letter, panel["coords"], panel["legend"]);
+    }
+
+}
+
+
+
+/*************************************************************************************************/
 /*  Cluster selection                                                                            */
 /*************************************************************************************************/
 
@@ -839,6 +882,7 @@ function load() {
     setupUnitySession();
     setupUnityTrial();
 
+    setupClusterLegends();
     setupClusterClick()
     setupTrialCallback();
     setupClusterCallback();
