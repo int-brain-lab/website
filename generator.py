@@ -306,6 +306,13 @@ class Generator:
 
     # FIGURE 1
 
+    def get_subplot_position(self, ax1, ax2):
+        xmin_ymax = ax1.get_position().corners()[1]
+        xmax_ymin = ax2.get_position().corners()[2]
+
+        return np.r_[xmin_ymax, xmax_ymin]
+
+
     def make_session_plot(self, force=False):
         path = session_overview_path(self.pid)
         if not force and path.exists():
@@ -358,6 +365,86 @@ class Generator:
 
             set_figure_style(fig)
             fig.subplots_adjust(top=1.02, bottom=0.05)
+
+            fig.savefig(path)
+            plt.close(fig)
+
+        except Exception as e:
+            print(f"error with session overview plot {self.pid}: {str(e)}")
+
+    def make_session_plot_qc(self, force=False):
+        # TODO save path
+        loader = self.dl
+
+        try:
+            fig = plt.figure(figsize=(15, 10))
+            gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.2)
+
+            gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[8, 1, 1, 1, 1, 1],
+                                                   height_ratios=[1, 10], hspace=0.3, wspace=0.1)
+            gs0_ax1 = fig.add_subplot(gs0[0, 0])
+            gs0_ax2 = fig.add_subplot(gs0[1, 0])
+            gs0_ax3 = fig.add_subplot(gs0[0, 1])
+            gs0_ax4 = fig.add_subplot(gs0[1, 1])
+            gs0_ax5 = fig.add_subplot(gs0[0, 2])
+            gs0_ax6 = fig.add_subplot(gs0[1, 2])
+            gs0_ax7 = fig.add_subplot(gs0[0, 3])
+            gs0_ax8 = fig.add_subplot(gs0[1, 3])
+            gs0_ax9 = fig.add_subplot(gs0[0, 4])
+            gs0_ax10 = fig.add_subplot(gs0[1, 4])
+            gs0_ax11 = fig.add_subplot(gs0[0, 5])
+            gs0_ax12 = fig.add_subplot(gs0[1, 5])
+
+            loader.plot_session_raster(ax=gs0_ax2)
+            loader.plot_good_bad_clusters(ax=gs0_ax4, ax_legend=gs0_ax3, xlabel='Amp (uV)')
+            loader.plot_spikes_amp_vs_depth_vs_firing_rate(ax=gs0_ax6, ax_cbar=gs0_ax5, xlabel='Amp (uV)')
+            loader.plot_ap_rms(ax=gs0_ax8, ax_cbar=gs0_ax7)
+            loader.plot_lfp_spectrum(ax=gs0_ax10, ax_cbar=gs0_ax9)
+            loader.plot_brain_regions(ax=gs0_ax12)
+
+            gs0_ax4.get_yaxis().set_visible(False)
+            gs0_ax6.get_yaxis().set_visible(False)
+            gs0_ax8.get_yaxis().set_visible(False)
+            gs0_ax10.get_yaxis().set_visible(False)
+            remove_frame(gs0_ax1)
+            remove_frame(gs0_ax11)
+
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 6, subplot_spec=gs[1], width_ratios=[8, 1, 1, 1, 1, 1],
+                                                   wspace=0.1)
+            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 1, 3, 1])
+            ax_a = fig.add_subplot(gs11[0, 0])
+            ax_b = fig.add_subplot(gs11[1, 0])
+            ax_c = fig.add_subplot(gs11[2, 0])
+            ax_d = fig.add_subplot(gs11[3, 0])
+
+            gs13 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 2])
+            ax_leg = fig.add_subplot(gs13[0])
+            loader.plot_session_behaviour(axs=[ax_a, ax_b, ax_c, ax_d], ax_legend=ax_leg)
+
+            ax_a.sharex(gs0_ax2)
+            ax_b.sharex(gs0_ax2)
+            ax_c.sharex(gs0_ax2)
+            ax_d.sharex(gs0_ax2)
+
+            plt.setp(ax_a.get_xticklabels(), visible=False)
+            plt.setp(ax_b.get_xticklabels(), visible=False)
+
+            gs14 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 3:])
+            ax_cor = fig.add_subplot(gs14[0])
+
+            loader.plot_coronal_slice(ax_cor)
+
+            gs2 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[2], width_ratios=[4, 4, 4, 1], wspace=0.1)
+            ax13 = fig.add_subplot(gs2[0, 0])
+            ax14 = fig.add_subplot(gs2[0, 1])
+            ax15 = fig.add_subplot(gs2[0, 2])
+            ax16 = fig.add_subplot(gs2[0, 3])
+
+            loader.plot_raw_data(axs=[ax13, ax14, ax15], raster=False)
+            loader.plot_brain_regions(ax16)
+            ax16.set_ylim(20, 3840)
+
+            set_figure_style_all(fig)
 
             fig.savefig(path)
             plt.close(fig)
@@ -563,6 +650,40 @@ class Generator:
 
         fig.savefig(path)
 
+        # df = pd.DataFrame()
+        # subplots = []
+        # fig_pos = get_subplot_position(ax1, ax1)
+        # subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax2, ax3)
+        # subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax4, ax5)
+        # subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax6, ax7)
+        # subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax8, ax9)
+        # subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax10, ax10)
+        # subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax11, ax11)
+        # subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax12, ax12)
+        # subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax13, ax13)
+        # subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # fig_pos = get_subplot_position(ax14, ax14)
+        # subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+        # df = pd.DataFrame.from_dict(subplots)
+        #
+        #
+        # A = get_subplot_position(ax1, ax2)
+        # B = get_subplot_position(ax3, ax4)
+        # C = get_subplot_position(ax5, ax6)
+        # D = get_subplot_position(ax7, ax8)
+        # E = get_subplot_position(ax9, ax10)
+        # F = get_subplot_position(ax11, ax11)
+        # G = get_subplot_position(ax13, ax15)
+        # H = get_subplot_position(ax16, ax16)
+
         path_scat = cluster_pixels_path(self.pid)
         if not path_scat.exists():
             idx = np.argsort(loader.clusters_good.depths)[::-1]
@@ -579,6 +700,70 @@ class Generator:
             df.to_parquet(path_scat)
 
         plt.close(fig)
+
+    def make_cluster_qc_plot(self, cluster_idx):
+        # TODO figure out save path
+        loader = self.dl
+        fig = plt.figure(figsize=(15, 10))
+
+        gs = gridspec.GridSpec(2, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
+
+        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
+        ax1 = fig.add_subplot(gs0[0, 0])
+
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 1], height_ratios=[1, 3], hspace=0, wspace=0.2)
+        ax2 = fig.add_subplot(gs1[0, 0])
+        ax3 = fig.add_subplot(gs1[1, 0])
+        ax4 = fig.add_subplot(gs1[0, 1])
+        ax5 = fig.add_subplot(gs1[1, 1])
+        ax6 = fig.add_subplot(gs1[0, 2])
+        ax7 = fig.add_subplot(gs1[1, 2])
+        ax8 = fig.add_subplot(gs1[0, 3])
+        ax9 = fig.add_subplot(gs1[1, 3])
+
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 2])
+        ax10 = fig.add_subplot(gs2[0])
+
+        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 3])
+        ax11 = fig.add_subplot(gs3[0])
+
+        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
+
+        loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
+        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
+        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
+        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax8, ax9], ylabel0=None, ylabel1=None)
+        ax2.get_xaxis().set_visible(False)
+        ax4.get_xaxis().set_visible(False)
+        ax6.get_xaxis().set_visible(False)
+        ax8.get_xaxis().set_visible(False)
+        ax5.get_yaxis().set_visible(False)
+        ax7.get_yaxis().set_visible(False)
+        ax9.get_yaxis().set_visible(False)
+
+        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+        loader.plot_channel_probe_location(cluster_idx, ax=ax11)
+
+        gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1, :])
+
+        gs00 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[0], height_ratios=[1, 10],
+                                                width_ratios=[3, 1], wspace=0.05)
+
+        gs00_ax0 = fig.add_subplot(gs00[0, 0])
+        gs00_ax1 = fig.add_subplot(gs00[0, 1])
+        gs00_ax2 = fig.add_subplot(gs00[1, 0], projection='scatter_density')
+        gs00_ax3 = fig.add_subplot(gs00[1, 1])
+
+        loader.plot_noise_cutoff(cluster_idx, axs=[gs00_ax2, gs00_ax3, gs00_ax0, gs00_ax1])
+
+        gs01 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[1], height_ratios=[1, 10])
+        gs01_ax0 = fig.add_subplot(gs01[0, :])
+        gs01_ax1 = fig.add_subplot(gs01[1, 0])
+        gs01_ax2 = fig.add_subplot(gs01[1, 1])
+
+        loader.plot_sliding_rp(cluster_idx, axs=[gs01_ax1, gs01_ax2, gs01_ax0])
+
+        set_figure_style_all(fig)
 
     # Plot generator functions
     # -------------------------------------------------------------------------------------------------

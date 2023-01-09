@@ -591,9 +591,24 @@ async function selectSession(pid) {
     // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
     // which controls which fields are displayed in the session details box.
     var trial_ids = details['_trial_ids']
-    var cluster_ids = details["_cluster_ids"];
-    var acronyms = details["_acronyms"];
-    var colors = details["_colors"];
+    var good_idx = details["_good_ids"];
+
+    function filter_by_good(_, index, {good_units}) {
+        console.log(index)
+        return good_units[index] === true;
+    }
+
+    if (CTX.qc) {
+        var cluster_ids = details["_cluster_ids"].filter(filter_by_good, {good_idx});
+        var acronyms = details["_acronyms"].filter(filter_by_good, {good_idx});
+        var colors = details["_colors"].filter(filter_by_good, {good_idx});
+    } else {
+        var cluster_ids = details["_cluster_ids"];
+        var acronyms = details["_acronyms"];
+        var colors = details["_colors"];
+    }
+
+
     CTX.dur = details["_duration"];
     CTX.trial_ids = trial_ids;
     CTX.trial_onsets = details["_trial_onsets"];

@@ -5,6 +5,9 @@
 import matplotlib.pyplot as plt
 from matplotlib.image import NonUniformImage
 from matplotlib.lines import Line2D
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib
+import matplotlib.gridspec as gridspec
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -13,6 +16,7 @@ from collections import OrderedDict
 import seaborn as sns
 import yaml
 from scipy.stats import zscore
+import mpl_scatter_density
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
@@ -22,9 +26,11 @@ from brainbox.behavior.wheel import velocity
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
+from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
-from ibllib.atlas.regions import BrainRegions
+from ibllib.atlas import AllenAtlas, Insertion
 from iblutil.util import Bunch
+from slidingRP.metrics import slidingRP
 import time
 
 import one.alf.io as alfio
@@ -37,9 +43,25 @@ import one.alf.io as alfio
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT_DIR / 'static/data'
 CACHE_DIR = ROOT_DIR / 'static/cache'
-BRAIN_REGIONS = BrainRegions()
+BRAIN_ATLAS = AllenAtlas()
+BRAIN_ATLAS.compute_surface()
+BRAIN_REGIONS = BRAIN_ATLAS.regions
 
+# -------------------------------------------------------------------------------------------------
+# Colourmaps
+# -------------------------------------------------------------------------------------------------
 
+WHITE_VIRIDIS = LinearSegmentedColormap.from_list('white_viridis', [
+    (0, '#ffffff'),
+    (1e-20, '#440053'),
+    (0.2, '#404388'),
+    (0.4, '#2a788e'),
+    (0.6, '#21a784'),
+    (0.8, '#78d151'),
+    (1, '#fde624'),
+], N=256)
+
+CMAP = sns.diverging_palette(20, 220, n=3, center="dark")
 # -------------------------------------------------------------------------------------------------
 # Loading functions
 # -------------------------------------------------------------------------------------------------
@@ -228,6 +250,12 @@ def set_figure_style(fig, margin_inches=0.8):
     fig.subplots_adjust(margin_inches / x_inches, margin_inches / y_inches)
     return fig
 
+def set_figure_style_all(fig, margin_inches=0.8):
+    x_inches, y_inches = fig.figure.get_size_inches()
+    fig.subplots_adjust(left=margin_inches / x_inches, bottom=margin_inches / y_inches, right=1 - margin_inches / x_inches,
+                        top=0.99)
+    return fig
+
 
 def set_axis_style(ax, fontsize=12, **kwargs):
     ax.spines['right'].set_visible(False)
@@ -294,7 +322,8 @@ class DataLoader:
         """
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.eid = self.session_info['eid']
-        self.spikes = filter_spikes_by_good_clusters(load_spikes(pid))
+        self.spikes = load_spikes(pid)
+        self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid))
         self.trials = load_trials(self.eid)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
         self.clusters = load_clusters(pid)
@@ -330,7 +359,7 @@ class DataLoader:
         details['Probe name'] = self.session_info['probe']
         details['Probe type'] = self.session_info['probe_model']
         details['N trials'] = f'{self.trials.stimOn_times.size}'
-        details['N spikes'] = f'{self.spikes.clusters.size}'
+        details['N spikes'] = f'{self.spikes_good.clusters.size}'
         details['N clusters'] = f'{self.clusters_good.cluster_id.size} good, {self.clusters.cluster_id.size} overall'
         details['eid'] = self.session_info['eid']
         details['pid'] = self.pid
@@ -348,11 +377,21 @@ class DataLoader:
         details['_trial_onsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 0]]
         details['_trial_offsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 1]]
 
-        details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
-        details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
+
+        details['_cluster_ids'] = [int(_) for _ in self.clusters.cluster_id[idx]]
+        details['_acronyms'] = self.clusters.acronym[idx].tolist()
         # details['_brain_regions'] = self.brain_regions
         # details['_brain_regions'] = sorted(set(details['_acronyms']))
-        details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
+        details['_colors'] = BRAIN_REGIONS.get(self.clusters.atlas_id[idx]).rgb.tolist()
+        good_ids = np.zeros(self.clusters.label.size, dtype=bool)
+        good_ids[self.clusters.label == 1] = 1
+        details['_good_ids'] = good_ids
+
+        # details['_cluster_ids'] = [int(_) for _ in self.clusters_good.cluster_id[idx]]
+        # details['_acronyms'] = self.clusters_good.acronym[idx].tolist()
+        # # details['_brain_regions'] = self.brain_regions
+        # # details['_brain_regions'] = sorted(set(details['_acronyms']))
+        # details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
 
         regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).name))
         regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).acronym))
@@ -428,10 +467,10 @@ class DataLoader:
         :param d_bin:
         :return:
         """
-        kp_idx = ~np.isnan(self.spikes.depths)
+        kp_idx = ~np.isnan(self.spikes_good.depths)
 
         self.session_raster, self.t_vals, self.d_vals = \
-            bincount2D(self.spikes.times[kp_idx], self.spikes.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
+            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
 
         self.session_raster = self.session_raster / t_bin
 
@@ -556,7 +595,6 @@ class DataLoader:
             fig = axs[0].get_figure()
 
         info, raw_ephys = load_raw_data(self.pid)
-        spikes = load_spikes(self.pid)
 
         times = info['t']
         ts = info['t_offset']
@@ -567,6 +605,8 @@ class DataLoader:
         vmax = 0.000050
         cmap = 'Greys'
 
+        depths = self.channels.localCoordinates[:, 1]
+
         if raster:
             ax0 = axs[0]
             self.plot_session_raster(ax=ax0)
@@ -574,10 +614,10 @@ class DataLoader:
             ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
 
         for iT, time in enumerate(times):
-            spike_idx = slice(*np.searchsorted(spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
-            spike_channels = self.clusters['channels'][spikes['clusters'][spike_idx]]
-            spike_times = (spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
-            spike_labels = self.clusters['label'][spikes['clusters'][spike_idx]]
+            spike_idx = slice(*np.searchsorted(self.spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
+            spike_channels = depths[self.clusters['channels'][self.spikes['clusters'][spike_idx]].astype(int)]
+            spike_times = (self.spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
+            spike_labels = self.clusters['label'][self.spikes['clusters'][spike_idx]]
 
             ax = axs[iT + 1] if raster else axs[iT]
 
@@ -585,10 +625,11 @@ class DataLoader:
             ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
             ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=3)
             ax.set_title(f'T = {time} s')
+            ax.images[0].set_extent([0, 50, 20, 3840])
             if not raster and iT != 0:
                 ax.get_yaxis().set_visible(False)
             else:
-                ax.images[0].set_extent([0, 50, 20, 3840])
+                # ax.images[0].set_extent([0, 50, 20, 3840])
                 ax.set_ylim(20, 3840)
                 ax.set_ylabel('Depth (um)')
 
@@ -620,6 +661,114 @@ class DataLoader:
             ax.axvline(trials['intervals'][0], *ax.get_ylim(), c='k', ls='--')
             ax.text(trials['intervals'][0], 1.01, f'Trial {trial_idx}', c='k', rotation=45,
                     rotation_mode='anchor', ha='left', transform=ax.get_xaxis_transform())
+
+        return fig
+
+    def plot_session_behaviour(self, axs=None, ax_legend=None):
+
+        if axs is None:
+            fig, axs = plt.subplots(4, 1, sharex=True, gridspec_kw={'height_ratios': [2, 1, 3, 1], 'hspace': 0.1})
+        else:
+            fig = axs[0].get_figure()
+
+        contrasts = np.nansum(np.c_[-1 * self.trials['contrastLeft'], self.trials['contrastRight']], axis=1)
+        reaction_time = self.trials['response_times'] - self.trials['stimOn_times']
+        correct_idx = np.where(self.trials.feedbackType == 1)[0]
+        incorrect_idx = np.where(self.trials.feedbackType == -1)[0]
+
+        axs[0].scatter(self.trials['stimOn_times'][correct_idx], reaction_time[correct_idx], facecolors='none', edgecolors='g',
+                       s=7)
+        axs[0].scatter(self.trials['stimOn_times'][incorrect_idx], reaction_time[incorrect_idx], facecolors='none', marker='x',
+                       c='r', s=7)
+        axs[0].set_yscale('log')
+        axs[0].set_ylim(0.1, 100)
+        axs[0].set_yticks([1, 100])
+        axs[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+
+        axs[1].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100,
+                       facecolors='none', edgecolors='g', s=9)
+        axs[1].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100,
+                       marker='x', c='r', s=9)
+
+        axs[2].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100,
+                       facecolors='none', edgecolors='g', s=9)
+        axs[2].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100, marker='x', c='r', s=9)
+
+        axs[3].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100, facecolors='none', edgecolors='g', s=9)
+        axs[3].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100, marker='x', c='r', s=9)
+
+
+        dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
+        blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
+
+        cmap = sns.diverging_palette(20, 220, n=3, center="dark")
+        colours = np.full((blocks.shape[0], 3), np.array([*cmap[0]]))
+        colours[np.where(blocks == 0.5)] = np.array([*cmap[1]])
+        colours[np.where(blocks == 0.8)] = np.array([*cmap[2]])
+
+        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]] # sometimes last trial is nan
+        for ax in axs:
+            for iD in range(len(dividers) - 1):
+                ax.fill_betweenx([-100, 100],
+                                 [self.trials.stimOn_times[dividers[iD + 1]], self.trials.stimOn_times[dividers[iD + 1]]],
+                                 [self.trials.stimOn_times[dividers[iD]], self.trials.stimOn_times[dividers[iD]]], color=colours[iD],
+                                 alpha=0.2)
+
+        axs[1].set_yticks([-100, -25, 0, 25, 100])
+        axs[2].set_yticks([-100, -25, 0, 25, 100])
+        axs[3].set_yticks([-100, -25, 0, 25, 100])
+
+        axs[1].set_ylim(95, 101)
+        axs[2].set_ylim(-40, 40)
+        axs[3].set_ylim(-101, -95)
+
+        # hide the spines between ax and ax2
+        axs[0].xaxis.tick_top()
+        set_axis_style(axs[0], ylabel='RT (s)')
+        axs[0].spines['top'].set_visible(True)
+        remove_spines(axs[0], spines=['bottom'])
+
+        axs[1].xaxis.tick_top()
+        remove_spines(axs[1], spines=['bottom', 'right'])
+        axs[1].set_xticklabels([])
+
+        remove_spines(axs[2], spines=['bottom', 'right', 'top'])
+        set_axis_style(axs[2], ylabel='Contrasts (%)')
+        axs[2].axes.get_xaxis().set_visible(False)
+        axs[3].axes.get_xaxis().set_visible(False)
+        remove_spines(axs[3], spines=['bottom', 'right', 'top'])
+
+        d = .5  # proportion of vertical to horizontal extent of the slanted line
+        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+                      linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+        axs[1].plot(0, 0, transform=axs[1].transAxes, **kwargs)
+        axs[2].plot([0, 0], [0, 1], transform=axs[2].transAxes, **kwargs)
+        axs[3].plot(0, 1, transform=axs[3].transAxes, **kwargs)
+
+
+        legend_elements = [Line2D([0], [0], color=CMAP[0], lw=4, alpha=0.5, label='20 % of trials on left side'),
+                           Line2D([0], [0], color=CMAP[1], lw=4, alpha=0.5, label='equal % of trials on both sides'),
+                           Line2D([0], [0], color=CMAP[2], lw=4, alpha=0.5, label='80 % of trials on left side'),
+                           Line2D([0], [0], color='w', marker='o', markeredgecolor='g', label='correct', markersize=10),
+                           Line2D([0], [0], color='w', marker='x', markeredgecolor='r', label='incorrect', markersize=10)]
+
+        ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
+        remove_frame(ax_legend)
+
+        return fig
+
+    def plot_coronal_slice(self, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        ins = Insertion.from_dict(self.session_info, brain_atlas=BRAIN_ATLAS)
+        ax, sec_ax = BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
+        ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
+        remove_frame(ax)
+        sec_ax.get_yaxis().set_visible(False)
 
         return fig
 
@@ -790,18 +939,23 @@ class DataLoader:
 
         return fig
 
-    def plot_spikes_amp_vs_depth(self, cluster_idx, ax=None, xlabel='Amplitude (uV)', ylabel=None):
+    def plot_spikes_amp_vs_depth(self, cluster_idx, ax=None, xlabel='Amplitude (uV)', ylabel=None, type='good'):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(4, 6))
         else:
             fig = ax.get_figure()
 
-        col = (BRAIN_REGIONS.get(self.clusters_good.atlas_id).rgb / 255).tolist()
-        scat = ax.scatter(self.clusters_good.amps * 1e6, self.clusters_good.depths, c=col, edgecolors='grey')
-        clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
-        col_clus = (BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
+        if type == 'good':
+            clusters = self.clusters_good
+        else:
+            clusters = self.clusters
+
+        col = (BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
+        scat = ax.scatter(clusters.amps * 1e6, clusters.depths, c=col, edgecolors='grey')
+        selected_cluster = filter_clusters_by_cluster_idx(clusters, cluster_idx)
+        selected_cluster_col = (BRAIN_REGIONS.get(selected_cluster.atlas_id).rgb / 255).tolist()
         if clusters is not None:
-            ax.scatter(clusters.amps * 1e6, clusters.depths, c=col_clus, edgecolors='black',
+            ax.scatter(selected_cluster.amps * 1e6, selected_cluster.depths, c=selected_cluster_col, edgecolors='black',
                        linewidths=2, s=80)
 
         _, region_labels, _ = self.get_brain_regions()
@@ -809,23 +963,6 @@ class DataLoader:
         ax.yaxis.set_tick_params(labelsize=10)
         ax.set_yticklabels(region_labels[:, 1])
 
-        ax.set_ylim(*self.depth_lim)
-        ax.set_xlim(*self.amp_lim)
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
-
-        return fig
-
-    def plot_spikes_fr_vs_depth(self, cluster_idx, ax=None, xlabel='Firing Rate Hz', ylabel='Depth (um)'):
-        if ax is None:
-            fig, ax = plt.subplots(1, 1, figsize=(4, 6))
-        else:
-            fig = ax.get_figure()
-
-        ax.scatter(self.clusters_good.firing_rate, self.clusters_good.depths,
-                   facecolors='none', edgecolors='grey')
-        clusters = filter_clusters_by_cluster_idx(self.clusters_good, cluster_idx)
-        if clusters is not None:
-            ax.scatter(clusters.firing_rate, clusters.depths, c='r')
         ax.set_ylim(*self.depth_lim)
         ax.set_xlim(*self.amp_lim)
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
@@ -843,11 +980,11 @@ class DataLoader:
         stim_events = {'Stim On': self.trials['stimOn_times'],
                        'First Move': self.trials['firstMovement_times'],
                        'Feedback': self.trials['feedback_times']}
-        kp_idx = ~np.isnan(self.spikes.depths)
+        kp_idx = ~np.isnan(self.spikes_good.depths)
         pre_stim = 0.4
         post_stim = 1
-        data = get_stim_aligned_activity(stim_events, self.spikes.times[kp_idx], self.spikes.depths[kp_idx], pre_stim=pre_stim,
-                                         post_stim=post_stim, y_lim=[0, 3840])
+        data = get_stim_aligned_activity(stim_events, self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx],
+                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, 3840])
 
         for i, (key, d) in enumerate(data.items()):
             im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10,
@@ -917,10 +1054,11 @@ class DataLoader:
         return fig
 
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
-                                              ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
+                                              ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
+                                              order='trial num'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
-        trial_idx, dividers = find_trial_ids(self.trials, sort='side')
+        trial_idx, dividers = find_trial_ids(self.trials, sort='side', order=order)
         fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
 
@@ -930,10 +1068,11 @@ class DataLoader:
         return fig
 
     def plot_correct_incorrect_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Feedback (s)',
-                                                     ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
+                                                     ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
+                                                     order='trial num'):
 
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
-        trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
+        trial_idx, dividers = find_trial_ids(self.trials, sort='choice', order=order)
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
 
@@ -1230,6 +1369,124 @@ class DataLoader:
         ax2.set_ylabel('Amp (a.u.)', fontsize=12)
 
         return fig
+
+    def plot_sliding_rp(self, cluster_idx, axs=None):
+
+        if axs is None:
+            fig = plt.figure(figsize=(10, 5))
+            gs = gridspec.GridSpec(2, 2, height_ratios=[1, 10])
+            axs = []
+            axs.append(plt.subplot(gs[1, 0]))
+            axs.append(plt.subplot(gs[1, 1]))
+            axs.append(plt.subplot(gs[0, :]))
+        else:
+            fig = axs[0].get_figure()
+
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+
+        [maxConfidenceAt10Cont, minContWith90Confidence, timeOfLowestCont, nSpikesBelow2, confMatrix, cont, rp, nACG,
+         firingRate, xx] = slidingRP(spikes.times)
+
+        acg = nACG[0:rp.size]  # only use values of the acg for which the metric was computed
+        rp_plot = np.r_[-1 * np.flip(rp), rp] * 1000
+        acg_plot = np.r_[np.flip(acg), acg]
+        axs[0].bar(rp_plot, acg_plot, width=np.diff(rp)[0]*1000, color='k')
+
+        set_axis_style(axs[0], xlabel='T from spike (ms)', ylabel='ACG count (spks)')
+
+        # Plot confidence matrix for slidingRP
+        c = axs[1].imshow(confMatrix, extent=[rp[0] * 1000, rp[-1] * 1000, cont[0], cont[-1]], aspect='auto', vmin=0, vmax=100,
+                          origin='lower')
+        cbar = fig.colorbar(c, ax=axs[1], location='right')
+        cbar.set_label('Confidence (%)', fontsize=12)
+        axs[1].invert_yaxis()
+        axs[1].plot([rp[0] * 1000, rp[-1] * 1000], [10, 10], 'r', linewidth=1)
+
+        # compute and plot 90%contour line
+        if ~np.isnan(timeOfLowestCont):
+            axs[1].plot(timeOfLowestCont * 1000 * np.array([1, 1]), [cont[0], cont[-1]], 'r', linewidth=1)
+
+            # compute the conf=90 contour
+            # zeropad confMatrix
+            z = np.zeros((confMatrix.shape[0] + 1, confMatrix.shape[1]))
+            z[1:, :] = confMatrix
+            ii = np.argmax(z > 90, 0).astype(float)
+            ii[ii == 0] = np.nan
+            contContour = np.full_like(ii, np.nan)
+            contContour[~np.isnan(ii)] = cont[(ii[~np.isnan(ii)] - 1).astype(int)]
+            axs[1].plot(rp * 1000, contContour, 'r', linewidth=2)
+
+        set_axis_style(axs[1], xlabel='T from spike (ms)', ylabel='Contamination (%)')
+        axs[1].set_ylim([0, 10])
+
+        text = f'FR: {np.round(firingRate, 2)} Hz, Max conf: {np.round(maxConfidenceAt10Cont, 2)}, ' \
+               f'Min cont: {np.round(minContWith90Confidence)}, Time: {np.round(timeOfLowestCont * 1000, 2)} ms'
+        if minContWith90Confidence > 10 or np.isnan(minContWith90Confidence):
+            color = 'r'
+        elif nSpikesBelow2 == 0:
+            color = 'b'
+        else:
+            color = 'g'
+
+        axs[2].text(0.5, 0, text, size=12, ha="center", color=color)
+        remove_spines(axs[2])
+        remove_frame(axs[2])
+
+    def plot_noise_cutoff(self, cluster_idx, axs=None, xlabel='T in session (s)', ylabel='Amp (uV)'):
+
+        if axs is None:
+            fig = plt.figure(figsize=(10, 5))
+            gs = gridspec.GridSpec(2, 2, height_ratios=[1, 10], width_ratios=[3, 1], wspace=0.05)
+            axs = []
+            axs.append(plt.subplot(gs[1, 0], projection='scatter_density'))
+            axs.append(plt.subplot(gs[1, 1]))
+            axs.append(plt.subplot(gs[0, 0]))
+            axs.append(plt.subplot(gs[0, 1]))
+        else:
+            fig = axs[0].get_figure()
+
+        n_bins = 100
+        percent_threshold = 0.10
+
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
+        amp_norm = self.rms_chns[clusters.channels]
+
+        nc_pass, nc_value, first_bin_height = noise_cutoff(spikes.amps)
+
+        # Add scatter plot
+        density = axs[0].scatter_density(spikes.times, spikes.amps * 1e6, cmap=WHITE_VIRIDIS)
+        set_axis_style(axs[0], xlabel=xlabel, ylabel=ylabel)
+        axs[0].set_ylim([0, np.max(spikes.amps * 1e6)])
+
+        # Add histogram plot
+        n, bins, patches = axs[1].hist(spikes.amps * 1e6, np.linspace(0, np.max(spikes.amps * 1e6), n_bins),
+                                       color='#440053', orientation='horizontal')
+        percent_label = np.round(first_bin_height / np.max(n), 2) * 100
+        axs[1].axvline(x=percent_threshold * np.max(n))
+        axs[1].set_yticklabels([])
+        axs[1].set_ylim([0, np.max(spikes.amps * 1e6)])
+        set_axis_style(axs[1], xlabel='Count')
+
+        # Add second in a.u and add y axis on opposite die
+        ax2 = axs[1].twinx()
+        _ = ax2.hist(spikes.amps / amp_norm, np.linspace(0, np.max(spikes.amps / amp_norm), n_bins),
+                     color='w', linewidth=0, orientation='horizontal', alpha=0)
+        remove_spines(ax2, spines=['left', 'top'])
+        ax2.set_ylim([0, np.max(spikes.amps) / amp_norm])
+        ax2.set_ylabel('Amp (a.u.)', fontsize=12)
+
+        cbar = fig.colorbar(density, orientation="horizontal", ax=axs[2], fraction=0.6)
+        cbar.set_label('Number of points per pixel')
+        remove_spines(axs[2])
+        remove_frame(axs[2])
+
+        color = 'g' if nc_pass else 'r'
+        text = f'Cutoff metric value: {np.round(nc_value, 2)} \n' \
+               f' Low bin: {np.round(percent_label, 2)} % of peak'
+        axs[3].text(0.5, 0, text, size=12, ha="center", color=color)
+        remove_spines(axs[3])
+        remove_frame(axs[3])
 
     # dl = DataLoader()
     # dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
