@@ -161,8 +161,11 @@ def load_json(path):
         return json.load(f)
 
 
-def get_cluster_idx_from_xy(pid, cluster_idx, x, y):
-    df = pd.read_parquet(cluster_pixels_path(pid))
+def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc):
+    if qc:
+        df = pd.read_parquet(cluster_qc_pixels_path(pid))
+    else:
+        df = pd.read_parquet(cluster_pixels_path(pid))
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
     min_idx = np.argmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
@@ -219,8 +222,16 @@ def cluster_overview_path(pid, cluster_idx):
     return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.png'
 
 
+def cluster_qc_overview_path(pid, cluster_idx):
+    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}_qc.png'
+
+
 def cluster_pixels_path(pid):
     return session_cache_path(pid) / 'cluster_pixels.pqt'
+
+
+def cluster_qc_pixels_path(pid):
+    return session_cache_path(pid) / 'cluster_pixels_qc.pqt'
 
 
 def trial_intervals_path(pid):
@@ -300,20 +311,20 @@ class Generator:
         path = cluster_details_path(self.pid, cluster_idx)
         save_json(path, details)
 
-    # -------------------------------------------------------------------------------------------------
-    # SESSION OVERVIEW
-    # -------------------------------------------------------------------------------------------------
-
-    # FIGURE 1
-
     def get_subplot_position(self, ax1, ax2):
         xmin_ymax = ax1.get_position().corners()[1]
         xmax_ymin = ax2.get_position().corners()[2]
 
         return np.r_[xmin_ymax, xmax_ymin]
 
+    # -------------------------------------------------------------------------------------------------
+    # SESSION OVERVIEW
+    # -------------------------------------------------------------------------------------------------
+
+    # FIGURE 1
 
     def make_session_plot(self, force=False):
+
         path = session_overview_path(self.pid)
         if not force and path.exists():
             return
@@ -322,64 +333,9 @@ class Generator:
 
         try:
             fig = plt.figure(figsize=(15, 10))
-            gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[10, 4], wspace=0.2)
-
-            gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[1, 1, 8, 1, 1, 1],
-                                                   height_ratios=[1, 10], wspace=0.1)
-            ax1 = fig.add_subplot(gs0[0, 0])
-            ax2 = fig.add_subplot(gs0[1, 0])
-            ax3 = fig.add_subplot(gs0[0, 1])
-            ax4 = fig.add_subplot(gs0[1, 1])
-            ax5 = fig.add_subplot(gs0[0, 2])
-            ax6 = fig.add_subplot(gs0[1, 2])
-            ax7 = fig.add_subplot(gs0[0, 3])
-            ax8 = fig.add_subplot(gs0[1, 3])
-            ax9 = fig.add_subplot(gs0[0, 4])
-            ax10 = fig.add_subplot(gs0[1, 4])
-            ax11 = fig.add_subplot(gs0[0, 5])
-            ax12 = fig.add_subplot(gs0[1, 5])
-
-            loader.plot_good_bad_clusters(ax=ax2, ax_legend=ax1, xlabel='Amp (uV)')
-            loader.plot_spikes_amp_vs_depth_vs_firing_rate(ax=ax4, ax_cbar=ax3, xlabel='Amp (uV)')
-            loader.plot_session_raster(ax=ax6)
-            loader.plot_ap_rms(ax=ax8, ax_cbar=ax7)
-            loader.plot_lfp_spectrum(ax=ax10, ax_cbar=ax9)
-            loader.plot_brain_regions(ax=ax12)
-
-            ax4.get_yaxis().set_visible(False)
-            ax6.get_yaxis().set_visible(False)
-            ax8.get_yaxis().set_visible(False)
-            ax10.get_yaxis().set_visible(False)
-            remove_frame(ax5)
-            remove_frame(ax11)
-
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[4, 4, 4, 1], wspace=0.1)
-            ax13 = fig.add_subplot(gs1[0, 0])
-            ax14 = fig.add_subplot(gs1[0, 1])
-            ax15 = fig.add_subplot(gs1[0, 2])
-            ax16 = fig.add_subplot(gs1[0, 3])
-
-            loader.plot_raw_data(axs=[ax13, ax14, ax15], raster=False)
-            loader.plot_brain_regions(ax16)
-            ax16.set_ylim(20, 3840)
-
-            set_figure_style(fig)
-            fig.subplots_adjust(top=1.02, bottom=0.05)
-
-            fig.savefig(path)
-            plt.close(fig)
-
-        except Exception as e:
-            print(f"error with session overview plot {self.pid}: {str(e)}")
-
-    def make_session_plot_qc(self, force=False):
-        # TODO save path
-        loader = self.dl
-
-        try:
-            fig = plt.figure(figsize=(15, 10))
             gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.2)
 
+            # First row
             gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[8, 1, 1, 1, 1, 1],
                                                    height_ratios=[1, 10], hspace=0.3, wspace=0.1)
             gs0_ax1 = fig.add_subplot(gs0[0, 0])
@@ -409,9 +365,10 @@ class Generator:
             remove_frame(gs0_ax1)
             remove_frame(gs0_ax11)
 
+            # Second row
             gs1 = gridspec.GridSpecFromSubplotSpec(1, 6, subplot_spec=gs[1], width_ratios=[8, 1, 1, 1, 1, 1],
                                                    wspace=0.1)
-            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 1, 3, 1])
+            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 3, 1, 3])
             ax_a = fig.add_subplot(gs11[0, 0])
             ax_b = fig.add_subplot(gs11[1, 0])
             ax_c = fig.add_subplot(gs11[2, 0])
@@ -419,7 +376,8 @@ class Generator:
 
             gs13 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 2])
             ax_leg = fig.add_subplot(gs13[0])
-            loader.plot_session_behaviour(axs=[ax_a, ax_b, ax_c, ax_d], ax_legend=ax_leg)
+            loader.plot_session_reaction_time(ax=ax_a)
+            loader.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
 
             ax_a.sharex(gs0_ax2)
             ax_b.sharex(gs0_ax2)
@@ -431,9 +389,9 @@ class Generator:
 
             gs14 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 3:])
             ax_cor = fig.add_subplot(gs14[0])
-
             loader.plot_coronal_slice(ax_cor)
 
+            # Third row
             gs2 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[2], width_ratios=[4, 4, 4, 1], wspace=0.1)
             ax13 = fig.add_subplot(gs2[0, 0])
             ax14 = fig.add_subplot(gs2[0, 1])
@@ -452,6 +410,7 @@ class Generator:
             print(f"error with session overview plot {self.pid}: {str(e)}")
 
     # FIGURE 2
+
     def make_behavior_plot(self, force=False):
 
         path = behaviour_overview_path(self.pid)
@@ -546,6 +505,7 @@ class Generator:
         plt.close(fig)
 
     # FIGURE 4
+
     def make_trial_event_plot(self, force=False):
         path = trial_event_overview_path(self.pid)
         if not force and path.exists():
@@ -701,10 +661,15 @@ class Generator:
 
         plt.close(fig)
 
-    def make_cluster_qc_plot(self, cluster_idx):
-        # TODO figure out save path
+    def make_cluster_qc_plot(self, cluster_idx, force=False):
+
+        path = cluster_qc_overview_path(self.pid, cluster_idx)
+        if not force and path.exists():
+            return
+        logger.debug(f"making cluster qc overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
+
         loader = self.dl
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(15.24, 10))
 
         gs = gridspec.GridSpec(2, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
 
@@ -727,7 +692,7 @@ class Generator:
         gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 3])
         ax11 = fig.add_subplot(gs3[0])
 
-        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
+        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)', type='all')
 
         loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
         loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
@@ -764,6 +729,25 @@ class Generator:
         loader.plot_sliding_rp(cluster_idx, axs=[gs01_ax1, gs01_ax2, gs01_ax0])
 
         set_figure_style_all(fig)
+
+        fig.savefig(path)
+
+        path_scat = cluster_qc_pixels_path(self.pid)
+        if not path_scat.exists():
+            idx = np.argsort(loader.clusters.depths)[::-1]
+            pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
+                                                        loader.clusters.depths[idx].astype(np.float64)]).T)
+            width, height = fig.canvas.get_width_height()
+            pixels[:, 0] /= width
+            pixels[:, 1] /= height
+            df = pd.DataFrame()
+            # Sort by depth so they are in the same order as the cluster selector drop down
+            df['cluster_id'] = loader.clusters.cluster_id[idx].astype(np.int32)
+            df['x'] = pixels[:, 0]
+            df['y'] = pixels[:, 1]
+            df.to_parquet(path_scat)
+
+        plt.close(fig)
 
     # Plot generator functions
     # -------------------------------------------------------------------------------------------------

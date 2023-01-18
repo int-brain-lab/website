@@ -253,7 +253,7 @@ function getUnique(array) {
 
 
 function filter_by_good(_, index) {
-        return this[index] === true;
+    return this[index] === true;
 };
 
 
@@ -603,7 +603,6 @@ async function selectSession(pid) {
     var trial_ids = details['_trial_ids']
     var good_idx = details["_good_ids"];
 
-
     if (CTX.qc) {
         var cluster_ids = details["_cluster_ids"];
         var acronyms = details["_acronyms"];
@@ -816,7 +815,7 @@ async function onClusterClick(canvas, event) {
     const rect = canvas.getBoundingClientRect()
     const x = (event.clientX - rect.left) / rect.width
     const y = Math.abs((event.clientY - rect.bottom)) / rect.height
-    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}`;
+    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}/${CTX.qc}`;
     var r = await fetch(url);
     var details = await r.json();
 
@@ -833,7 +832,12 @@ async function onClusterClick(canvas, event) {
 async function selectCluster(pid, cid) {
     console.log(`select cluster #${cid}`);
     CTX.cid = cid;
-    var url = `/api/session/${pid}/cluster_plot/${cid}`;
+
+    if (CTX.qc) {
+        var url = `/api/session/${pid}/cluster_qc_plot/${cid}`;
+    } else{
+        var url = `/api/session/${pid}/cluster_plot/${cid}`;
+    }
     showImage('clusterPlot', url);
 
     // Show information about cluster in table

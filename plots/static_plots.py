@@ -546,6 +546,8 @@ class DataLoader:
         cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
         cbar.set_label(data['labels']['clabel'])
         remove_frame(ax_cbar)
+        ticks = cbar.get_ticks()
+        cbar.set_ticks([ticks[0], ticks[-1]])
 
         return fig
 
@@ -585,8 +587,10 @@ class DataLoader:
         cbar = fig.colorbar(im, orientation="horizontal", ax=ax_cbar)
         cbar.set_label(data['labels']['clabel'])
         remove_frame(ax_cbar)
+        ticks = cbar.get_ticks()
+        cbar.set_ticks([ticks[0], ticks[-1]])
 
-        return fig
+        return fig, cbar
 
     def plot_raw_data(self, axs=None, raster=True):
 
@@ -624,7 +628,7 @@ class DataLoader:
 
             _ = Density(-raw_ephys[:, :, iT], fs=fs, taxis=1, ax=ax, vmin=vmin, vmax=vmax, cmap=cmap)
             ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
-            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], c='g', alpha=0.8, s=3)
+            ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], color='g', alpha=1, s=3)
             ax.set_title(f'T = {time} s')
             ax.images[0].set_extent([0, 50, 20, 3840])
             if not raster and iT != 0:
@@ -665,49 +669,45 @@ class DataLoader:
 
         return fig
 
-    def plot_session_behaviour(self, axs=None, ax_legend=None):
+    def plot_session_contrasts(self, axs=None, ax_legend=None):
 
         if axs is None:
-            fig, axs = plt.subplots(4, 1, sharex=True, gridspec_kw={'height_ratios': [2, 1, 3, 1], 'hspace': 0.1})
+            fig, axs = plt.subplots(3, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1, 3], 'hspace': 0.1})
         else:
             fig = axs[0].get_figure()
 
         contrasts = np.nansum(np.c_[-1 * self.trials['contrastLeft'], self.trials['contrastRight']], axis=1)
-        reaction_time = self.trials['response_times'] - self.trials['stimOn_times']
-        correct_idx = np.where(self.trials.feedbackType == 1)[0]
-        incorrect_idx = np.where(self.trials.feedbackType == -1)[0]
 
-        axs[0].scatter(self.trials['stimOn_times'][correct_idx], reaction_time[correct_idx], facecolors='none', edgecolors='g',
-                       s=7)
-        axs[0].scatter(self.trials['stimOn_times'][incorrect_idx], reaction_time[incorrect_idx], facecolors='none', marker='x',
-                       c='r', s=7)
-        axs[0].set_yscale('log')
-        axs[0].set_ylim(0.1, 100)
-        axs[0].set_yticks([1, 100])
-        axs[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        right_correct_trials = np.bitwise_and(contrasts > 0, self.trials.feedbackType == 1)
+        right_incorrect_trials = np.bitwise_and(contrasts > 0, self.trials.feedbackType == -1)
+        left_correct_trials = np.bitwise_and(contrasts < 0, self.trials.feedbackType == 1)
+        left_incorrect_trials = np.bitwise_and(contrasts < 0, self.trials.feedbackType == -1)
+        zero_correct_trials = np.bitwise_and(contrasts == 0, self.trials.feedbackType == 1)
+        zero_incorrect_trials = np.bitwise_and(contrasts == 0, self.trials.feedbackType == -1)
 
-        axs[1].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100,
-                       facecolors='none', edgecolors='g', s=9)
-        axs[1].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100,
+        axs[0].scatter(self.trials['stimOn_times'][right_correct_trials], contrasts[right_correct_trials] * 100,
+                       facecolors='none', edgecolors='b', s=9)
+        axs[0].scatter(self.trials['stimOn_times'][right_incorrect_trials], contrasts[right_incorrect_trials] * 100,
                        marker='x', c='r', s=9)
 
-        axs[2].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100,
-                       facecolors='none', edgecolors='g', s=9)
-        axs[2].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100, marker='x', c='r', s=9)
+        axs[1].scatter(self.trials['stimOn_times'][zero_correct_trials], contrasts[zero_correct_trials] * 100,
+                       facecolors='none', edgecolors='b', s=9)
+        axs[1].scatter(self.trials['stimOn_times'][zero_incorrect_trials], contrasts[zero_incorrect_trials] * 100,
+                       marker='x', c='r', s=9)
 
-        axs[3].scatter(self.trials['stimOn_times'][correct_idx], contrasts[correct_idx] * 100, facecolors='none', edgecolors='g', s=9)
-        axs[3].scatter(self.trials['stimOn_times'][incorrect_idx], contrasts[incorrect_idx] * 100, marker='x', c='r', s=9)
-
+        axs[2].scatter(self.trials['stimOn_times'][left_correct_trials], np.abs(contrasts[left_correct_trials]) * 100,
+                       facecolors='none', edgecolors='b', s=9)
+        axs[2].scatter(self.trials['stimOn_times'][left_incorrect_trials], np.abs(contrasts[left_incorrect_trials]) * 100,
+                       marker='x', c='r', s=9)
 
         dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
         blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
 
-        cmap = sns.diverging_palette(20, 220, n=3, center="dark")
-        colours = np.full((blocks.shape[0], 3), np.array([*cmap[0]]))
-        colours[np.where(blocks == 0.5)] = np.array([*cmap[1]])
-        colours[np.where(blocks == 0.8)] = np.array([*cmap[2]])
+        colours = np.full((blocks.shape[0], 3), np.array([*CMAP[0]]))
+        colours[np.where(blocks == 0.5)] = np.array([*CMAP[1]])
+        colours[np.where(blocks == 0.8)] = np.array([*CMAP[2]])
 
-        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]] # sometimes last trial is nan
+        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]]  # sometimes last trial is nan
         for ax in axs:
             for iD in range(len(dividers) - 1):
                 ax.fill_betweenx([-100, 100],
@@ -715,46 +715,86 @@ class DataLoader:
                                  [self.trials.stimOn_times[dividers[iD]], self.trials.stimOn_times[dividers[iD]]], color=colours[iD],
                                  alpha=0.2)
 
-        axs[1].set_yticks([-100, -25, 0, 25, 100])
-        axs[2].set_yticks([-100, -25, 0, 25, 100])
-        axs[3].set_yticks([-100, -25, 0, 25, 100])
+        axs[0].set_yscale('log')
+        axs[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        axs[0].yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        axs[0].set_yticks([25, 100])
+        axs[0].minorticks_off()
 
-        axs[1].set_ylim(95, 101)
-        axs[2].set_ylim(-40, 40)
-        axs[3].set_ylim(-101, -95)
+        axs[1].set_yticks([0])
+        axs[1].set_ylim(-1, 1)
 
-        # hide the spines between ax and ax2
+        axs[2].set_yscale('log')
+        axs[2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        axs[2].yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        axs[2].set_yticks([25, 100])
+        axs[2].invert_yaxis()
+        axs[2].minorticks_off()
+
         axs[0].xaxis.tick_top()
-        set_axis_style(axs[0], ylabel='RT (s)')
+        remove_spines(axs[0], spines=['bottom', 'right'])
+        axs[0].set_xticklabels([])
+        axs[0].set_ylabel('Right', fontdict={'size': 10}, labelpad=-2)
         axs[0].spines['top'].set_visible(True)
-        remove_spines(axs[0], spines=['bottom'])
 
-        axs[1].xaxis.tick_top()
-        remove_spines(axs[1], spines=['bottom', 'right'])
-        axs[1].set_xticklabels([])
+        remove_spines(axs[1], spines=['bottom', 'right', 'top'])
+        axs[1].axes.get_xaxis().set_visible(False)
+        axs[1].set_ylabel('Contrasts (%)', fontdict={'size': 12}, labelpad=25)
 
-        remove_spines(axs[2], spines=['bottom', 'right', 'top'])
-        set_axis_style(axs[2], ylabel='Contrasts (%)')
+        axs[2].set_ylabel('Left', fontdict={'size': 10}, labelpad=-2)
         axs[2].axes.get_xaxis().set_visible(False)
-        axs[3].axes.get_xaxis().set_visible(False)
-        remove_spines(axs[3], spines=['bottom', 'right', 'top'])
-
-        d = .5  # proportion of vertical to horizontal extent of the slanted line
-        kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
-                      linestyle="none", color='k', mec='k', mew=1, clip_on=False)
-        axs[1].plot(0, 0, transform=axs[1].transAxes, **kwargs)
-        axs[2].plot([0, 0], [0, 1], transform=axs[2].transAxes, **kwargs)
-        axs[3].plot(0, 1, transform=axs[3].transAxes, **kwargs)
-
+        remove_spines(axs[2], spines=['bottom', 'right', 'top'])
 
         legend_elements = [Line2D([0], [0], color=CMAP[0], lw=4, alpha=0.5, label='20 % of trials on left side'),
                            Line2D([0], [0], color=CMAP[1], lw=4, alpha=0.5, label='equal % of trials on both sides'),
                            Line2D([0], [0], color=CMAP[2], lw=4, alpha=0.5, label='80 % of trials on left side'),
-                           Line2D([0], [0], color='w', marker='o', markeredgecolor='g', label='correct', markersize=10),
+                           Line2D([0], [0], color='w', marker='o', markeredgecolor='b', label='correct', markersize=10),
                            Line2D([0], [0], color='w', marker='x', markeredgecolor='r', label='incorrect', markersize=10)]
 
         ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
         remove_frame(ax_legend)
+
+        return fig
+
+    def plot_session_reaction_time(self, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        reaction_time = self.trials['response_times'] - self.trials['stimOn_times']
+        correct_idx = np.where(self.trials.feedbackType == 1)[0]
+        incorrect_idx = np.where(self.trials.feedbackType == -1)[0]
+
+        ax.scatter(self.trials['stimOn_times'][correct_idx], reaction_time[correct_idx], facecolors='none', edgecolors='b',
+                   s=7)
+        ax.scatter(self.trials['stimOn_times'][incorrect_idx], reaction_time[incorrect_idx], facecolors='none', marker='x',
+                   c='r', s=7)
+        ax.set_yscale('log')
+        ax.set_yticks([1, 10])
+        ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.minorticks_off()
+
+        dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
+        blocks = self.trials['probabilityLeft'][np.r_[0, dividers + 1]]
+
+        colours = np.full((blocks.shape[0], 3), np.array([*CMAP[0]]))
+        colours[np.where(blocks == 0.5)] = np.array([*CMAP[1]])
+        colours[np.where(blocks == 0.8)] = np.array([*CMAP[2]])
+
+        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]]  # sometimes last trial is nan
+        for iD in range(len(dividers) - 1):
+            ax.fill_betweenx([-100, 100],
+                             [self.trials.stimOn_times[dividers[iD + 1]], self.trials.stimOn_times[dividers[iD + 1]]],
+                             [self.trials.stimOn_times[dividers[iD]], self.trials.stimOn_times[dividers[iD]]], color=colours[iD],
+                             alpha=0.2)
+
+        ax.xaxis.tick_top()
+        set_axis_style(ax, ylabel='RT (s)', fontsize=11)
+        ax.spines['top'].set_visible(True)
+        remove_spines(ax, spines=['bottom'])
 
         return fig
 
@@ -766,8 +806,16 @@ class DataLoader:
             fig = ax.get_figure()
 
         ins = Insertion.from_dict(self.session_info, brain_atlas=BRAIN_ATLAS)
+
+        # def crawl_up_from_tip(ins, d):
+        #     return (ins.entry - ins.tip) * (d[:, np.newaxis] /
+        #                                     np.linalg.norm(ins.entry - ins.tip)) + ins.tip
+        # d = np.array([200, 200 + 3840])
+        # top_bottom = crawl_up_from_tip(ins, d / 1e6)
+
         ax, sec_ax = BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
         ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
+        # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
         remove_frame(ax)
         sec_ax.get_yaxis().set_visible(False)
 
@@ -1389,9 +1437,9 @@ class DataLoader:
          firingRate, xx] = slidingRP(spikes.times)
 
         acg = nACG[0:rp.size]  # only use values of the acg for which the metric was computed
-        rp_plot = np.r_[-1 * np.flip(rp), rp] * 1000
+        rp_plot = np.r_[-1 * np.flip(rp), rp, np.array([rp[-1] + np.mean(np.diff(rp))])] * 1000
         acg_plot = np.r_[np.flip(acg), acg]
-        axs[0].bar(rp_plot, acg_plot, width=np.diff(rp)[0]*1000, color='k')
+        axs[0].stairs(acg_plot, rp_plot, fill=True, color='k')
 
         set_axis_style(axs[0], xlabel='T from spike (ms)', ylabel='ACG count (spks)')
 
@@ -1418,7 +1466,7 @@ class DataLoader:
             axs[1].plot(rp * 1000, contContour, 'r', linewidth=2)
 
         set_axis_style(axs[1], xlabel='T from spike (ms)', ylabel='Contamination (%)')
-        axs[1].set_ylim([0, 10])
+        axs[1].set_xlim([0, 10])
 
         text = f'FR: {np.round(firingRate, 2)} Hz, Max conf: {np.round(maxConfidenceAt10Cont, 2)}, ' \
                f'Min cont: {np.round(minContWith90Confidence)}, Time: {np.round(timeOfLowestCont * 1000, 2)} ms'
@@ -1432,6 +1480,8 @@ class DataLoader:
         axs[2].text(0.5, 0, text, size=12, ha="center", color=color)
         remove_spines(axs[2])
         remove_frame(axs[2])
+
+        return fig
 
     def plot_noise_cutoff(self, cluster_idx, axs=None, xlabel='T in session (s)', ylabel='Amp (uV)'):
 
@@ -1488,6 +1538,8 @@ class DataLoader:
         axs[3].text(0.5, 0, text, size=12, ha="center", color=color)
         remove_spines(axs[3])
         remove_frame(axs[3])
+
+        return fig
 
     # dl = DataLoader()
     # dl.session_init('decc8d40-cf74-4263-ae9d-a0cc68b47e86')
