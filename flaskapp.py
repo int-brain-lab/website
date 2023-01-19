@@ -147,7 +147,7 @@ def make_app():
     def cluster_details(pid, cluster_idx):
         return load_json(cluster_details_path(pid, cluster_idx))
 
-    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float:x>_<float:y>/<bool:qc>')
+    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float:x>_<float:y>/<int:qc>')
     def cluster_from_xy(pid, cluster_idx, x, y, qc):
         cluster_idx, idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc)
         return {

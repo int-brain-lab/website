@@ -162,12 +162,12 @@ def load_json(path):
 
 
 def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc):
-    if qc:
+    if qc == 1:
         df = pd.read_parquet(cluster_qc_pixels_path(pid))
     else:
         df = pd.read_parquet(cluster_pixels_path(pid))
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
-    min_idx = np.argmin(norm_dist)
+    min_idx = np.nanargmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
         return df.iloc[min_idx].cluster_id, min_idx
     else:
@@ -280,6 +280,8 @@ class Generator:
         self.n_trials = len(self.trial_idxs)
         self.cluster_idxs = self.session_details['_cluster_ids']
         self.n_clusters = len(self.cluster_idxs)
+        self.good_cluster_idxs = np.array(self.session_details['_cluster_ids'])[np.array(self.session_details['_good_ids'])]
+        self.n_good_clusters = len(self.good_cluster_idxs)
 
     # Iterators
     # -------------------------------------------------------------------------------------------------
@@ -293,8 +295,14 @@ class Generator:
     def first_cluster(self):
         return sorted(self.cluster_idxs)[0]
 
+    def first_good_cluster(self):
+        return sorted(self.good_cluster_idxs)[0]
+
     def iter_cluster(self):
         yield from sorted(self.cluster_idxs)
+
+    def iter_good_cluster(self):
+        yield from sorted(self.good_cluster_idxs)
 
     # Saving JSON details
     # -------------------------------------------------------------------------------------------------
@@ -769,16 +777,31 @@ class Generator:
 
     def make_all_cluster_plots(self, force=False):
 
-        path = cluster_overview_path(self.pid, self.first_cluster())
+        path = cluster_overview_path(self.pid, self.first_good_cluster())
         if not force and path.exists():
             logger.debug("Skipping cluster plot generation as they seem to already exist")
             return
 
         desc = "Making all cluster plots"
-        for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
+        for cluster_idx in tqdm(self.iter_good_cluster(), total=self.n_good_clusters, desc=desc):
             self.save_cluster_details(cluster_idx)
             try:
                 self.make_cluster_plot(cluster_idx, force=force)
+            except Exception as e:
+                print(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
+
+    def make_all_cluster_qc_plots(self, force=False):
+
+        path = cluster_qc_overview_path(self.pid, self.first_cluster())
+        if not force and path.exists():
+            logger.debug("Skipping cluster plot generation as they seem to already exist")
+            return
+
+        desc = "Making all cluster qc plots"
+        for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
+            self.save_cluster_details(cluster_idx)
+            try:
+                self.make_cluster_qc_plot(cluster_idx, force=force)
             except Exception as e:
                 print(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
 
@@ -806,6 +829,9 @@ class Generator:
 
         # Figure 5 (one plot per cluster)
         self.make_all_cluster_plots(force=5 in nums)
+
+        # Figure 5 QC (one plot per cluster)
+        self.make_all_cluster_qc_plots(force=6 in nums)
 
 
 def make_all_plots(pid, nums=()):
