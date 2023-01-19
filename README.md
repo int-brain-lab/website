@@ -1,5 +1,7 @@
 # IBL public website
 
+Note: a generic (non strictly IBL) version of this repository can be found [in the `generic` branch](https://github.com/int-brain-lab/website/tree/generic).
+
 ## Development notes
 
 * Install Python requirements
