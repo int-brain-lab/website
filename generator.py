@@ -274,6 +274,13 @@ def iter_session():
 #     save_json(figure_details_path(), details, indent=2)
 
 
+def get_subplot_position(ax1, ax2):
+    xmin_ymax = ax1.get_position().corners()[1]
+    xmax_ymin = ax2.get_position().corners()[2]
+
+    return np.r_[xmin_ymax, xmax_ymin]
+
+
 # -------------------------------------------------------------------------------------------------
 # Plot and JSON generator
 # -------------------------------------------------------------------------------------------------
@@ -338,19 +345,13 @@ class Generator:
         path = cluster_details_path(self.pid, cluster_idx)
         save_json(path, details)
 
-    def get_subplot_position(self, ax1, ax2):
-        xmin_ymax = ax1.get_position().corners()[1]
-        xmax_ymin = ax2.get_position().corners()[2]
-
-        return np.r_[xmin_ymax, xmax_ymin]
-
     # -------------------------------------------------------------------------------------------------
     # SESSION OVERVIEW
     # -------------------------------------------------------------------------------------------------
 
     # FIGURE 1
 
-    def make_session_plot(self, force=False):
+    def make_session_plot(self, force=False, captions=False):
 
         path = session_overview_path(self.pid)
         if not force and path.exists():
@@ -602,7 +603,20 @@ class Generator:
         set_figure_style(fig)
 
         if captions:
-            lala = 1
+            subplots = []
+            fig_pos = get_subplot_position(ax1, ax1)
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax2, ax2)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax3, ax3)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax4, ax4)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax5, ax5)
+            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+
+            df = pd.DataFrame.from_dict(subplots)
+            df.to_parquet(caption_path('figure3'))
         else:
             fig.savefig(path)
 
@@ -744,16 +758,14 @@ class Generator:
             subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax8, ax9)
             subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax10, ax10)
+            fig_pos = get_subplot_position(ax10, ax11)
             subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax11, ax11)
-            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax12, ax12)
-            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax13, ax13)
-            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax14, ax14)
-            subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             df = pd.DataFrame.from_dict(subplots)
 
             df.to_parquet(caption_path('figure5'))
@@ -866,7 +878,6 @@ class Generator:
             subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
             df = pd.DataFrame.from_dict(subplots)
-
             df.to_parquet(caption_path('figure5_qc'))
         else:
             fig.savefig(path)
@@ -967,17 +978,17 @@ class Generator:
     def make_captions(self):
         self.make_session_plot(force=True, captions=True)
         self.make_behavior_plot(force=True, captions=True)
-        self.make_trial_plot(1, force=True, captions=True)
+        self.make_trial_plot(self.trial_idxs[0], force=True, captions=True)
         self.make_trial_event_plot(force=True, captions=True)
-        self.make_cluster_plot(1, force=True, captions=True)
-        self.make_cluster_qc_plot(1, force=True, captions=True)
+        self.make_cluster_plot(self.good_cluster_idxs[0], force=True, captions=True)
+        self.make_cluster_qc_plot(self.good_cluster_idxs[0], force=True, captions=True)
 
         caption_json = {}
         for fig in CAPTIONS.keys():
             df = pd.read_parquet(caption_path(fig))
             fig_panels = {}
             for _, row in df.iterrows():
-                fig_panels[row['panel']] = {'coords': [row['xmim'], 1 - row['ymax'], row['xmax'], 1 - row['ymin']],
+                fig_panels[row['panel']] = {'coords': (row['xmin'], 1 - row['ymax'], row['xmax'], 1 - row['ymin']),
                                             'legend': CAPTIONS[fig][row['panel']]}
 
             caption_json[fig] = fig_panels
