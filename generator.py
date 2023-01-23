@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from plots.static_plots import *
+from plots.captions import CAPTIONS
 
 
 # -------------------------------------------------------------------------------------------------
@@ -242,6 +243,10 @@ def trial_intervals_path(pid):
     return session_cache_path(pid) / f'trial_intervals.pqt'
 
 
+def caption_path(figure):
+    return CACHE_DIR.joinpath(f'{figure}_px_locations.pqt')
+
+
 # -------------------------------------------------------------------------------------------------
 # Session iterator
 # -------------------------------------------------------------------------------------------------
@@ -426,14 +431,42 @@ class Generator:
 
             set_figure_style_all(fig)
 
-            fig.savefig(path)
+            if captions:
+                subplots = []
+                fig_pos = get_subplot_position(gs0_ax1, gs0_ax2)
+                subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax3, gs0_ax4)
+                subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax5, gs0_ax6)
+                subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax7, gs0_ax8)
+                subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax9, gs0_ax10)
+                subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
+                subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(ax_a, ax_d)
+                subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(ax_cor, ax_cor)
+                subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(ax13, ax15)
+                subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(ax16, ax16)
+                subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+
+                df = pd.DataFrame.from_dict(subplots)
+                df.to_parquet(caption_path('figure1'))
+            else:
+
+                fig.savefig(path)
+
             plt.close(fig)
         except Exception as e:
             print(f"error with session overview plot {self.pid}: {str(e)}")
 
     # FIGURE 2
 
-    def make_behavior_plot(self, force=False):
+    def make_behavior_plot(self, force=False, captions=False):
 
         path = behaviour_overview_path(self.pid)
         if not force and path.exists():
@@ -498,9 +531,34 @@ class Generator:
         ax13.sharex(ax14)
         ax15.sharex(ax16)
 
-        set_figure_style(fig)
+        set_figure_style_all(fig, top=0.95)
 
-        fig.savefig(path)
+        if captions:
+            subplots = []
+            fig_pos = get_subplot_position(ax1, ax1)
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax3, ax3)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax4, ax4)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax5, ax6)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax7, ax8)
+            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax9, ax10)
+            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax11, ax12)
+            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax13, ax14)
+            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax15, ax16)
+            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+
+            df = pd.DataFrame.from_dict(subplots)
+            df.to_parquet(caption_path('figure2'))
+        else:
+            fig.savefig(path)
+
         plt.close(fig)
 
     # -------------------------------------------------------------------------------------------------
@@ -509,49 +567,50 @@ class Generator:
 
     # FIGURE 3
 
-    def make_trial_plot(self, trial_idx, force=False):
+    def make_trial_plot(self, trial_idx, force=False, captions=False):
         path = trial_overview_path(self.pid, trial_idx)
         if not force and path.exists():
             return
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
         loader = self.dl
 
-        fig = plt.figure(figsize=(12, 20))
+        fig = plt.figure(figsize=(12, 5))
 
-        gs = gridspec.GridSpec(6, 3, figure=fig, width_ratios=[7.5, 15,1], hspace= 0.4, wspace=0.05)
-        # gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[0], width_ratios=[4, 1, 4, 4], wspace=0.4)
+        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[7.5, 15, 1], height_ratios=[8, 3], hspace=0.05, wspace=0.05)
         ax1 = fig.add_subplot(gs[0, 0])
         ax2 = fig.add_subplot(gs[0, 1])
         ax3 = fig.add_subplot(gs[0, 2])
-        ax4 = fig.add_subplot(gs[1, 1])
-        ax5 = fig.add_subplot(gs[2, 1])
-        ax6 = fig.add_subplot(gs[3, 1])
-        ax7 = fig.add_subplot(gs[4, 1])
-        ax8 = fig.add_subplot(gs[5, 1])
 
-        # fig, axs = plt.subplots(1, 3, figsize=(12, 5), gridspec_kw={'width_ratios': [5, 10, 1], 'wspace': 0.05})
-        # loader.plot_session_raster(trial_idx=trial_idx, ax=axs[0], xlabel='T in session (s)')
-        # loader.plot_trial_raster(trial_idx=trial_idx, ax=axs[1], xlabel='T in trial(s)')
-        # axs[1].get_yaxis().set_visible(False)
-        # loader.plot_brain_regions(axs[2])
         loader.plot_session_raster(trial_idx=trial_idx, ax=ax1, xlabel='T in session (s)')
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=ax2, xlabel='T in trial(s)')
+        loader.plot_trial_raster(trial_idx=trial_idx, ax=ax2, xlabel=None)
         ax2.get_yaxis().set_visible(False)
         loader.plot_brain_regions(ax3)
-        loader.plot_wheel_trace(trial_idx=trial_idx, ax=ax4)
-        loader.plot_dlc_feature_trace('left', 'paw_r_speed', trial_idx, ax=ax5, xlabel='T in trial(s)', ylabel='Speed (px/s)') 
-        loader.plot_dlc_feature_trace('left', 'nose_tip_speed', trial_idx, ax=ax6, xlabel='T in trial(s)', ylabel='Speed (px/s)')
-        loader.plot_dlc_feature_trace('left', 'motion_energy', trial_idx, ax=ax7, xlabel='T in trial(s)', ylabel='ME (z-score)')
-        loader.plot_dlc_feature_trace('left', 'pupilDiameter_smooth', trial_idx, ax=ax8, xlabel='T in trial(s)', ylabel='Pupil (z-score)')
+
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], hspace=0.1)
+        ax4 = fig.add_subplot(gs1[0, 0])
+        ax5 = fig.add_subplot(gs1[1, 0])
+
+        loader.plot_wheel_trace(trial_idx=trial_idx, ax=ax4, ylabel='Wheel pos (rad)', xlabel=None)
+        loader.plot_dlc_feature_trace('left', 'paw_r_speed', trial_idx, ax=ax5, xlabel='T in trial (s)', ylabel='Paw speed (px/s)')
+
+        ax4.sharex(ax2)
+        ax5.sharex(ax2)
+
+        plt.setp(ax2.get_xticklabels(), visible=False)
+        plt.setp(ax4.get_xticklabels(), visible=False)
 
         set_figure_style(fig)
 
-        fig.savefig(path)
+        if captions:
+            lala = 1
+        else:
+            fig.savefig(path)
+
         plt.close(fig)
 
     # FIGURE 4
 
-    def make_trial_event_plot(self, force=False):
+    def make_trial_event_plot(self, force=False, captions=False):
         path = trial_event_overview_path(self.pid)
         if not force and path.exists():
             return
@@ -571,14 +630,31 @@ class Generator:
         loader.plot_brain_regions(ax=ax5)
         set_figure_style(fig)
 
-        fig.savefig(path)
-        plt.close(fig)
+        if captions:
 
-        path_interval = trial_intervals_path(self.pid)
-        df = pd.DataFrame()
-        df['t0'] = loader.trial_intervals[:, 0]
-        df['t1'] = loader.trial_intervals[:, 1]
-        df.to_parquet(path_interval)
+            subplots = []
+            fig_pos = get_subplot_position(ax1, ax1)
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax2, ax2)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax3, ax3)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax4, ax4)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+
+            df = pd.DataFrame.from_dict(subplots)
+            df.to_parquet(caption_path('figure4'))
+        else:
+            fig.savefig(path)
+
+            path_interval = trial_intervals_path(self.pid)
+            df = pd.DataFrame()
+            df['t0'] = loader.trial_intervals[:, 0]
+            df['t1'] = loader.trial_intervals[:, 1]
+            df.to_parquet(path_interval)
+
+
+        plt.close(fig)
 
     # -------------------------------------------------------------------------------------------------
     # SINGLE CLUSTER OVERVIEW
@@ -586,7 +662,7 @@ class Generator:
 
     # FIGURE 5
 
-    def make_cluster_plot(self, cluster_idx, force=False):
+    def make_cluster_plot(self, cluster_idx, force=False, captions=False):
         path = cluster_overview_path(self.pid, cluster_idx)
         if not force and path.exists():
             return
@@ -655,58 +731,53 @@ class Generator:
 
         fig.savefig(path)
 
-        # df = pd.DataFrame()
-        # subplots = []
-        # fig_pos = get_subplot_position(ax1, ax1)
-        # subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax2, ax3)
-        # subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax4, ax5)
-        # subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax6, ax7)
-        # subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax8, ax9)
-        # subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax10, ax10)
-        # subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax11, ax11)
-        # subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax12, ax12)
-        # subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax13, ax13)
-        # subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # fig_pos = get_subplot_position(ax14, ax14)
-        # subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-        # df = pd.DataFrame.from_dict(subplots)
-        #
-        #
-        # A = get_subplot_position(ax1, ax2)
-        # B = get_subplot_position(ax3, ax4)
-        # C = get_subplot_position(ax5, ax6)
-        # D = get_subplot_position(ax7, ax8)
-        # E = get_subplot_position(ax9, ax10)
-        # F = get_subplot_position(ax11, ax11)
-        # G = get_subplot_position(ax13, ax15)
-        # H = get_subplot_position(ax16, ax16)
+        if captions:
 
-        path_scat = cluster_pixels_path(self.pid)
-        if not path_scat.exists():
-            idx = np.argsort(loader.clusters_good.depths)[::-1]
-            pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
-                                                        loader.clusters_good.depths[idx].astype(np.float64)]).T)
-            width, height = fig.canvas.get_width_height()
-            pixels[:, 0] /= width
-            pixels[:, 1] /= height
-            df = pd.DataFrame()
-            # Sort by depth so they are in the same order as the cluster selector drop down
-            df['cluster_id'] = loader.clusters_good.cluster_id[idx].astype(np.int32)
-            df['x'] = pixels[:, 0]
-            df['y'] = pixels[:, 1]
-            df.to_parquet(path_scat)
+            subplots = []
+            fig_pos = get_subplot_position(ax1, ax1)
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax2, ax3)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax4, ax5)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax6, ax7)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax8, ax9)
+            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax10, ax10)
+            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax11, ax11)
+            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax12, ax12)
+            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax13, ax13)
+            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax14, ax14)
+            subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            df = pd.DataFrame.from_dict(subplots)
+
+            df.to_parquet(caption_path('figure5'))
+        else:
+            fig.savefig(path)
+
+            path_scat = cluster_pixels_path(self.pid)
+            if not path_scat.exists():
+                idx = np.argsort(loader.clusters_good.depths)[::-1]
+                pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
+                                                            loader.clusters_good.depths[idx].astype(np.float64)]).T)
+                width, height = fig.canvas.get_width_height()
+                pixels[:, 0] /= width
+                pixels[:, 1] /= height
+                df = pd.DataFrame()
+                # Sort by depth so they are in the same order as the cluster selector drop down
+                df['cluster_id'] = loader.clusters_good.cluster_id[idx].astype(np.int32)
+                df['x'] = pixels[:, 0]
+                df['y'] = pixels[:, 1]
+                df.to_parquet(path_scat)
 
         plt.close(fig)
 
-    def make_cluster_qc_plot(self, cluster_idx, force=False):
+    def make_cluster_qc_plot(self, cluster_idx, force=False, captions=False):
 
         path = cluster_qc_overview_path(self.pid, cluster_idx)
         if not force and path.exists():
@@ -721,6 +792,8 @@ class Generator:
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
         ax1 = fig.add_subplot(gs0[0, 0])
 
+        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)', type='all')
+
         gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 1], height_ratios=[1, 3], hspace=0, wspace=0.2)
         ax2 = fig.add_subplot(gs1[0, 0])
         ax3 = fig.add_subplot(gs1[1, 0])
@@ -730,14 +803,6 @@ class Generator:
         ax7 = fig.add_subplot(gs1[1, 2])
         ax8 = fig.add_subplot(gs1[0, 3])
         ax9 = fig.add_subplot(gs1[1, 3])
-
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 2])
-        ax10 = fig.add_subplot(gs2[0])
-
-        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 3])
-        ax11 = fig.add_subplot(gs3[0])
-
-        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)', type='all')
 
         loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
         loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
@@ -751,11 +816,16 @@ class Generator:
         ax7.get_yaxis().set_visible(False)
         ax9.get_yaxis().set_visible(False)
 
+
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 2])
+        ax10 = fig.add_subplot(gs2[0])
         loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+
+        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 3])
+        ax11 = fig.add_subplot(gs3[0])
         loader.plot_channel_probe_location(cluster_idx, ax=ax11)
 
         gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1, :])
-
         gs00 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[0], height_ratios=[1, 10],
                                                 width_ratios=[3, 1], wspace=0.05)
 
@@ -775,22 +845,46 @@ class Generator:
 
         set_figure_style_all(fig)
 
-        fig.savefig(path)
+        if captions:
 
-        path_scat = cluster_qc_pixels_path(self.pid)
-        if not path_scat.exists():
-            idx = np.argsort(loader.clusters.depths)[::-1]
-            pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
-                                                        loader.clusters.depths[idx].astype(np.float64)]).T)
-            width, height = fig.canvas.get_width_height()
-            pixels[:, 0] /= width
-            pixels[:, 1] /= height
-            df = pd.DataFrame()
-            # Sort by depth so they are in the same order as the cluster selector drop down
-            df['cluster_id'] = loader.clusters.cluster_id[idx].astype(np.int32)
-            df['x'] = pixels[:, 0]
-            df['y'] = pixels[:, 1]
-            df.to_parquet(path_scat)
+            subplots = []
+            fig_pos = get_subplot_position(ax1, ax1)
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax2, ax3)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax4, ax5)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax6, ax7)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax8, ax9)
+            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax10, ax11)
+            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(gs00_ax0, gs00_ax3)
+            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(gs01_ax0, gs01_ax2)
+            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+
+            df = pd.DataFrame.from_dict(subplots)
+
+            df.to_parquet(caption_path('figure5_qc'))
+        else:
+            fig.savefig(path)
+
+            path_scat = cluster_qc_pixels_path(self.pid)
+            if not path_scat.exists() or force:
+                idx = np.argsort(loader.clusters.depths)[::-1]
+                pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
+                                                            loader.clusters.depths[idx].astype(np.float64)]).T)
+                width, height = fig.canvas.get_width_height()
+                pixels[:, 0] /= width
+                pixels[:, 1] /= height
+                df = pd.DataFrame()
+                # Sort by depth so they are in the same order as the cluster selector drop down
+                df['cluster_id'] = loader.clusters.cluster_id[idx].astype(np.int32)
+                df['x'] = pixels[:, 0]
+                df['y'] = pixels[:, 1]
+                df.to_parquet(path_scat)
 
         plt.close(fig)
 
@@ -869,6 +963,31 @@ class Generator:
 
         # Figure 5 QC (one plot per cluster)
         self.make_all_cluster_qc_plots(force=6 in nums)
+
+    def make_captions(self):
+        self.make_session_plot(force=True, captions=True)
+        self.make_behavior_plot(force=True, captions=True)
+        self.make_trial_plot(1, force=True, captions=True)
+        self.make_trial_event_plot(force=True, captions=True)
+        self.make_cluster_plot(1, force=True, captions=True)
+        self.make_cluster_qc_plot(1, force=True, captions=True)
+
+        caption_json = {}
+        for fig in CAPTIONS.keys():
+            df = pd.read_parquet(caption_path(fig))
+            fig_panels = {}
+            for _, row in df.iterrows():
+                fig_panels[row['panel']] = {'coords': [row['xmim'], 1 - row['ymax'], row['xmax'], 1 - row['ymin']],
+                                            'legend': CAPTIONS[fig][row['panel']]}
+
+            caption_json[fig] = fig_panels
+
+        save_json(figure_details_path(), caption_json, indent=2)
+
+
+def make_captions():
+    pid = get_pids()[0]
+    Generator(pid).make_captions()
 
 
 def make_all_plots(pid, nums=()):

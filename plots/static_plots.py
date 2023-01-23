@@ -22,7 +22,7 @@ from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
 from brainbox.processing import bincount2D
-from brainbox.behavior.wheel import velocity
+from brainbox.behavior.wheel import velocity, interpolate_position
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
@@ -250,10 +250,11 @@ def set_figure_style(fig, margin_inches=0.8):
     fig.subplots_adjust(margin_inches / x_inches, margin_inches / y_inches)
     return fig
 
-def set_figure_style_all(fig, margin_inches=0.8):
+
+def set_figure_style_all(fig, margin_inches=0.8, top=0.99):
     x_inches, y_inches = fig.figure.get_size_inches()
     fig.subplots_adjust(left=margin_inches / x_inches, bottom=margin_inches / y_inches, right=1 - margin_inches / x_inches,
-                        top=0.99)
+                        top=top)
     return fig
 
 
@@ -927,7 +928,7 @@ class DataLoader:
 
         return fig
 
-    def add_trial_events_to_raster(self, ax, trials):
+    def add_trial_events_to_raster(self, ax, trials, text=True):
 
         events = ['goCue_times', 'firstMovement_times', 'feedback_times']
         colors = ['b', 'g', 'r']
@@ -936,8 +937,9 @@ class DataLoader:
 
         for e, c, l in zip(events, colors, labels):
             ax.axvline(trials[e], *ax.get_ylim(), c=c)
-            ax.text(trials[e], 1.01, l, c=c, rotation=45,
-                    rotation_mode='anchor', ha='left', transform=trans)
+            if text:
+                ax.text(trials[e], 1.01, l, c=c, rotation=45,
+                        rotation_mode='anchor', ha='left', transform=trans)
 
         return ax
 
@@ -1073,37 +1075,19 @@ class DataLoader:
         return fig
     
     def plot_dlc_feature_trace(self, camera, feature, trial_idx, ax=None, xlabel='T in session (s)', ylabel=None,
-                                title=None): #, zscore_flag=False, norm=False):
-        import brainbox.behavior.wheel as wh
+                                title=None):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(9, 6))
         else:
             fig = ax.get_figure()
 
-        # if zscore_flag:
-        #     feature = zscore(feature, nan_policy='omit')
-
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-        t0 = self.trial_intervals[trial_idx, 0]
-        t1 = self.trial_intervals[trial_idx, 1]
-
-        goCue = self.trials.goCue_times[trial_idx] 
-        responses = self.trials.response_times[trial_idx]
-        firstMovement = self.trials.firstMovement_times[trial_idx] 
 
         camera = load_camera(self.eid, camera)
-        feature_data = camera.computedFeatures[feature]
-        pos, t = wh.interpolate_position(camera.times, feature_data)
-        traces = wh.traces_by_trial(t, pos, start=[t0], end=[t1])[0]
-
-        #set_axis_style(axs, xlabel=xlabel, ylabel=ylabel1)
-        ax.plot(traces[0], traces[1], 'k-', label=feature) 
-        ax.axvline(x=goCue, color='b', label='Go Cue', linestyle=':')
-        ax.axvline(x=firstMovement, color='g', label='First Move', linestyle=':') 
-        ax.axvline(x=responses, color='r', label='Feedback', linestyle=':')
-        ax.legend() 
-
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
+        idx = np.searchsorted(camera.times, self.trial_intervals[trial_idx])
+        ax.plot(camera.times[idx[0]:idx[1]], camera.computedFeatures[feature][idx[0]:idx[1]], c='k')
+        self.add_trial_events_to_raster(ax, trials, text=False)
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title, fontsize=8)
 
         return fig
 
@@ -1139,38 +1123,27 @@ class DataLoader:
         return fig
 
 
-    def plot_wheel_trace(self, trial_idx, ax=None): 
-        import brainbox.behavior.wheel as wh 
+    def plot_wheel_trace(self, trial_idx, ax=None, xlabel='Time in trial (s)', ylabel='Wheel pos (rad)'):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(9, 6))
         else:
             fig = ax.get_figure()
 
         wheel = load_wheel(self.eid)
-        # speed = velocity(wheel.timestamps, wheel.position)
-
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-        t0 = self.trial_intervals[trial_idx, 0]
-        t1 = self.trial_intervals[trial_idx, 1]
 
-        goCue = self.trials.goCue_times[trial_idx]
-        responses = self.trials.response_times[trial_idx]
-        firstMovement = self.trials.firstMovement_times[trial_idx]
+        wheel_pos, wheel_time = interpolate_position(wheel.timestamps, wheel.position)
 
-        # Cut up the wheel vectors
-        pos, t = wh.interpolate_position(wheel.timestamps, wheel.position)
-        traces = wh.traces_by_trial(t, pos, start=[t0], end=[t1])[0]
+        idx = np.searchsorted(wheel_time, self.trial_intervals[trial_idx])
+        ax.plot(wheel_time[idx[0]:idx[1]], wheel_pos[idx[0]:idx[1]] - wheel_pos[idx[0]], c='k')
 
-        ax.plot(traces[0], traces[1], 'k-') 
-        ax.axvline(x=goCue, color='b', label='Go Cue', linestyle=':')
-        ax.axvline(x=firstMovement, color='g', label='First Move', linestyle=':') 
-        ax.axvline(x=responses, color='r', label='Feedback', linestyle=':')
-        ax.legend() 
-
-        set_axis_style(ax, xlabel='time / sec', ylabel='position / rad')
+        max_rad = np.max(np.abs(wheel_pos[idx[0]:idx[1]] - wheel_pos[idx[0]]))
+        ax.set_ylim([-1.1 * max_rad, 1.1 * max_rad])
+        self.add_trial_events_to_raster(ax, trials, text=False)
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, fontsize=8)
         remove_spines(ax, spines=['right', 'top'])
 
-        return ax
+        return fig
 
     def plot_left_right_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from First Move (s)',
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',

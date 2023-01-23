@@ -842,7 +842,7 @@ async function setupClusterLegends() {
         // console.log(letter);
         // let [xmin, ymin, xmax, ymax] = details['cluster'][panel];
         // console.log(xmin, ymin, xmax, ymax);
-        let panel = details['cluster'][letter];
+        let panel = details['figure5'][letter];
         addPanelLetter(plot, letter, panel["coords"], panel["legend"]);
     }
 
