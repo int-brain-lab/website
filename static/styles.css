@@ -181,6 +181,14 @@ h2 {
     background-color: #fcfcfc;
 }
 
+h3 {
+    font-size: 18pt;
+}
+
+h4 {
+    font-size: 14pt;
+}
+
 
 
 /*************************************************************************************************/
@@ -241,10 +249,13 @@ body .row figure {
 }
 
 body .row figure summary {
-    cursor: pointer;
-    font-weight: bold;
+    /* cursor: pointer; */
+    font-weight: normal;
     font-size: 1.05em;
     padding: 5px 5px 5px 0;
+    height: 150px;
+
+    list-style: none;
 }
 
 body .row figure details {
@@ -252,6 +263,14 @@ body .row figure details {
     margin: 10px 0 0 0;
     padding: 7px 15px 7px 20px;
     background-color: #f3f3f3;
+}
+
+body .row figure details summary::-webkit-details-marker {
+    display: none;
+}
+
+body .row figure details summary::marker {
+    display: none;
 }
 
 body .row figure details div {
@@ -270,6 +289,33 @@ body .row figure details ul {
 body .row figure details ul li {
     list-style-type: disc;
     margin: 10px 0
+}
+
+
+
+.legend {
+    /* display: none; */
+}
+
+.imgWrapper {
+    padding: 0;
+    margin: 0;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.panel-letter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    font-weight: bold;
+    -webkit-text-stroke: 0.5px white;
+    text-stroke: 2px white;
+    /* font-size: 1.25em; */
+    /* color: #0898D4; */
+    /* background-color: #00000011; */
 }
 
 

@@ -135,6 +135,10 @@ def make_app():
     # JSON details
     # ---------------------------------------------------------------------------------------------
 
+    @app.route('/api/figures/details')
+    def figure_details():
+        return load_json(figure_details_path())
+
     @app.route('/api/session/<pid>/details')
     def session_details(pid):
         return load_json(session_details_path(pid))

@@ -148,9 +148,9 @@ def is_valid_uuid(uuid_to_test, version=4):
     return str(uuid_obj) == uuid_to_test
 
 
-def save_json(path, dct):
+def save_json(path, dct, **kwargs):
     with open(path, 'w') as f:
-        json.dump(dct, f, sort_keys=True, cls=DateTimeEncoder)
+        json.dump(dct, f, sort_keys=True, cls=DateTimeEncoder, **kwargs)
 
 
 def load_json(path):
@@ -188,6 +188,10 @@ def session_cache_path(pid):
     cp.mkdir(exist_ok=True, parents=True)
     assert cp.exists(), f"the path `{cp}` does not exist"
     return cp
+
+
+def figure_details_path():
+    return CACHE_DIR / 'figures.json'
 
 
 def session_details_path(pid):
@@ -253,6 +257,16 @@ def get_pids():
 
 def iter_session():
     yield from get_pids()
+
+
+# def generate_figure_json():
+#     # Read the Parquet table and convert to JSON to make it loadable by flaskapp.
+#     # TODO: integrate somewhere (in the Generator) the code used to generate this file
+#     df = pd.read_parquet(DATA_DIR / 'cluster_fig_subplots.pqt')
+#     details = {
+#         'cluster': {panel: (xmin, 1 - ymax, xmax, 1 - ymin)
+#                     for _, (panel, xmin, ymax, xmax, ymin) in df.iterrows()}}
+#     save_json(figure_details_path(), details, indent=2)
 
 
 # -------------------------------------------------------------------------------------------------
