@@ -1087,7 +1087,11 @@ class DataLoader:
         idx = np.searchsorted(camera.times, self.trial_intervals[trial_idx])
         ax.plot(camera.times[idx[0]:idx[1]], camera.computedFeatures[feature][idx[0]:idx[1]], c='k')
         self.add_trial_events_to_raster(ax, trials, text=False)
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title, fontsize=8)
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.spines['right'].set_visible(True)
+        ax.set_ylabel(ylabel, rotation=0, fontsize=10, labelpad=40)
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
 
         return fig
 
@@ -1139,9 +1143,12 @@ class DataLoader:
 
         max_rad = np.max(np.abs(wheel_pos[idx[0]:idx[1]] - wheel_pos[idx[0]]))
         ax.set_ylim([-1.1 * max_rad, 1.1 * max_rad])
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel)
+        ax.spines['right'].set_visible(True)
+        ax.set_ylabel(ylabel, rotation=0, fontsize=10, labelpad=40)
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
         self.add_trial_events_to_raster(ax, trials, text=False)
-        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, fontsize=8)
-        remove_spines(ax, spines=['right', 'top'])
 
         return fig
 

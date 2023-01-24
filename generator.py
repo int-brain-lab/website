@@ -577,7 +577,7 @@ class Generator:
 
         fig = plt.figure(figsize=(12, 5))
 
-        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[7.5, 15, 1], height_ratios=[8, 3], hspace=0.05, wspace=0.05)
+        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[7.5, 15, 1], height_ratios=[8, 3], hspace=0.12, wspace=0.05)
         ax1 = fig.add_subplot(gs[0, 0])
         ax2 = fig.add_subplot(gs[0, 1])
         ax3 = fig.add_subplot(gs[0, 2])
@@ -587,7 +587,7 @@ class Generator:
         ax2.get_yaxis().set_visible(False)
         loader.plot_brain_regions(ax3)
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], hspace=0.1)
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], hspace=0.4)
         ax4 = fig.add_subplot(gs1[0, 0])
         ax5 = fig.add_subplot(gs1[1, 0])
 
@@ -605,18 +605,19 @@ class Generator:
         if captions:
             subplots = []
             fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax5, ax5)
-            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
 
             df = pd.DataFrame.from_dict(subplots)
             df.to_parquet(caption_path('figure3'))
+            fig.savefig(path)
         else:
             fig.savefig(path)
 
@@ -642,19 +643,19 @@ class Generator:
 
         loader.plot_event_aligned_activity(axs=[ax2, ax3, ax4], ax_cbar=ax1)
         loader.plot_brain_regions(ax=ax5)
-        set_figure_style(fig)
+        set_figure_style_all(fig, margin_inches=0.8)
 
         if captions:
 
             subplots = []
             fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
             fig_pos = get_subplot_position(ax5, ax5)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
 
             df = pd.DataFrame.from_dict(subplots)
             df.to_parquet(caption_path('figure4'))
@@ -685,7 +686,7 @@ class Generator:
 
         fig = plt.figure(figsize=(15, 10))
 
-        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2], wspace=0.2)
+        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
 
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0])
         ax1 = fig.add_subplot(gs0[0, 0])
@@ -709,7 +710,7 @@ class Generator:
         ax13 = fig.add_subplot(gs3[0, 1])
         ax14 = fig.add_subplot(gs3[0, 2])
 
-        set_figure_style(fig)
+        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
         loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
 
@@ -769,6 +770,7 @@ class Generator:
             df = pd.DataFrame.from_dict(subplots)
 
             df.to_parquet(caption_path('figure5'))
+            fig.savefig(path)
         else:
             fig.savefig(path)
 
@@ -797,7 +799,7 @@ class Generator:
         logger.debug(f"making cluster qc overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
 
         loader = self.dl
-        fig = plt.figure(figsize=(15.24, 10))
+        fig = plt.figure(figsize=(15, 10))
 
         gs = gridspec.GridSpec(2, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
 
@@ -855,7 +857,7 @@ class Generator:
 
         loader.plot_sliding_rp(cluster_idx, axs=[gs01_ax1, gs01_ax2, gs01_ax0])
 
-        set_figure_style_all(fig)
+        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
         if captions:
 
@@ -879,6 +881,7 @@ class Generator:
 
             df = pd.DataFrame.from_dict(subplots)
             df.to_parquet(caption_path('figure5_qc'))
+            fig.savefig(path)
         else:
             fig.savefig(path)
 
