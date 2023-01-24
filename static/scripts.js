@@ -5,7 +5,7 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = true;  // disable for debugging
+const ENABLE_UNITY = false;  // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
@@ -812,7 +812,8 @@ async function selectTrial(pid, tid, unityCalled = false) {
 /*  Cluster legends                                                                              */
 /*************************************************************************************************/
 
-function addPanelLetter(fig, letter, coords, legend) {
+function addPanelLetter(legend_name, fig, letter, coords, legend) {
+    let plot_legend = document.getElementById(legend_name)
     const div = document.createElement("div");
     div.appendChild(document.createTextNode(letter));
     div.classList.add('panel-letter');
@@ -825,25 +826,25 @@ function addPanelLetter(fig, letter, coords, legend) {
     div.style.width = ((xmax - xmin) * 100) + "%";
 
     div.addEventListener("mouseover", function (e) {
-        clusterPlotLegend.innerHTML = `<strong>Legend of panel ${letter}</strong>: ${legend}`;
+        plot_legend.innerHTML = `<strong>Legend of panel ${letter}</strong>: ${legend}`;
     });
 }
 
 
 
-async function setupClusterLegends() {
-    let plot = document.getElementById('clusterPlot');
+async function setupLegends(plot_id, legend_id, key) {
+    let plot = document.getElementById(plot_id);
 
     // Show information about trials in table
     var url = `/api/figures/details`;
     var r = await fetch(url).then();
     var details = await r.json();
-    for (let letter in details['cluster']) {
+    for (let letter in details[key]) {
         // console.log(letter);
         // let [xmin, ymin, xmax, ymax] = details['cluster'][panel];
         // console.log(xmin, ymin, xmax, ymax);
-        let panel = details['figure5'][letter];
-        addPanelLetter(plot, letter, panel["coords"], panel["legend"]);
+        let panel = details[key][letter];
+        addPanelLetter(legend_id, plot, letter, panel["coords"], panel["legend"]);
     }
 
 }
@@ -907,7 +908,16 @@ function load() {
     setupUnitySession();
     setupUnityTrial();
 
-    setupClusterLegends();
+    setupLegends('sessionPlot', 'sessionPlotLegend', 'figure1');
+    setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
+    setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
+    setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
+    if (CTX.qc) {
+            setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
+    } else{
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
+    }
+
     setupClusterClick()
     setupTrialCallback();
     setupClusterCallback();

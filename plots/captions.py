@@ -33,7 +33,7 @@ CAPTIONS = {
              'to the visual stimulus onset; averages (mean and STD) for each condition are displayed at the top with the same color '
              'scheme. Trial numbers within a condition are kept ascending from bottom to top. Motion energy has been computed using '
              'the left camera',
-        'G': 'Raster plot of pupil diameter, sorted by trial outcome (correct in blue, incorrect in red) and aligned to the visual '
+        'G': 'Raster plot of smoothed pupil diameter, sorted by trial outcome (correct in blue, incorrect in red) and aligned to the visual '
              'stimulus onset; averages (mean and STD) for each condition are displayed at the top with the same color scheme. '
              'Trial numbers within a condition are kept ascending from bottom to top. The pupil diameter has been computed from DLC '
              'points on the left camera ',

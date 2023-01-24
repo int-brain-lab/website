@@ -361,11 +361,11 @@ class Generator:
 
         try:
             fig = plt.figure(figsize=(15, 10))
-            gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.2)
+            gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.3, hspace=0.3)
 
             # First row
             gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[8, 1, 1, 1, 1, 1],
-                                                   height_ratios=[1, 10], hspace=0.3, wspace=0.1)
+                                                   height_ratios=[1, 10], wspace=0.1, hspace=0.3)
             gs0_ax1 = fig.add_subplot(gs0[0, 0])
             gs0_ax2 = fig.add_subplot(gs0[1, 0])
             gs0_ax3 = fig.add_subplot(gs0[0, 1])
@@ -430,22 +430,22 @@ class Generator:
             loader.plot_brain_regions(ax16)
             ax16.set_ylim(20, 3840)
 
-            set_figure_style_all(fig)
+            set_figure_style_all(fig, margin_inches=0.8)
 
             if captions:
                 subplots = []
                 fig_pos = get_subplot_position(gs0_ax1, gs0_ax2)
-                subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax3, gs0_ax4)
-                subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax5, gs0_ax6)
-                subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax7, gs0_ax8)
-                subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax9, gs0_ax10)
-                subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
-                subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(ax_a, ax_d)
                 subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(ax_cor, ax_cor)
@@ -508,7 +508,7 @@ class Generator:
         loader.plot_dlc_feature_raster('left', 'motion_energy', axs=[ax9, ax10], zscore_flag=True, ylabel0='ME (z-score)',
                                        ylabel1=None, title='Motion energy')
         loader.plot_dlc_feature_raster('left', 'pupilDiameter_smooth', axs=[ax11, ax12], zscore_flag=True, norm=True,
-                                       ylabel0='Pupil (z-score)', ylabel1=None, title='Smoothed pupil diameter')
+                                       ylabel0='Pupil (z-score)', ylabel1=None, title='Pupil diameter')
         loader.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
         loader.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
 
@@ -632,7 +632,7 @@ class Generator:
         loader = self.dl
 
         fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[5, 5, 5, 1], wspace=0.1)
+        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[5, 5, 5, 1], wspace=0.2, hspace=0.5)
 
         ax1 = fig.add_subplot(gs[0, 0:3])
         ax2 = fig.add_subplot(gs[1, 0])
@@ -647,13 +647,13 @@ class Generator:
         if captions:
 
             subplots = []
-            fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax4, ax4)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax5, ax5)
             subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
             df = pd.DataFrame.from_dict(subplots)
@@ -998,6 +998,7 @@ class Generator:
 
 def make_captions():
     pid = get_pids()[0]
+    pid = '9117969a-3f0d-478b-ad75-98263e3bfacf'
     Generator(pid).make_captions()
 
 
@@ -1016,11 +1017,14 @@ if __name__ == '__main__':
     elif len(sys.argv) >= 2 and not is_valid_uuid(sys.argv[1]):
         which = sys.argv[1]
 
-        # which figure numbers to regenerate
-        nums = list(map(int, which.split(',')))
-        logger.info(f"Regenerating figures {', '.join('#%d' % _ for _ in nums)}")
+        if which == 'captions':
+            make_captions()
+        else:
+            # which figure numbers to regenerate
+            nums = list(map(int, which.split(',')))
+            logger.info(f"Regenerating figures {', '.join('#%d' % _ for _ in nums)}")
 
-        Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
+            Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
 
     # Regenerate figures for 1 session.
     elif len(sys.argv) >= 2 and is_valid_uuid(sys.argv[1]):
