@@ -66,6 +66,7 @@ CMAP = sns.diverging_palette(20, 220, n=3, center="dark")
 # Loading functions
 # -------------------------------------------------------------------------------------------------
 
+
 def load_clusters(pid):
     clusters = alfio.load_object(DATA_DIR.joinpath(pid), object='clusters')
     return clusters
@@ -378,7 +379,6 @@ class DataLoader:
         # Trial intervals.
         details['_trial_onsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 0]]
         details['_trial_offsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 1]]
-
 
         details['_cluster_ids'] = [int(_) for _ in self.clusters.cluster_id[idx]]
         details['_acronyms'] = self.clusters.acronym[idx].tolist()
@@ -1073,9 +1073,9 @@ class DataLoader:
         set_axis_style(axs[0], ylabel=ylabel0, title=title)
 
         return fig
-    
+
     def plot_dlc_feature_trace(self, camera, feature, trial_idx, ax=None, xlabel='T in session (s)', ylabel=None,
-                                title=None):
+                               title=None):
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(9, 6))
         else:
@@ -1094,7 +1094,6 @@ class DataLoader:
         ax.yaxis.tick_right()
 
         return fig
-
 
     def plot_lick_raster(self, axs=None, xlabel='T from Feedback (s)', ylabel0='Licks (count)',
                          ylabel1='Sorted Trial Number', title=None):
@@ -1125,7 +1124,6 @@ class DataLoader:
         set_axis_style(axs[0], ylabel=ylabel0, title=title)
 
         return fig
-
 
     def plot_wheel_trace(self, trial_idx, ax=None, xlabel='Time in trial (s)', ylabel='Wheel pos (rad)'):
         if ax is None:

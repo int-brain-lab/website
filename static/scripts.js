@@ -5,7 +5,7 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = false;  // disable for debugging
+const ENABLE_UNITY = true;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
@@ -420,10 +420,11 @@ function setupClusterCallback() {
 
 
 function setupClusterClick() {
-    const canvas = document.getElementById('clusterPlot')
-    canvas.addEventListener('mousedown', function (e) {
-        onClusterClick(canvas, e)
-    });
+    const canvas = document.getElementById('clusterPlot');
+    canvas.addEventListener('click', function (e) {
+        console.log("click cluster", e);
+        onClusterClick(canvas, e);
+    }, true);
 };
 
 
@@ -813,7 +814,7 @@ async function selectTrial(pid, tid, unityCalled = false) {
 /*************************************************************************************************/
 
 function addPanelLetter(legend_name, fig, letter, coords, legend) {
-    let plot_legend = document.getElementById(legend_name)
+    let plot_legend = document.getElementById(legend_name);
     const div = document.createElement("div");
     div.appendChild(document.createTextNode(letter));
     div.classList.add('panel-letter');
@@ -828,6 +829,21 @@ function addPanelLetter(legend_name, fig, letter, coords, legend) {
     div.addEventListener("mouseover", function (e) {
         plot_legend.innerHTML = `<strong>Legend of panel ${letter}</strong>: ${legend}`;
     });
+
+    // HACK: ensure the click events is propagated from the transparent overlayed div containing
+    // the figure letter, to the figure below. Used for the cluster click in figure 5.
+    div.addEventListener("click", function (e) {
+        let elements = document.elementsFromPoint(e.clientX, e.clientY);
+        var ev = new MouseEvent('click', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true,
+            'clientX': e.clientX,
+            'clientY': e.clientY
+        });
+
+        elements[1].dispatchEvent(ev);
+    }, true);
 }
 
 
@@ -879,7 +895,7 @@ async function selectCluster(pid, cid) {
 
     if (CTX.qc) {
         var url = `/api/session/${pid}/cluster_qc_plot/${cid}`;
-    } else{
+    } else {
         var url = `/api/session/${pid}/cluster_plot/${cid}`;
     }
     showImage('clusterPlot', url);
@@ -913,8 +929,8 @@ function load() {
     setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
     setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
     if (CTX.qc) {
-            setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
-    } else{
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
+    } else {
         setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
     }
 

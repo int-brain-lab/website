@@ -305,8 +305,11 @@ class Generator:
         self.trial_idxs = self.session_details['_trial_ids']
         self.n_trials = len(self.trial_idxs)
         self.cluster_idxs = self.session_details['_cluster_ids']
+        self.cluster_idxs = [int(_) for _ in self.cluster_idxs]
         self.n_clusters = len(self.cluster_idxs)
-        self.good_cluster_idxs = np.array(self.session_details['_cluster_ids'])[np.array(self.session_details['_good_ids'])]
+        self.good_cluster_idxs = \
+            [int(_) for _ in np.array(self.session_details['_cluster_ids'])[
+                np.array(self.session_details['_good_ids'])]]
         self.n_good_clusters = len(self.good_cluster_idxs)
 
     # Iterators
@@ -319,10 +322,10 @@ class Generator:
         yield from sorted(self.trial_idxs)
 
     def first_cluster(self):
-        return sorted(self.cluster_idxs)[0]
+        return int(sorted(self.cluster_idxs)[0])
 
     def first_good_cluster(self):
-        return sorted(self.good_cluster_idxs)[0]
+        return int(sorted(self.good_cluster_idxs)[0])
 
     def iter_cluster(self):
         yield from sorted(self.cluster_idxs)
@@ -463,7 +466,7 @@ class Generator:
 
             plt.close(fig)
         except Exception as e:
-            print(f"error with session overview plot {self.pid}: {str(e)}")
+            logger.error(f"error with session overview plot {self.pid}: {str(e)}")
 
     # FIGURE 2
 
@@ -668,7 +671,6 @@ class Generator:
             df['t1'] = loader.trial_intervals[:, 1]
             df.to_parquet(path_interval)
 
-
         plt.close(fig)
 
     # -------------------------------------------------------------------------------------------------
@@ -830,7 +832,6 @@ class Generator:
         ax7.get_yaxis().set_visible(False)
         ax9.get_yaxis().set_visible(False)
 
-
         gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 2])
         ax10 = fig.add_subplot(gs2[0])
         loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
@@ -918,7 +919,7 @@ class Generator:
             try:
                 self.make_trial_plot(trial_idx, force=force)
             except Exception as e:
-                print(f"error with session {self.pid} trial #{trial_idx}: {str(e)}")
+                logger.error(f"error with session {self.pid} trial #{trial_idx}: {str(e)}")
 
     def make_all_cluster_plots(self, force=False):
 
@@ -933,7 +934,7 @@ class Generator:
             try:
                 self.make_cluster_plot(cluster_idx, force=force)
             except Exception as e:
-                print(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
+                logger.error(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
 
     def make_all_cluster_qc_plots(self, force=False):
 
@@ -948,7 +949,7 @@ class Generator:
             try:
                 self.make_cluster_qc_plot(cluster_idx, force=force)
             except Exception as e:
-                print(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
+                logger.error(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
 
     def make_all_plots(self, nums=()):
         if 0 in nums:  # used to regenerate the session.json only
@@ -964,7 +965,7 @@ class Generator:
         try:
             self.make_behavior_plot(force=2 in nums)
         except Exception as e:
-            print(f"error with session {self.pid} behavior plot: {str(e)}")
+            logger.error(f"error with session {self.pid} behavior plot: {str(e)}")
 
         # Figure 3 (one plot per trial)
         self.make_all_trial_plots(force=3 in nums)
@@ -1027,6 +1028,7 @@ if __name__ == '__main__':
             nums = list(map(int, which.split(',')))
             logger.info(f"Regenerating figures {', '.join('#%d' % _ for _ in nums)}")
 
+            # [make_all_plots(pid, nums=nums) for pid in iter_session()]
             Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
 
     # Regenerate figures for 1 session.
