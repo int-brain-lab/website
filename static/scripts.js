@@ -262,18 +262,39 @@ function filter_by_good(_, index) {
 /*  Share button                                                                                 */
 /*************************************************************************************************/
 
+function getUrl() {
+    let url = new URL(window.location);
+    let params = url.searchParams;
+
+    params.set("dset", CTX.dset);
+    params.set("pid", CTX.pid);
+    params.set("tid", CTX.tid);
+    params.set("cid", CTX.cid);
+    params.set("qc", CTX.qc);
+
+    return url.toString();
+}
+
+
+
 function setupShare() {
     let share = document.getElementById("share");
     share.addEventListener("click", function (e) {
-        let url = new URL(window.location);
-        let params = url.searchParams;
-        params.set("dset", CTX.dset);
-        params.set("pid", CTX.pid);
-        params.set("tid", CTX.tid);
-        params.set("cid", CTX.cid);
-        navigator.clipboard.writeText(url.toString());
+        navigator.clipboard.writeText(getUrl());
         share.children[0].innerHTML = "copied!";
         setTimeout(() => { share.children[0].innerHTML = "share"; }, 1500);
+    });
+};
+
+
+
+function setupQC() {
+    let qc = document.getElementById("qc-checkbox");
+    qc.checked = CTX.qc == 1 ? true : false;
+    qc.addEventListener("change", function (e) {
+        CTX.qc = qc.checked ? 1 : 0;
+        let url = getUrl();
+        window.location.href = url;
     });
 };
 
@@ -609,7 +630,8 @@ async function selectSession(pid) {
         var cluster_ids = details["_cluster_ids"];
         var acronyms = details["_acronyms"];
         var colors = details["_colors"];
-    } else {
+    }
+    else {
         var cluster_ids = details["_cluster_ids"].filter(filter_by_good, good_idx);
         var acronyms = details["_acronyms"].filter(filter_by_good, good_idx);
         var colors = details["_colors"].filter(filter_by_good, good_idx);
@@ -848,21 +870,36 @@ function addPanelLetter(legend_name, fig, letter, coords, legend) {
 
 
 
-async function setupLegends(plot_id, legend_id, key) {
+function setupLegends(plot_id, legend_id, key) {
     let plot = document.getElementById(plot_id);
 
-    // Show information about trials in table
-    var url = `/api/figures/details`;
-    var r = await fetch(url).then();
-    var details = await r.json();
-    for (let letter in details[key]) {
+    let legends = FLASK_CTX.LEGENDS;
+    // // Show information about trials in table
+    // var url = `/api/figures/details`;
+    // var r = await fetch(url).then();
+    // var details = await r.json();
+    for (let letter in legends[key]) {
         // console.log(letter);
         // let [xmin, ymin, xmax, ymax] = details['cluster'][panel];
         // console.log(xmin, ymin, xmax, ymax);
-        let panel = details[key][letter];
+        let panel = legends[key][letter];
         addPanelLetter(legend_id, plot, letter, panel["coords"], panel["legend"]);
     }
 
+}
+
+
+
+function setupAllLegends() {
+    setupLegends('sessionPlot', 'sessionPlotLegend', 'figure1');
+    setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
+    setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
+    setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
+    if (CTX.qc) {
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
+    } else {
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
+    }
 }
 
 
@@ -917,6 +954,7 @@ async function selectCluster(pid, cid) {
 
 function load() {
     setupShare();
+    setupQC();
 
     setupDataset();
     loadAutoComplete();
@@ -924,16 +962,7 @@ function load() {
     setupUnitySession();
     setupUnityTrial();
 
-    setupLegends('sessionPlot', 'sessionPlotLegend', 'figure1');
-    setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
-    setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
-    setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
-    if (CTX.qc) {
-        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
-    } else {
-        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
-    }
-
+    setupAllLegends();
     setupClusterClick()
     setupTrialCallback();
     setupClusterCallback();

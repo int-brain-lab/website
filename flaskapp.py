@@ -92,6 +92,10 @@ def sessions():
     return sessions
 
 
+def legends():
+    return load_json(figure_details_path())
+
+
 # -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
@@ -111,6 +115,7 @@ def make_app():
             fn,
             FLASK_CTX={
                 "SESSIONS": sessions(),
+                "LEGENDS": legends(),
                 "DEFAULT_PID": DEFAULT_PID,
                 "DEFAULT_DSET": DEFAULT_DSET,
             },
@@ -135,9 +140,9 @@ def make_app():
     # JSON details
     # ---------------------------------------------------------------------------------------------
 
-    @app.route('/api/figures/details')
-    def figure_details():
-        return load_json(figure_details_path())
+    # @app.route('/api/figures/details')
+    # def figure_details():
+    #     return load_json(figure_details_path())
 
     @app.route('/api/session/<pid>/details')
     def session_details(pid):

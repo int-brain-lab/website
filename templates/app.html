@@ -26,7 +26,7 @@
         trial_onsets: [], // for all trials, including nan ones, so we can index by the tid
         trial_offsets: [],
         dur: 0, // session duration
-        qc: false // qc mode
+        qc: parseInt(QUERY_PARAMS.qc, 10) || 0, // qc mode
     };
 </script>
 
@@ -55,6 +55,12 @@
 
 
 {% block share %}
+
+<div id="qc-switch">
+    <span>QC</span>
+    <input type="checkbox" id="qc-checkbox" />
+    <label for="qc-checkbox"></label>
+</div>
 
 <div id="share"><a>share</a></div>
 
@@ -166,7 +172,7 @@
     <!-- Session overview plot -->
     <div class="twelve columns">
         <figure>
-             <div class="imgWrapper"><img id="sessionPlot"></div>
+            <div class="imgWrapper"><img id="sessionPlot"></div>
             <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
             <details>
@@ -227,7 +233,7 @@
     <!-- Session overview plot -->
     <div class="twelve columns">
         <figure>
-             <div class="imgWrapper"><img id="behaviourPlot"></div>
+            <div class="imgWrapper"><img id="behaviourPlot"></div>
             <img id="behaviourPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
             <details>
@@ -333,7 +339,7 @@
 <div class="row">
     <div class="twelve columns">
         <figure id="trialWrapper">
-             <div class="imgWrapper"><img id="trialPlot"></div>
+            <div class="imgWrapper"><img id="trialPlot"></div>
             <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
                 class="loading">
             <div id="trialTime"></div>
