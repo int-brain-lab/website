@@ -40,10 +40,9 @@ import one.alf.io as alfio
 # Constants
 # -------------------------------------------------------------------------------------------------
 
-# ROOT_DIR = Path(__file__).resolve().parent.parent
-# DATA_DIR = ROOT_DIR / 'static/data'
-# CACHE_DIR = ROOT_DIR / 'static/cache'
-DATA_DIR = Path(r'C:\Users\Mayo\Downloads\FlatIron\website_repro')
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / 'static/data'
+CACHE_DIR = ROOT_DIR / 'static/cache'
 BRAIN_ATLAS = AllenAtlas()
 BRAIN_ATLAS.compute_surface()
 BRAIN_REGIONS = BRAIN_ATLAS.regions
