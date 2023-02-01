@@ -6,15 +6,16 @@ CAPTIONS = {
         'C': 'Amplitude (uV) of good units along the probe depth (um), colored by their firing rate (Hz)',
         'D': 'Root mean square (RMS) values of the action potential (AP) band along the probe depth (um)',
         'E': 'Power (dB) in the delta band (0-4Hz) of the low-frequency (LFP) band',
-        'F': 'Brain region acronyms along the probe depth (um)',
-        'G': 'TODO: session overview showing reaction time , blue and red indicate and background shades indicate different probability '
+        'F': 'Slice',
+        'G': 'Brain region acronyms along the probe depth (um)',
+        'H': 'TODO: session overview showing reaction time , blue and red indicate and background shades indicate different probability '
              'blocks within the session.',
-        'H': 'Coronal slice of Allen Atlas showing location of probe insertion',
-        'I': '3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s, 1800s, and 3000s). '
+        'I': 'Coronal slice of Allen Atlas showing location of probe insertion',
+        'J': '3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s, 1800s, and 3000s). '
              'The raw data recorded on each channel is plotted as a gray code, and ordered along the probe depth. Divergence from '
              'the gray color (black or white) indicates a shift from baseline activity. Overlaid dots indicate when spikes were '
              'detected (green: good units, red: multi-units).',
-        'J': 'Brain region acronyms along the probe depth (um)',
+        'K': 'Brain region acronyms along the probe depth (um)',
     },
     'figure2': {
         'A': 'Psychometric curves computed in different types of trial block ; for a trial block type, the probability of the visual '
@@ -88,9 +89,10 @@ CAPTIONS = {
         'F': 'Template waveforms of the selected good unit, presented for the electrode channels where spikes were detected. '
              'Scale bar indicates amplitude of waveforms in uV and as a ratio to the standard deviation of the noise on the peak '
              'channel. The location of electrode channels within the whole probe is presented on the right.',
-        'G': 'Autocorrelogram of the selected good unit.',
-        'H': 'Inter-spike-interval (ISI) distribution for the selected good unit.',
-        'I': 'Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).'
+        'G': 'Tuning curves aligned to different task events. Firing rate computed from 50 - 400 ms post event',
+        'H': 'Autocorrelogram of the selected good unit.',
+        'I': 'Inter-spike-interval (ISI) distribution for the selected good unit.',
+        'J': 'Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).'
     },
     'figure5_qc': {
         'A': 'Amplitude (uV) of all units along the probe depth (um), colored by the brain region color ; the selected unit for '
@@ -112,7 +114,8 @@ CAPTIONS = {
         'F': 'Template waveforms of the selected unit, presented for the electrode channels where spikes were detected. '
              'Scale bar indicates amplitude of waveforms in uV and as a ratio to the standard deviation of the noise on the peak '
              'channel. The location of electrode channels within the whole probe is presented on the right.',
-        'G': 'Amplitude (uV) of the spikes of the selected unit across the experiment time (s) and the distribution of the amplitude.',
-        'H': 'Autocorrelogram of the selected unit'
+        'G': 'Tuning curves aligned to different task events. Firing rate computed from 50 - 400 ms post event',
+        'H': 'Amplitude (uV) of the spikes of the selected unit across the experiment time (s) and the distribution of the amplitude.',
+        'I': 'Autocorrelogram of the selected unit'
     }
 }

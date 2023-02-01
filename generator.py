@@ -367,7 +367,7 @@ class Generator:
             gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.3, hspace=0.3)
 
             # First row
-            gs0 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[0], width_ratios=[8, 1, 1, 1, 1, 1],
+            gs0 = gridspec.GridSpecFromSubplotSpec(2, 7, subplot_spec=gs[0], width_ratios=[6, 1, 1, 1, 1, 1, 1],
                                                    height_ratios=[1, 10], wspace=0.1, hspace=0.3)
             gs0_ax1 = fig.add_subplot(gs0[0, 0])
             gs0_ax2 = fig.add_subplot(gs0[1, 0])
@@ -381,13 +381,16 @@ class Generator:
             gs0_ax10 = fig.add_subplot(gs0[1, 4])
             gs0_ax11 = fig.add_subplot(gs0[0, 5])
             gs0_ax12 = fig.add_subplot(gs0[1, 5])
+            gs0_ax13 = fig.add_subplot(gs0[0, 6])
+            gs0_ax14 = fig.add_subplot(gs0[1, 6])
 
             loader.plot_session_raster(ax=gs0_ax2)
             loader.plot_good_bad_clusters(ax=gs0_ax4, ax_legend=gs0_ax3, xlabel='Amp (uV)')
             loader.plot_spikes_amp_vs_depth_vs_firing_rate(ax=gs0_ax6, ax_cbar=gs0_ax5, xlabel='Amp (uV)')
             loader.plot_ap_rms(ax=gs0_ax8, ax_cbar=gs0_ax7)
             loader.plot_lfp_spectrum(ax=gs0_ax10, ax_cbar=gs0_ax9)
-            loader.plot_brain_regions(ax=gs0_ax12)
+            loader.plot_brain_slice(ax=gs0_ax12)
+            loader.plot_brain_regions(ax=gs0_ax14)
 
             gs0_ax4.get_yaxis().set_visible(False)
             gs0_ax6.get_yaxis().set_visible(False)
@@ -395,9 +398,10 @@ class Generator:
             gs0_ax10.get_yaxis().set_visible(False)
             remove_frame(gs0_ax1)
             remove_frame(gs0_ax11)
+            remove_frame(gs0_ax13)
 
             # Second row
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 6, subplot_spec=gs[1], width_ratios=[8, 1, 1, 1, 1, 1],
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 7, subplot_spec=gs[1], width_ratios=[6, 1, 1, 1, 1, 1, 1],
                                                    wspace=0.1)
             gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 3, 1, 3])
             ax_a = fig.add_subplot(gs11[0, 0])
@@ -449,14 +453,16 @@ class Generator:
                 subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
                 subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(gs0_ax13, gs0_ax14)
+                subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
                 fig_pos = get_subplot_position(ax_a, ax_d)
-                subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax_cor, ax_cor)
                 subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax13, ax15)
+                fig_pos = get_subplot_position(ax_cor, ax_cor)
                 subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax16, ax16)
+                fig_pos = get_subplot_position(ax13, ax15)
                 subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                fig_pos = get_subplot_position(ax16, ax16)
+                subplots.append({'panel': 'K', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
                 df = pd.DataFrame.from_dict(subplots)
                 df.to_parquet(caption_path('figure1'))
@@ -688,12 +694,12 @@ class Generator:
 
         fig = plt.figure(figsize=(15, 10))
 
-        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
+        gs = gridspec.GridSpec(3, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2, 2], wspace=0.2, hspace=0.4)
 
-        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0])
+        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
         ax1 = fig.add_subplot(gs0[0, 0])
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.2)
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 1], height_ratios=[1, 3], hspace=0, wspace=0.2)
         ax2 = fig.add_subplot(gs1[0, 0])
         ax3 = fig.add_subplot(gs1[1, 0])
         ax4 = fig.add_subplot(gs1[0, 1])
@@ -703,14 +709,19 @@ class Generator:
         ax8 = fig.add_subplot(gs1[0, 3])
         ax9 = fig.add_subplot(gs1[1, 3])
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2], width_ratios=[8, 1])
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0:2, 2], width_ratios=[8, 1])
         ax10 = fig.add_subplot(gs2[0, 0])
         ax11 = fig.add_subplot(gs2[0, 1])
 
-        gs3 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[3:])
+        gs3 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[2, :])
         ax12 = fig.add_subplot(gs3[0, 0])
         ax13 = fig.add_subplot(gs3[0, 1])
         ax14 = fig.add_subplot(gs3[0, 2])
+
+        gs4 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[1, 0:2])
+        ax15 = fig.add_subplot(gs4[0, 0])
+        ax16 = fig.add_subplot(gs4[0, 1])
+        ax17 = fig.add_subplot(gs4[0, 2])
 
         set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
@@ -730,6 +741,10 @@ class Generator:
 
         loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
         loader.plot_channel_probe_location(cluster_idx, ax=ax11)
+
+        loader.plot_tuning_curves(cluster_idx, event='stimOn_times', ax=ax15, title='Stim On')
+        loader.plot_tuning_curves(cluster_idx, event='firstMovement_times', ax=ax16, ylabel='', title='First Move')
+        loader.plot_tuning_curves(cluster_idx, event='feedback_times', ax=ax17, ylabel='', title='Feedback')
 
         loader.plot_autocorrelogram(cluster_idx, ax=ax12)
         loader.plot_inter_spike_interval(cluster_idx, ax=ax13)
@@ -763,12 +778,14 @@ class Generator:
             subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax10, ax11)
             subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax12, ax12)
+            fig_pos = get_subplot_position(ax15, ax17)
             subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax13, ax13)
+            fig_pos = get_subplot_position(ax12, ax12)
             subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax14, ax14)
+            fig_pos = get_subplot_position(ax13, ax13)
             subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(ax14, ax14)
+            subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             df = pd.DataFrame.from_dict(subplots)
 
             df.to_parquet(caption_path('figure5'))
@@ -803,7 +820,7 @@ class Generator:
         loader = self.dl
         fig = plt.figure(figsize=(15, 10))
 
-        gs = gridspec.GridSpec(2, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2], wspace=0.2, hspace=0.3)
+        gs = gridspec.GridSpec(3, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2, 2], wspace=0.2, hspace=0.4)
 
         gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
         ax1 = fig.add_subplot(gs0[0, 0])
@@ -832,15 +849,26 @@ class Generator:
         ax7.get_yaxis().set_visible(False)
         ax9.get_yaxis().set_visible(False)
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 2])
+
+        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0:2, 2])
         ax10 = fig.add_subplot(gs2[0])
         loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
 
-        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 3])
+        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0:2, 3])
         ax11 = fig.add_subplot(gs3[0])
         loader.plot_channel_probe_location(cluster_idx, ax=ax11)
 
-        gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[1, :])
+        gs5 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[1, 0:2])
+        gs_5_ax1 = fig.add_subplot(gs5[0, 0])
+        gs_5_ax2 = fig.add_subplot(gs5[0, 1])
+        gs_5_ax3 = fig.add_subplot(gs5[0, 2])
+
+        loader.plot_tuning_curves(cluster_idx, event='stimOn_times', ax=gs_5_ax1, title='Stim On')
+        loader.plot_tuning_curves(cluster_idx, event='firstMovement_times', ax=gs_5_ax2, ylabel='', title='First Move')
+        loader.plot_tuning_curves(cluster_idx, event='feedback_times', ax=gs_5_ax3, ylabel='', title='Feedback')
+
+
+        gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2, :])
         gs00 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[0], height_ratios=[1, 10],
                                                 width_ratios=[3, 1], wspace=0.05)
 
@@ -875,10 +903,12 @@ class Generator:
             subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             fig_pos = get_subplot_position(ax10, ax11)
             subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(gs00_ax0, gs00_ax3)
+            fig_pos = get_subplot_position(gs_5_ax1, gs_5_ax3)
             subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(gs01_ax0, gs01_ax2)
+            fig_pos = get_subplot_position(gs00_ax0, gs00_ax3)
             subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            fig_pos = get_subplot_position(gs01_ax0, gs01_ax2)
+            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
             df = pd.DataFrame.from_dict(subplots)
             df.to_parquet(caption_path('figure5_qc'))

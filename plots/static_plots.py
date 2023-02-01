@@ -25,10 +25,10 @@ from brainbox.processing import bincount2D
 from brainbox.behavior.wheel import velocity, interpolate_position
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
-from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
+from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast
 from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
-from ibllib.atlas import AllenAtlas, Insertion
+from ibllib.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
 from slidingRP.metrics import slidingRP
 import time
@@ -40,9 +40,10 @@ import one.alf.io as alfio
 # Constants
 # -------------------------------------------------------------------------------------------------
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT_DIR / 'static/data'
-CACHE_DIR = ROOT_DIR / 'static/cache'
+# ROOT_DIR = Path(__file__).resolve().parent.parent
+# DATA_DIR = ROOT_DIR / 'static/data'
+# CACHE_DIR = ROOT_DIR / 'static/cache'
+DATA_DIR = Path(r'C:\Users\Mayo\Downloads\FlatIron\website_repro')
 BRAIN_ATLAS = AllenAtlas()
 BRAIN_ATLAS.compute_surface()
 BRAIN_REGIONS = BRAIN_ATLAS.regions
@@ -720,6 +721,7 @@ class DataLoader:
         axs[0].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         axs[0].yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         axs[0].set_yticks([25, 100])
+        axs[0].set_ylim([5, 101])
         axs[0].minorticks_off()
 
         axs[1].set_yticks([0])
@@ -729,6 +731,7 @@ class DataLoader:
         axs[2].yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         axs[2].yaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         axs[2].set_yticks([25, 100])
+        axs[0].set_ylim([5, 101])
         axs[2].invert_yaxis()
         axs[2].minorticks_off()
 
@@ -819,6 +822,46 @@ class DataLoader:
         # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
         remove_frame(ax)
         sec_ax.get_yaxis().set_visible(False)
+
+        return fig
+
+    def plot_brain_slice(self, ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = ax.get_figure()
+
+        cmin, cmax = np.quantile(BRAIN_ATLAS.image, [0.1, 0.98])
+
+        xyz_samples = self.channels['mlapdv']
+        traj = Trajectory.fit(xyz_samples / 1e6)
+        vector_perp = np.array([1, -1 * traj.vector[0] / traj.vector[2]])
+        extent = 2000
+        steps = np.ceil(extent * 2 / BRAIN_ATLAS.res_um).astype(int)
+        image = np.zeros((xyz_samples.shape[0], steps))
+
+        for i, xyz in enumerate(xyz_samples):
+            origin = np.array([xyz[0], xyz[2]])
+            anchor = np.r_[[origin + extent * vector_perp], [origin - extent * vector_perp]]
+            xargmin = np.argmin(anchor[:, 0])
+            xargmax = np.argmax(anchor[:, 0])
+            perp_ml = np.linspace(anchor[xargmin, 0], anchor[xargmax, 0], steps)
+            perp_ap = np.ones_like(perp_ml) * xyz[1]
+            perp_dv = np.linspace(anchor[xargmin, 1], anchor[xargmax, 1], steps)
+
+            idx = BRAIN_ATLAS.bc.xyz2i(np.c_[perp_ml, perp_ap, perp_dv] / 1e6, mode='clip')
+            idx[idx[:, 2] >= BRAIN_ATLAS.image.shape[2], 2] = BRAIN_ATLAS.image.shape[2] - 1
+            image[i, :] = BRAIN_ATLAS.image[idx[:, 1], idx[:, 0], idx[:, 2]]
+
+        image = np.flipud(image)
+
+        y_extent = [np.min(self.channels.localCoordinates[:, 1]), np.max(self.channels.localCoordinates[:, 1])]
+        ax.imshow(image, aspect='auto', extent=np.r_[[0, 4000], y_extent], cmap='bone', alpha=1, vmin=cmin, vmax=cmax)
+        ax.scatter(self.channels.localCoordinates[:, 0] + extent, self.channels.localCoordinates[:, 1], s=2, c='k')
+
+        ax.set_ylim(*self.depth_lim)
+        remove_frame(ax)
 
         return fig
 
@@ -930,9 +973,9 @@ class DataLoader:
 
     def add_trial_events_to_raster(self, ax, trials, text=True):
 
-        events = ['goCue_times', 'firstMovement_times', 'feedback_times']
+        events = ['stimOn_times', 'firstMovement_times', 'feedback_times']
         colors = ['b', 'g', 'r']
-        labels = ['Go Cue', 'First Move', 'Feedback']
+        labels = ['Stim On', 'First Move', 'Feedback']
         trans = ax.get_xaxis_transform()
 
         for e, c, l in zip(events, colors, labels):
@@ -1213,6 +1256,38 @@ class DataLoader:
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
         set_axis_style(axs[0], ylabel=ylabel0)
+
+        return fig
+
+    def plot_tuning_curves(self, cluster_idx, event='stimOn_times', xlabel='Contrasts (%)', ylabel='Firing Rate (Hz)', title=None,
+                           ax=None):
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(9, 6))
+        else:
+            fig = ax.get_figure()
+
+        contrasts = get_signed_contrast(self.trials)
+        un_contrasts = np.unique(contrasts)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        events = self.trials[event]
+
+        bin_size = 0.35
+        raster, t_raster = bin_spikes(spikes.times, events, pre_time=-0.05, post_time=0.4, bin_size=bin_size)
+        raster = raster / bin_size
+        raster = np.mean(raster, axis=1)
+
+        avg_val = np.full(un_contrasts.shape, fill_value=np.nan)
+        std_val = np.full(un_contrasts.shape, fill_value=np.nan)
+        for i, c in enumerate(un_contrasts):
+            idx = contrasts == c
+            avg_val[i] = np.nanmean(raster[idx])
+            std_val[i] = np.nanstd(raster[idx]) / np.sqrt(np.sum(idx))
+
+        ax.plot(un_contrasts, avg_val, c='grey')
+        ax.errorbar(un_contrasts, avg_val, yerr=std_val, fmt='o', c='grey', capsize=4)
+        ax.set_xticks([-100, -50, 0, 50, 100])
+        set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
 
         return fig
 
