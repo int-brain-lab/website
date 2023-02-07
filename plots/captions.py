@@ -6,10 +6,12 @@ CAPTIONS = {
         'C': 'Amplitude (uV) of good units along the probe depth (um), colored by their firing rate (Hz)',
         'D': 'Root mean square (RMS) values of the action potential (AP) band along the probe depth (um)',
         'E': 'Power (dB) in the delta band (0-4Hz) of the low-frequency (LFP) band',
-        'F': 'Slice',
+        'F': 'Slice of Allen Atlas showing location of probe in brain',
         'G': 'Brain region acronyms along the probe depth (um)',
-        'H': 'TODO: session overview showing reaction time , blue and red indicate and background shades indicate different probability '
-             'blocks within the session.',
+        'H': 'Overview of task performance throughout the session. Top row shows the reaction time for each trial across the session. '
+             'Bottom row shows the contrasts of each trial throughout the session. Blue circles indicate correct trials and red crosses incorrect trials. '
+             'The red, black and blue backgrounds denote different blocks in the task where the probability of the stimulus being on the left hand side was'
+             '0.2, 0.5 and 0.8 respectively.',
         'I': 'Coronal slice of Allen Atlas showing location of probe insertion',
         'J': '3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s, 1800s, and 3000s). '
              'The raw data recorded on each channel is plotted as a gray code, and ordered along the probe depth. Divergence from '
@@ -20,7 +22,7 @@ CAPTIONS = {
     'figure2': {
         'A': 'Psychometric curves computed in different types of trial block ; for a trial block type, the probability of the visual '
              'stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8 (blue)',
-        'B': 'Reaction time (s) curves computed in different trial blocks (same color scheme as the psychometric curve plots)',
+        'B': 'Median reaction time (s) curves computed in different trial blocks (same color scheme as the psychometric curve plots)',
         'C': 'Reaction time (s) for each trial, plotted throughout the whole experiment',
         'D': 'Raster plot of the left paw speed, sorted by trial outcome (correct in blue, incorrect in red) and aligned to the '
              'visual stimulus onset; averages (mean and STD) for each condition are displayed at the top with the same color scheme. '
@@ -52,11 +54,11 @@ CAPTIONS = {
         'A': 'Raster plot of the spikes of all good units along the probe depth (um), throughout the whole '
              'experiment time (s) ; the dash line indicates the trial selected for visualization',
         'B': 'Zoomed-in view of the raster around the time of the selected trial ; the lines indicate events in the trial '
-             '(go cue in blue, first movement in green, and feedback in red).',
+             '(stim on in blue, first movement in green, and feedback in red).',
         'C': 'Brain region acronyms along the probe depth (um)',
         'D': 'Wheel position (normalised to position at first) during selected trial; the lines indicate events in '
-             'the trial (go cue in blue, first movement in green, and feedback in red)',
-        'E': 'DLC detected left paw speed during selected trial; the lines indicate events in the trial (go cue in blue, first ' \
+             'the trial (stim on in blue, first movement in green, and feedback in red)',
+        'E': 'DLC detected left paw speed during selected trial; the lines indicate events in the trial (stim on in blue, first ' \
              'movement in green, and feedback in red)',
     },
 
@@ -89,7 +91,7 @@ CAPTIONS = {
         'F': 'Template waveforms of the selected good unit, presented for the electrode channels where spikes were detected. '
              'Scale bar indicates amplitude of waveforms in uV and as a ratio to the standard deviation of the noise on the peak '
              'channel. The location of electrode channels within the whole probe is presented on the right.',
-        'G': 'Tuning curves aligned to different task events. Firing rate computed from 50 - 400 ms post event',
+        'G': 'Tuning curves aligned to different task events. The firing rate has been computed using spikes in the range 50 - 400 ms post event',
         'H': 'Autocorrelogram of the selected good unit.',
         'I': 'Inter-spike-interval (ISI) distribution for the selected good unit.',
         'J': 'Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).'
@@ -114,7 +116,7 @@ CAPTIONS = {
         'F': 'Template waveforms of the selected unit, presented for the electrode channels where spikes were detected. '
              'Scale bar indicates amplitude of waveforms in uV and as a ratio to the standard deviation of the noise on the peak '
              'channel. The location of electrode channels within the whole probe is presented on the right.',
-        'G': 'Tuning curves aligned to different task events. Firing rate computed from 50 - 400 ms post event',
+        'G': 'Tuning curves aligned to different task events. The firing rate has been computed using spikes in the range 50 - 400 ms post event',
         'H': 'Amplitude (uV) of the spikes of the selected unit across the experiment time (s) and the distribution of the amplitude.',
         'I': 'Autocorrelogram of the selected unit'
     }
