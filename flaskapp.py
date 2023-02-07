@@ -92,6 +92,10 @@ def sessions():
     return sessions
 
 
+def legends():
+    return load_json(figure_details_path())
+
+
 # -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
@@ -111,6 +115,7 @@ def make_app():
             fn,
             FLASK_CTX={
                 "SESSIONS": sessions(),
+                "LEGENDS": legends(),
                 "DEFAULT_PID": DEFAULT_PID,
                 "DEFAULT_DSET": DEFAULT_DSET,
             },
@@ -135,6 +140,10 @@ def make_app():
     # JSON details
     # ---------------------------------------------------------------------------------------------
 
+    # @app.route('/api/figures/details')
+    # def figure_details():
+    #     return load_json(figure_details_path())
+
     @app.route('/api/session/<pid>/details')
     def session_details(pid):
         return load_json(session_details_path(pid))
@@ -147,9 +156,9 @@ def make_app():
     def cluster_details(pid, cluster_idx):
         return load_json(cluster_details_path(pid, cluster_idx))
 
-    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float:x>_<float:y>')
-    def cluster_from_xy(pid, cluster_idx, x, y):
-        cluster_idx, idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y)
+    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float(signed=True):x>_<float(signed=True):y>/<int:qc>')
+    def cluster_from_xy(pid, cluster_idx, x, y, qc):
+        cluster_idx, idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc)
         return {
             "idx": int(idx),
             "cluster_idx": int(cluster_idx),
@@ -177,6 +186,10 @@ def make_app():
     @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
     def cluster_overview_plot(pid, cluster_idx):
         return send(cluster_overview_path(pid, cluster_idx))
+
+    @app.route('/api/session/<pid>/cluster_qc_plot/<int:cluster_idx>')
+    def cluster_qc_overview_plot(pid, cluster_idx):
+        return send(cluster_qc_overview_path(pid, cluster_idx))
 
     return app
 

@@ -5,7 +5,8 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = true;  // disable for debugging
+const ENABLE_UNITY = true;   // disable for debugging
+
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
@@ -105,24 +106,24 @@ function throttle(func, wait, options) {
 
 
 
-// Display an array buffer.
-function show(arrbuf) {
-    const blob = new Blob([arrbuf]);
-    const url = URL.createObjectURL(blob);
-    const img = document.getElementById('imgRaster');
-    let w = img.offsetWidth;
+// // Display an array buffer.
+// function show(arrbuf) {
+//     const blob = new Blob([arrbuf]);
+//     const url = URL.createObjectURL(blob);
+//     const img = document.getElementById('imgRaster');
+//     let w = img.offsetWidth;
 
-    var t0 = px2time(0);
-    var t1 = px2time(w);
-    var t = .5 * (t0 + t1);
+//     var t0 = px2time(0);
+//     var t1 = px2time(w);
+//     var t = .5 * (t0 + t1);
 
-    Plotly.update('imgRaster', {}, {
-        "images[0].source": url,
-        "xaxis.ticktext": [t0.toFixed(3), t.toFixed(3), t1.toFixed(3)],
-    });
+//     Plotly.update('imgRaster', {}, {
+//         "images[0].source": url,
+//         "xaxis.ticktext": [t0.toFixed(3), t.toFixed(3), t1.toFixed(3)],
+//     });
 
-    setLineOffset();
-};
+//     setLineOffset();
+// };
 
 
 
@@ -252,23 +253,48 @@ function getUnique(array) {
 };
 
 
+function filter_by_good(_, index) {
+    return this[index] === true;
+};
+
 
 /*************************************************************************************************/
 /*  Share button                                                                                 */
 /*************************************************************************************************/
 
+function getUrl() {
+    let url = new URL(window.location);
+    let params = url.searchParams;
+
+    params.set("dset", CTX.dset);
+    params.set("pid", CTX.pid);
+    params.set("tid", CTX.tid);
+    params.set("cid", CTX.cid);
+    params.set("qc", CTX.qc);
+
+    return url.toString();
+}
+
+
+
 function setupShare() {
     let share = document.getElementById("share");
     share.addEventListener("click", function (e) {
-        let url = new URL(window.location);
-        let params = url.searchParams;
-        params.set("dset", CTX.dset);
-        params.set("pid", CTX.pid);
-        params.set("tid", CTX.tid);
-        params.set("cid", CTX.cid);
-        navigator.clipboard.writeText(url.toString());
+        navigator.clipboard.writeText(getUrl());
         share.children[0].innerHTML = "copied!";
         setTimeout(() => { share.children[0].innerHTML = "share"; }, 1500);
+    });
+};
+
+
+
+function setupQC() {
+    let qc = document.getElementById("qc-checkbox");
+    qc.checked = CTX.qc == 1 ? true : false;
+    qc.addEventListener("change", function (e) {
+        CTX.qc = qc.checked ? 1 : 0;
+        let url = getUrl();
+        window.location.href = url;
     });
 };
 
@@ -415,10 +441,11 @@ function setupClusterCallback() {
 
 
 function setupClusterClick() {
-    const canvas = document.getElementById('clusterPlot')
-    canvas.addEventListener('mousedown', function (e) {
-        onClusterClick(canvas, e)
-    });
+    const canvas = document.getElementById('clusterPlot');
+    canvas.addEventListener('click', function (e) {
+        console.log("click cluster", e);
+        onClusterClick(canvas, e);
+    }, true);
 };
 
 
@@ -525,7 +552,13 @@ function loadAutoComplete() {
                     },
                     templates: {
                         item({ item, html }) {
-                            var acronyms = item['_acronyms'];
+                            var good_idx = item['_good_ids'];
+                            if (CTX.qc) {
+                                var acronyms = item['_acronyms'];
+                            } else {
+                                var acronyms = item["_acronyms"].filter(filter_by_good, good_idx);
+                            }
+
                             acronyms = getUnique(acronyms);
                             acronyms = acronyms.filter(item => item !== "void");
 
@@ -591,9 +624,20 @@ async function selectSession(pid) {
     // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
     // which controls which fields are displayed in the session details box.
     var trial_ids = details['_trial_ids']
-    var cluster_ids = details["_cluster_ids"];
-    var acronyms = details["_acronyms"];
-    var colors = details["_colors"];
+    var good_idx = details["_good_ids"];
+
+    if (CTX.qc) {
+        var cluster_ids = details["_cluster_ids"];
+        var acronyms = details["_acronyms"];
+        var colors = details["_colors"];
+    }
+    else {
+        var cluster_ids = details["_cluster_ids"].filter(filter_by_good, good_idx);
+        var acronyms = details["_acronyms"].filter(filter_by_good, good_idx);
+        var colors = details["_colors"].filter(filter_by_good, good_idx);
+    }
+
+
     CTX.dur = details["_duration"];
     CTX.trial_ids = trial_ids;
     CTX.trial_onsets = details["_trial_onsets"];
@@ -788,6 +832,79 @@ async function selectTrial(pid, tid, unityCalled = false) {
 
 
 /*************************************************************************************************/
+/*  Cluster legends                                                                              */
+/*************************************************************************************************/
+
+function addPanelLetter(legend_name, fig, letter, coords, legend) {
+    let plot_legend = document.getElementById(legend_name);
+    const div = document.createElement("div");
+    div.appendChild(document.createTextNode(letter));
+    div.classList.add('panel-letter');
+    fig.parentNode.appendChild(div);
+
+    let [xmin, ymin, xmax, ymax] = coords;
+    div.style.top = (ymin * 100 - 4) + "%";
+    div.style.left = (xmin * 100 - 1) + "%";
+    div.style.height = ((ymax - ymin) * 100) + "%";
+    div.style.width = ((xmax - xmin) * 100) + "%";
+
+    div.addEventListener("mouseover", function (e) {
+        plot_legend.innerHTML = `<strong>Legend of panel ${letter}</strong>: ${legend}`;
+    });
+
+    // HACK: ensure the click events is propagated from the transparent overlayed div containing
+    // the figure letter, to the figure below. Used for the cluster click in figure 5.
+    div.addEventListener("click", function (e) {
+        let elements = document.elementsFromPoint(e.clientX, e.clientY);
+        var ev = new MouseEvent('click', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true,
+            'clientX': e.clientX,
+            'clientY': e.clientY
+        });
+
+        elements[1].dispatchEvent(ev);
+    }, true);
+}
+
+
+
+function setupLegends(plot_id, legend_id, key) {
+    let plot = document.getElementById(plot_id);
+
+    let legends = FLASK_CTX.LEGENDS;
+    // // Show information about trials in table
+    // var url = `/api/figures/details`;
+    // var r = await fetch(url).then();
+    // var details = await r.json();
+    for (let letter in legends[key]) {
+        // console.log(letter);
+        // let [xmin, ymin, xmax, ymax] = details['cluster'][panel];
+        // console.log(xmin, ymin, xmax, ymax);
+        let panel = legends[key][letter];
+        addPanelLetter(legend_id, plot, letter, panel["coords"], panel["legend"]);
+    }
+
+}
+
+
+
+function setupAllLegends() {
+    setupLegends('sessionPlot', 'sessionPlotLegend', 'figure1');
+    setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
+    setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
+    setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
+    if (CTX.qc) {
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
+    } else {
+        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
+    }
+}
+
+
+
+/*************************************************************************************************/
 /*  Cluster selection                                                                            */
 /*************************************************************************************************/
 
@@ -795,7 +912,7 @@ async function onClusterClick(canvas, event) {
     const rect = canvas.getBoundingClientRect()
     const x = (event.clientX - rect.left) / rect.width
     const y = Math.abs((event.clientY - rect.bottom)) / rect.height
-    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}`;
+    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}/${Number(CTX.qc)}`;
     var r = await fetch(url);
     var details = await r.json();
 
@@ -812,7 +929,12 @@ async function onClusterClick(canvas, event) {
 async function selectCluster(pid, cid) {
     console.log(`select cluster #${cid}`);
     CTX.cid = cid;
-    var url = `/api/session/${pid}/cluster_plot/${cid}`;
+
+    if (CTX.qc) {
+        var url = `/api/session/${pid}/cluster_qc_plot/${cid}`;
+    } else {
+        var url = `/api/session/${pid}/cluster_plot/${cid}`;
+    }
     showImage('clusterPlot', url);
 
     // Show information about cluster in table
@@ -832,6 +954,7 @@ async function selectCluster(pid, cid) {
 
 function load() {
     setupShare();
+    setupQC();
 
     setupDataset();
     loadAutoComplete();
@@ -839,6 +962,7 @@ function load() {
     setupUnitySession();
     setupUnityTrial();
 
+    setupAllLegends();
     setupClusterClick()
     setupTrialCallback();
     setupClusterCallback();

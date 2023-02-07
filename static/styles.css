@@ -181,6 +181,14 @@ h2 {
     background-color: #fcfcfc;
 }
 
+h3 {
+    font-size: 18pt;
+}
+
+h4 {
+    font-size: 14pt;
+}
+
 
 
 /*************************************************************************************************/
@@ -230,6 +238,76 @@ h2 {
 
 
 /*************************************************************************************************/
+/*  QC toggle switch                                                                             */
+/*************************************************************************************************/
+
+/* https://codepen.io/mburnette/pen/LxNxNg */
+
+#qc-switch {
+    position: fixed;
+    top: 12px;
+    right: 130px;
+    z-index: 200;
+}
+
+#qc-switch input[type=checkbox] {
+    height: 0;
+    width: 0;
+    visibility: hidden;
+}
+
+#qc-switch span {
+    position: relative;
+    left: -27px;
+    top: 14px;
+    font-size: 16px;
+    font-weight: 300;
+    color: #333;
+    font-family: roboto-condensed;
+}
+
+#qc-switch label {
+    cursor: pointer;
+    text-indent: -9999px;
+    width: 50px;
+    height: 30px;
+    background: #aaa;
+    display: block;
+    border-radius: 50px;
+    position: relative;
+    top: -22px;
+}
+
+#qc-switch label:after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+
+#qc-switch input:checked+label {
+    background: #0898D4;
+}
+
+#qc-switch input:checked+label:after {
+    left: calc(100% - 5px);
+    transform: translateX(-100%);
+}
+
+#qc-switch label:active:after {
+    width: 25px;
+}
+
+
+
+
+
+/*************************************************************************************************/
 /*  Figure legends                                                                               */
 /*************************************************************************************************/
 
@@ -241,10 +319,13 @@ body .row figure {
 }
 
 body .row figure summary {
-    cursor: pointer;
-    font-weight: bold;
+    /* cursor: pointer; */
+    font-weight: normal;
     font-size: 1.05em;
     padding: 5px 5px 5px 0;
+    height: 150px;
+
+    list-style: none;
 }
 
 body .row figure details {
@@ -252,6 +333,14 @@ body .row figure details {
     margin: 10px 0 0 0;
     padding: 7px 15px 7px 20px;
     background-color: #f3f3f3;
+}
+
+body .row figure details summary::-webkit-details-marker {
+    display: none;
+}
+
+body .row figure details summary::marker {
+    display: none;
 }
 
 body .row figure details div {
@@ -270,6 +359,33 @@ body .row figure details ul {
 body .row figure details ul li {
     list-style-type: disc;
     margin: 10px 0
+}
+
+
+
+.legend {
+    /* display: none; */
+}
+
+.imgWrapper {
+    padding: 0;
+    margin: 0;
+    position: relative;
+    top: 0;
+    left: 0;
+}
+
+.panel-letter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    font-weight: bold;
+    -webkit-text-stroke: 0.5px white;
+    text-stroke: 2px white;
+    /* font-size: 1.25em; */
+    /* color: #0898D4; */
+    /* background-color: #00000011; */
 }
 
 
