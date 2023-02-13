@@ -41,11 +41,9 @@ import one.alf.io as alfio
 # -------------------------------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+
 DATA_DIR = ROOT_DIR / 'static/data'
 CACHE_DIR = ROOT_DIR / 'static/cache'
-BRAIN_ATLAS = AllenAtlas()
-BRAIN_ATLAS.compute_surface()
-BRAIN_REGIONS = BRAIN_ATLAS.regions
 
 # -------------------------------------------------------------------------------------------------
 # Colourmaps
@@ -306,6 +304,10 @@ class DataLoader:
         self.features = pd.read_parquet(DATA_DIR.joinpath('raw_ephys_features.pqt'))
         self.features = self.features.reset_index()
 
+        self.BRAIN_ATLAS = AllenAtlas()
+        self.BRAIN_ATLAS.compute_surface()
+        self.BRAIN_REGIONS = self.BRAIN_ATLAS.regions
+
     def session_init(self, pid):
         assert self.session_df is not None
         if pid not in self.session_df.index:
@@ -384,7 +386,7 @@ class DataLoader:
         details['_acronyms'] = self.clusters.acronym[idx].tolist()
         # details['_brain_regions'] = self.brain_regions
         # details['_brain_regions'] = sorted(set(details['_acronyms']))
-        details['_colors'] = BRAIN_REGIONS.get(self.clusters.atlas_id[idx]).rgb.tolist()
+        details['_colors'] = self.BRAIN_REGIONS.get(self.clusters.atlas_id[idx]).rgb.tolist()
         good_ids = np.zeros(self.clusters.label.size)
         good_ids[self.clusters.label == 1] = 1
         details['_good_ids'] = [bool(_) for _ in good_ids[idx]]
@@ -395,8 +397,8 @@ class DataLoader:
         # # details['_brain_regions'] = sorted(set(details['_acronyms']))
         # details['_colors'] = BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx]).rgb.tolist()
 
-        regions = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).name))
-        regions_acronyms = sorted(set(BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).acronym))
+        regions = sorted(set(self.BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).name))
+        regions_acronyms = sorted(set(self.BRAIN_REGIONS.get(self.clusters_good.atlas_id[idx_good]).acronym))
         regions += regions_acronyms
         regions = [_.lower() for _ in regions]
         regions = ', '.join(regions)
@@ -435,7 +437,7 @@ class DataLoader:
         details = {
             'Cluster #': cluster_idx,
             # 'Brain region': BRAIN_REGIONS.id2acronym(cluster.atlas_id, mapping='Beryl')[0],
-            'Brain region': BRAIN_REGIONS.get(cluster.atlas_id)['name'][0],
+            'Brain region': self.BRAIN_REGIONS.get(cluster.atlas_id)['name'][0],
             'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, cluster_idx)['times']),
             'Overall firing rate': f'{np.round(cluster["firing_rate"], 2)} Hz',
             'Max amplitude': f'{np.round(cluster["amp_max"] * 1e6, 2)} uV'
@@ -477,10 +479,10 @@ class DataLoader:
         self.session_raster = self.session_raster / t_bin
 
     def get_brain_regions(self, restrict_labels=True, mapping='Beryl'):
-        atlas_ids = BRAIN_REGIONS.id2id(self.channels['brainLocationIds_ccf_2017'], mapping=mapping)
+        atlas_ids = self.BRAIN_REGIONS.id2id(self.channels['brainLocationIds_ccf_2017'], mapping=mapping)
         regions, region_labels, region_colours = \
             plot_brain_regions(channel_ids=atlas_ids, channel_depths=self.channels.localCoordinates[:, 1],
-                               brain_regions=BRAIN_REGIONS, display=False)
+                               brain_regions=self.BRAIN_REGIONS, display=False)
         if restrict_labels:
             # Remove any void or root region labels and those that are less than 60 um
             reg_idx = np.where(~np.bitwise_or(np.isin(region_labels[:, 1], ['void', 'root']),
@@ -808,7 +810,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        ins = Insertion.from_dict(self.session_info, brain_atlas=BRAIN_ATLAS)
+        ins = Insertion.from_dict(self.session_info, brain_atlas=self.BRAIN_ATLAS)
 
         # def crawl_up_from_tip(ins, d):
         #     return (ins.entry - ins.tip) * (d[:, np.newaxis] /
@@ -816,7 +818,7 @@ class DataLoader:
         # d = np.array([200, 200 + 3840])
         # top_bottom = crawl_up_from_tip(ins, d / 1e6)
 
-        ax, sec_ax = BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
+        ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
         ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
         # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
         remove_frame(ax)
@@ -831,13 +833,13 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        cmin, cmax = np.quantile(BRAIN_ATLAS.image, [0.1, 0.98])
+        cmin, cmax = np.quantile(self.BRAIN_ATLAS.image, [0.1, 0.98])
 
         xyz_samples = self.channels['mlapdv']
         traj = Trajectory.fit(xyz_samples / 1e6)
         vector_perp = np.array([1, -1 * traj.vector[0] / traj.vector[2]])
         extent = 2000
-        steps = np.ceil(extent * 2 / BRAIN_ATLAS.res_um).astype(int)
+        steps = np.ceil(extent * 2 / self.BRAIN_ATLAS.res_um).astype(int)
         image = np.zeros((xyz_samples.shape[0], steps))
 
         for i, xyz in enumerate(xyz_samples):
@@ -849,9 +851,9 @@ class DataLoader:
             perp_ap = np.ones_like(perp_ml) * xyz[1]
             perp_dv = np.linspace(anchor[xargmin, 1], anchor[xargmax, 1], steps)
 
-            idx = BRAIN_ATLAS.bc.xyz2i(np.c_[perp_ml, perp_ap, perp_dv] / 1e6, mode='clip')
-            idx[idx[:, 2] >= BRAIN_ATLAS.image.shape[2], 2] = BRAIN_ATLAS.image.shape[2] - 1
-            image[i, :] = BRAIN_ATLAS.image[idx[:, 1], idx[:, 0], idx[:, 2]]
+            idx = self.BRAIN_ATLAS.bc.xyz2i(np.c_[perp_ml, perp_ap, perp_dv] / 1e6, mode='clip')
+            idx[idx[:, 2] >= self.BRAIN_ATLAS.image.shape[2], 2] = self.BRAIN_ATLAS.image.shape[2] - 1
+            image[i, :] = self.BRAIN_ATLAS.image[idx[:, 1], idx[:, 0], idx[:, 2]]
 
         image = np.flipud(image)
 
@@ -1043,10 +1045,10 @@ class DataLoader:
         else:
             clusters = self.clusters
 
-        col = (BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
+        col = (self.BRAIN_REGIONS.get(clusters.atlas_id).rgb / 255).tolist()
         scat = ax.scatter(clusters.amps * 1e6, clusters.depths, c=col, edgecolors='grey')
         selected_cluster = filter_clusters_by_cluster_idx(clusters, cluster_idx)
-        selected_cluster_col = (BRAIN_REGIONS.get(selected_cluster.atlas_id).rgb / 255).tolist()
+        selected_cluster_col = (self.BRAIN_REGIONS.get(selected_cluster.atlas_id).rgb / 255).tolist()
         if clusters is not None:
             ax.scatter(selected_cluster.amps * 1e6, selected_cluster.depths, c=selected_cluster_col, edgecolors='black',
                        linewidths=2, s=80)
