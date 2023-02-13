@@ -75,9 +75,7 @@ add_default_handler(logger, level='DEBUG')
 # -------------------------------------------------------------------------------------------------
 # CONSTANTS
 # -------------------------------------------------------------------------------------------------
-# ROOT_DIR and DATA_DIR are loaded from static_plots.py
-# ROOT_DIR = Path(__file__).parent.resolve()
-# DATA_DIR = ROOT_DIR / 'static/data'
+
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
 
@@ -180,8 +178,8 @@ def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc):
 # Path functions
 # -------------------------------------------------------------------------------------------------
 
-def session_data_path(pid):
-    return DATA_DIR / pid
+# def session_data_path(pid):
+#     return DATA_DIR / pid
 
 
 def session_cache_path(pid):
@@ -849,7 +847,6 @@ class Generator:
         ax7.get_yaxis().set_visible(False)
         ax9.get_yaxis().set_visible(False)
 
-
         gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0:2, 2])
         ax10 = fig.add_subplot(gs2[0])
         loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
@@ -866,7 +863,6 @@ class Generator:
         loader.plot_tuning_curves(cluster_idx, event='stimOn_times', ax=gs_5_ax1, title='Stim On')
         loader.plot_tuning_curves(cluster_idx, event='firstMovement_times', ax=gs_5_ax2, ylabel='', title='First Move')
         loader.plot_tuning_curves(cluster_idx, event='feedback_times', ax=gs_5_ax3, ylabel='', title='Feedback')
-
 
         gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2, :])
         gs00 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[0], height_ratios=[1, 10],
@@ -1045,7 +1041,7 @@ if __name__ == '__main__':
 
     # Regenerate all figures.
     if len(sys.argv) == 1:
-        Parallel(n_jobs=-3)(delayed(make_all_plots)(pid) for pid in iter_session())
+        Parallel(n_jobs=-4)(delayed(make_all_plots)(pid) for pid in iter_session())
 
     # Regenerate some figures for all sessions.
     elif len(sys.argv) >= 2 and not is_valid_uuid(sys.argv[1]):
