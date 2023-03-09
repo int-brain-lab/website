@@ -9613,7 +9613,6 @@ MonoBehaviour:
   - {fileID: 1353147794}
   _cameraController: {fileID: 38478435}
   _timeSlider: {fileID: 1147921506}
-  testQC: 0
 --- !u!4 &1068605462 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8049963176825890552, guid: e084adc581a74a04c9abe7813fe77412, type: 3}
@@ -10054,7 +10053,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 255, y: -51.3}
+  m_AnchoredPosition: {x: 440, y: -51.3}
   m_SizeDelta: {x: 175, y: 144}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &1148006127
