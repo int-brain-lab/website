@@ -295,7 +295,6 @@ function setupQC() {
         CTX.qc = qc.checked ? 1 : 0;
         let url = getUrl();
         window.location.href = url;
-        unityUpdateQC();
     });
 };
 
