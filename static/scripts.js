@@ -295,6 +295,7 @@ function setupQC() {
         CTX.qc = qc.checked ? 1 : 0;
         let url = getUrl();
         window.location.href = url;
+        unityUpdateQC();
     });
 };
 
@@ -318,7 +319,10 @@ function selectPID(pid) {
     autoCompleteJS.setQuery(pid);
 };
 
-
+function unityUpdateQC() {
+    if (unityTrial)
+        window.unityTrial.SendMessage("FullPanels", "SwitchLayout", Number(CTX.qc));
+}
 
 
 /*************************************************************************************************/
@@ -370,6 +374,8 @@ function setupUnityTrial() {
         window.unityTrial = unityInstance;
         window.unityTrial.SendMessage("main", "SetSession", CTX.pid);
         window.unityTrial.SendMessage("main", "SetTrial", Number(CTX.tid));
+        window.unityTrial.SendMessage("FullPanels", "SwitchLayout", Number(CTX.qc));
+        unityUpdateQC();
     });
 };
 

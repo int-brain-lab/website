@@ -29,9 +29,9 @@ public class QCLayoutBehavior : MonoBehaviour
 
     private bool layoutA = true;
 
-    public void SwitchLayout()
+    public void SwitchLayout(int QC)
     {
-        layoutA = !layoutA;
+        layoutA = QC == 0;
 
         _layoutA.SetActive(layoutA);
         _layoutB.SetActive(!layoutA);
