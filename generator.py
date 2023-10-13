@@ -14,7 +14,6 @@ import locale
 import logging
 import logging
 import os.path as op
-import png
 import sys
 
 import numpy as np
@@ -109,13 +108,6 @@ def normalize(x, target='float'):
         return np.round(255 * (x - m) / (M - m)).astype(np.uint8)
     raise ValueError("unknow normalization target")
 
-
-def to_png(arr):
-    p = png.from_array(arr, mode="L")
-    b = io.BytesIO()
-    p.write(b)
-    b.seek(0)
-    return b
 
 
 def is_valid_uuid(uuid_to_test, version=4):

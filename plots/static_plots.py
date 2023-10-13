@@ -16,7 +16,6 @@ from collections import OrderedDict
 import seaborn as sns
 import yaml
 from scipy.stats import zscore
-import mpl_scatter_density
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
