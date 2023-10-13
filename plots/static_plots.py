@@ -307,12 +307,10 @@ class DataLoader:
         self.session_df = pd.read_parquet(self.data_path.joinpath('session.table.pqt'))
         self.session_df = self.session_df.set_index('pid')
 
-        # # Channels and brain acronyms.
-        # self.channels_df = pd.read_parquet(self.data_path.joinpath('channels.pqt'))
-
         # load in the waveform tables
-        self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
-        self.features = self.features.reset_index()
+        # TODO add back in once we have the features table
+        # self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
+        # self.features = self.features.reset_index()
 
         self.BRAIN_ATLAS = AllenAtlas()
         self.BRAIN_ATLAS.compute_surface()
@@ -325,7 +323,6 @@ class DataLoader:
 
         self.pid = pid
         self.load_session_data(pid)
-        # self.get_session_details()
         self.compute_session_raster()
 
     def load_session_data(self, pid):
@@ -346,13 +343,10 @@ class DataLoader:
         self.channels = load_channels(pid, data_path=self.data_path)
         self.rms_chns = load_rms(pid, data_path=self.data_path)
 
-        # # self.brain_regions is a string with the list of brain regions in a given session
-        # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
-        #     transform(lambda x: ', '.join(sorted(x)))
-        # self.brain_regions = self.brain_regions[self.brain_regions.index == pid][0]
-
-        self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
-        self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        # self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
+        # self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        self.rms_ap = np.random.random(384)
+        self.lfp = np.random.random(384)
 
         self.depth_lim = [0, 4000]
         self.amp_lim = [-10, 800]
@@ -532,7 +526,6 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        # TODO use actual data
         data_bank, x_bank, y_bank = arrange_channels2banks(self.rms_ap * 1e6, self.channels.localCoordinates, depth=None,
                                                            pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='plasma')
