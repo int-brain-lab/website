@@ -334,7 +334,7 @@ class DataLoader:
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.eid = self.session_info['eid']
         self.spikes = load_spikes(pid, data_path=self.data_path)
-        self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid))
+        self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid, data_path=self.data_path))
         self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
         self.clusters = load_clusters(pid, data_path=self.data_path)
