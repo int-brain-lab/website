@@ -28,7 +28,7 @@ from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast
 from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
-from ibllib.atlas import AllenAtlas, Insertion, Trajectory
+from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
 from slidingRP.metrics import slidingRP
 import time
