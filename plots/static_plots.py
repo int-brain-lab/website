@@ -822,7 +822,7 @@ class DataLoader:
         # d = np.array([200, 200 + 3840])
         # top_bottom = crawl_up_from_tip(ins, d / 1e6)
 
-        ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
+        ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax, return_sec=True)
         ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
         # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
         remove_frame(ax)
