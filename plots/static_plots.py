@@ -16,11 +16,11 @@ from collections import OrderedDict
 import seaborn as sns
 import yaml
 from scipy.stats import zscore
+import mpl_scatter_density
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
-from brainbox.processing import bincount2D
 from brainbox.behavior.wheel import velocity, interpolate_position
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
@@ -29,6 +29,7 @@ from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
+from iblutil.numerical import bincount2D
 from slidingRP.metrics import slidingRP
 import time
 
