@@ -65,59 +65,69 @@ CMAP = sns.diverging_palette(20, 220, n=3, center="dark")
 # -------------------------------------------------------------------------------------------------
 
 
-def load_clusters(pid):
-    clusters = alfio.load_object(DATA_DIR.joinpath(pid), object='clusters')
+def load_clusters(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    clusters = alfio.load_object(data_path.joinpath(pid), object='clusters')
     return clusters
 
 
-def load_channels(pid):
-    channels = alfio.load_object(DATA_DIR.joinpath(pid), object='channels')
+def load_channels(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    channels = alfio.load_object(data_path.joinpath(pid), object='channels')
     return channels
 
 
-def load_spikes(pid):
-    spikes = alfio.load_object(DATA_DIR.joinpath(pid), object='spikes')
+def load_spikes(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    spikes = alfio.load_object(data_path.joinpath(pid), object='spikes')
     return spikes
 
 
-def load_trials(eid):
-    trials = alfio.load_object(DATA_DIR.joinpath(eid), object='trials')
+def load_trials(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    trials = alfio.load_object(data_path.joinpath(eid), object='trials')
     return trials
 
 
-def load_cluster_waveforms(pid):
-    wfs = np.load(DATA_DIR.joinpath(pid, 'clusters.waveforms.npy'))
-    wf_chns = np.load(DATA_DIR.joinpath(
+def load_cluster_waveforms(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    wfs = np.load(data_path.joinpath(pid, 'clusters.waveforms.npy'))
+    wf_chns = np.load(data_path.joinpath(
         pid, 'clusters.waveformsChannels.npy'))
 
     return wfs, wf_chns
 
 
-def load_rms(pid):
-    rms = np.load(DATA_DIR.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
+def load_rms(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    rms = np.load(data_path.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
     return rms[1, :]
 
 
-def load_raw_data(pid):
-    raw_data = np.load(DATA_DIR.joinpath(pid, 'raw_ephys_data.npy'))
-    with open(DATA_DIR.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
+def load_raw_data(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    raw_data = np.load(data_path.joinpath(pid, 'raw_ephys_data.npy'))
+    with open(data_path.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
         raw_info = yaml.safe_load(fp)
 
     return raw_info, raw_data
 
 
-def load_camera(eid, camera):
-    camera = alfio.load_object(DATA_DIR.joinpath(eid), object=f'{camera}Camera')
+def load_camera(eid, camera, data_path=None):
+    data_path = data_path or DATA_DIR
+    camera = alfio.load_object(data_path.joinpath(eid), object=f'{camera}Camera')
     return camera
 
 
-def load_licks(eid):
-    licks = np.load(DATA_DIR.joinpath(eid, 'licks.times.npy'))
+def load_licks(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    licks = np.load(data_path.joinpath(eid, 'licks.times.npy'))
     return licks
 
 
-def load_wheel(eid):
-    wheel = alfio.load_object(DATA_DIR.joinpath(eid), object='wheel')
+def load_wheel(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    wheel = alfio.load_object(data_path.joinpath(eid), object='wheel')
     return wheel
 
 
@@ -293,15 +303,16 @@ class DataLoader:
     # Loading functions
     # ---------------------------------------------------------------------------------------------
 
-    def __init__(self):
-        self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
+    def __init__(self, data_path=None):
+        self.data_path = data_path or DATA_DIR
+        self.session_df = pd.read_parquet(self.data_path.joinpath('session.table.pqt'))
         self.session_df = self.session_df.set_index('pid')
 
         # # Channels and brain acronyms.
-        # self.channels_df = pd.read_parquet(DATA_DIR.joinpath('channels.pqt'))
+        # self.channels_df = pd.read_parquet(self.data_path.joinpath('channels.pqt'))
 
         # load in the waveform tables
-        self.features = pd.read_parquet(DATA_DIR.joinpath('raw_ephys_features.pqt'))
+        self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
         self.features = self.features.reset_index()
 
         self.BRAIN_ATLAS = AllenAtlas()
@@ -326,15 +337,15 @@ class DataLoader:
         """
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.eid = self.session_info['eid']
-        self.spikes = load_spikes(pid)
+        self.spikes = load_spikes(pid, data_path=self.data_path)
         self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid))
-        self.trials = load_trials(self.eid)
+        self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
-        self.clusters = load_clusters(pid)
+        self.clusters = load_clusters(pid, data_path=self.data_path)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
-        self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
-        self.channels = load_channels(pid)
-        self.rms_chns = load_rms(pid)
+        self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid, data_path=self.data_path)
+        self.channels = load_channels(pid, data_path=self.data_path)
+        self.rms_chns = load_rms(pid, data_path=self.data_path)
 
         # # self.brain_regions is a string with the list of brain regions in a given session
         # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
@@ -602,7 +613,7 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        info, raw_ephys = load_raw_data(self.pid)
+        info, raw_ephys = load_raw_data(self.pid, data_path=self.data_path)
 
         times = info['t']
         ts = info['t_offset']
@@ -1103,7 +1114,7 @@ class DataLoader:
     def plot_dlc_feature_raster(self, camera, feature, axs=None, xlabel='T from Stim On (s)', ylabel0='Speed (px/s)',
                                 ylabel1='Sorted Trial Number', title=None, zscore_flag=False, norm=False):
 
-        camera = load_camera(self.eid, camera)
+        camera = load_camera(self.eid, camera, data_path=self.data_path)
         feature = camera.computedFeatures[feature]
 
         if zscore_flag:
@@ -1127,7 +1138,7 @@ class DataLoader:
 
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
 
-        camera = load_camera(self.eid, camera)
+        camera = load_camera(self.eid, camera, data_path=self.data_path)
         idx = np.searchsorted(camera.times, self.trial_intervals[trial_idx])
         ax.plot(camera.times[idx[0]:idx[1]], camera.computedFeatures[feature][idx[0]:idx[1]], c='k')
         self.add_trial_events_to_raster(ax, trials, text=False)
@@ -1142,7 +1153,7 @@ class DataLoader:
     def plot_lick_raster(self, axs=None, xlabel='T from Feedback (s)', ylabel0='Licks (count)',
                          ylabel1='Sorted Trial Number', title=None):
 
-        licks = load_licks(self.eid)
+        licks = load_licks(self.eid, data_path=self.data_path)
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(licks, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
@@ -1156,7 +1167,7 @@ class DataLoader:
     def plot_wheel_raster(self, axs=None, xlabel='T from First Move (s)', ylabel0='Wheel velocity (rad/s)',
                           ylabel1='Sorted Trial Number', title=None):
 
-        wheel = load_wheel(self.eid)
+        wheel = load_wheel(self.eid, data_path=self.data_path)
         speed = velocity(wheel.timestamps, wheel.position)
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
@@ -1175,7 +1186,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        wheel = load_wheel(self.eid)
+        wheel = load_wheel(self.eid, data_path=self.data_path)
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
 
         wheel_pos, wheel_time = interpolate_position(wheel.timestamps, wheel.position)
