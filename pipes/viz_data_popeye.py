@@ -58,6 +58,8 @@ for uuid, d in df.iterrows():
     file_path = Path(d['session_path']).joinpath(d['rel_path'])
     file_uuid = add_uuid_string(file_path, uuid)
     file_link = eid_path.joinpath(file_path.name)
+    if file_link.exists():
+        continue
     file_link.parent.mkdir(exist_ok=True, parents=True)
     file_link.symlink_to(
         Path(SDSC_ROOT_PATH.joinpath(file_uuid)))
