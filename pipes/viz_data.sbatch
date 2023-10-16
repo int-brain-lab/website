@@ -3,8 +3,9 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1
 #SBATCH --mem=32G
-#SBATCH --time=05:00:00   # Allow it to run for 5 hours
+#SBATCH --time=03:00:00   # Allow it to run for 3 hours
 #SBATCH -o /mnt/home/mfaulkner/Documents/viz_website/viz_data_9117969a-3f0d-478b-ad75-98263e3bfacf.log
+#SBATCH -e /mnt/home/mfaulkner/Documents/viz_website/err_9117969a-3f0d-478b-ad75-98263e3bfacf.log
 #SBATCH --mail-type=begin   # send email when job begins
 #SBATCH --mail-type=end     # send email when job ends
 #SBATCH --mail-type=fail
