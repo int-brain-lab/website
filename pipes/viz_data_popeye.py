@@ -221,6 +221,8 @@ with open(pid_path.joinpath('raw_ephys_info.yaml'), 'w+') as fp:
 spikes = alfio.load_object(pid_path, 'spikes')
 clusters = alfio.load_object(pid_path, 'clusters')
 channels = _channels_alf2bunch(alfio.load_object(pid_path, 'channels'), brain_regions=br)
+# Make sure clusters channels is an int
+clusters['channels'] = np.array(clusters['channels'], dtype=int)
 
 metrics = clusters.pop('metrics')
 for k in metrics.keys():
