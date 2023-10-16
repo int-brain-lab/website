@@ -15,6 +15,7 @@ import logging
 import logging
 import os.path as op
 import sys
+import gc
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -465,6 +466,7 @@ class Generator:
                 fig.savefig(path)
 
             plt.close(fig)
+            gc.collect()
         except Exception as e:
             logger.error(f"error with session overview plot {self.pid}: {str(e)}")
 
@@ -564,6 +566,7 @@ class Generator:
             fig.savefig(path)
 
         plt.close(fig)
+        gc.collect()
 
     # -------------------------------------------------------------------------------------------------
     # SINGLE TRIAL OVERVIEW
@@ -625,6 +628,7 @@ class Generator:
             fig.savefig(path)
 
         plt.close(fig)
+        gc.collect()
 
     # FIGURE 4
 
@@ -672,6 +676,7 @@ class Generator:
             df.to_parquet(path_interval)
 
         plt.close(fig)
+        gc.collect()
 
     # -------------------------------------------------------------------------------------------------
     # SINGLE CLUSTER OVERVIEW
@@ -803,6 +808,7 @@ class Generator:
                 df.to_parquet(path_scat)
 
         plt.close(fig)
+        gc.collect()
 
     def make_cluster_qc_plot(self, cluster_idx, force=False, captions=False):
 
@@ -924,6 +930,7 @@ class Generator:
                 df.to_parquet(path_scat)
 
         plt.close(fig)
+        gc.collect()
 
     # Plot generator functions
     # -------------------------------------------------------------------------------------------------
