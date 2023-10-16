@@ -12,4 +12,4 @@
 
 module load python/3.10.8
 
-/mnt/home/mfaulkner/Documents/PYTHON/envs/iblenv/bin/python /mnt/home/mfaulkner/Documents/webiste/pipes/viz_data_popeye.py 9117969a-3f0d-478b-ad75-98263e3bfacf
+/mnt/home/mfaulkner/Documents/PYTHON/envs/ibllib/bin/python //mnt/home/mfaulkner/Documents/PYTHON/website/pipes/viz_data_popeye.py 9117969a-3f0d-478b-ad75-98263e3bfacf

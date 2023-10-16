@@ -17,7 +17,7 @@ import one.alf.io as alfio
 from one.api import ONE
 import spikeglx
 
-sys.path.extend('/mnt/home/mfaulkner/Documents/PYTHON/website')
+sys.path.append('/mnt/home/mfaulkner/Documents/PYTHON/website')
 
 from generator import make_all_plots, make_captions
 
