@@ -33,7 +33,6 @@ TEMP_PATH = Path("/mnt/home/mfaulkner/ceph/viz_data")
 SAVE_PATH = Path("/mnt/home/mfaulkner/ceph/viz_cache")
 SAVE_PATH.mkdir(parents=True, exist_ok=True)
 
-
 signature_eid = [
     ('_ibl_trials.table.pqt', 'alf'),
     ('_ibl_wheel.position.npy', 'alf'),
@@ -46,10 +45,7 @@ signature_eid = [
 ]
 
 eid, pname = one.pid2eid(pid)
-
 eid_path = TEMP_PATH.joinpath(eid)
-
-
 eid_path.mkdir(exist_ok=True, parents=True)
 
 # Transfer over the relevant session data
