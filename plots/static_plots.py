@@ -219,7 +219,7 @@ def filter_out_low_fr_clusters(spikes, clusters):
     spike_idx, ib = ismember(spikes['clusters'], clusters['metrics'].index)
     clusters['metrics'].reset_index(drop=True, inplace=True)
     spikes = Bunch({k: v[spike_idx] for k, v in spikes.items()})
-    spikes['clusters'] = clusters['cluster_id'][clusters['metrics'].index[ib].astype(np.int32)]
+    spikes['clusters'] = clusters['cluster_id'][clusters['metrics'].index[ib].astype(np.int32)].astype(np.uint32)
 
     return spikes, clusters
 
