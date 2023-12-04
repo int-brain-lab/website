@@ -335,8 +335,8 @@ class DataLoader:
 
         # load in the waveform tables
         # TODO add back in once we have the features table
-        # self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
-        # self.features = self.features.reset_index()
+        self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
+        self.features = self.features.reset_index()
 
         self.BRAIN_ATLAS = AllenAtlas()
         self.BRAIN_ATLAS.compute_surface()
