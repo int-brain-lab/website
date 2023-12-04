@@ -103,6 +103,7 @@ def load_rms(pid, data_path=None):
     rms = np.load(data_path.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
     return rms[1, :]
 
+
 def load_lfp(pid, data_path=None):
     data_path = data_path or DATA_DIR
     freq = [0, 4]
@@ -366,7 +367,9 @@ class DataLoader:
         self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
-        self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid, data_path=self.data_path)
+        self.cluster_wfs = self.clusters.pop('waveforms')
+        self.cluster_wf_chns = self.clusters.pop('waveformsChannels')
+        # self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid, data_path=self.data_path)
         self.channels = load_channels(pid, data_path=self.data_path)
         self.rms_chns = load_rms(pid, data_path=self.data_path)
 
