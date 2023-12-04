@@ -29,7 +29,7 @@ from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
-from iblutil.numerical import bincount2D
+from iblutil.numerical import bincount2D, ismember
 from slidingRP.metrics import slidingRP
 import time
 
@@ -102,6 +102,17 @@ def load_rms(pid, data_path=None):
     data_path = data_path or DATA_DIR
     rms = np.load(data_path.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
     return rms[1, :]
+
+def load_lfp(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    freq = [0, 4]
+    lfp = alfio.load_object(data_path.joinpath(pid), object='ephysSpectralDensityLF')
+    freq_idx = np.where((lfp['freqs'] >= freq[0]) & (lfp['freqs'] < freq[1]))[0]
+    lfp_avg = np.mean(lfp['power'][freq_idx], axis=0)
+    lfp_avg_dB = 10 * np.log10(lfp_avg)
+
+    return lfp_avg_dB
+
 
 
 def load_raw_data(pid, data_path=None):
@@ -191,11 +202,26 @@ def filter_wfs_by_cluster_idx(waveforms, waveform_channels, clusters, cluster_id
 
 def filter_features_by_pid(features, pid, column):
     feat = features[features['pid'] == pid]
+    if len(feat) == 0:
+        return None
     values = feat[column].values
     if len(values) == 0:
         return np.full(384, np.nan)
     else:
         return feat[column].values
+
+
+def filter_out_low_fr_clusters(spikes, clusters):
+    # Remove low firing rate clusters
+    min_firing_rate = 50. / 3600.
+    clu_idx = clusters['metrics'].firing_rate > min_firing_rate
+    clusters = Bunch({k: v[clu_idx] for k, v in clusters.items()})
+    spike_idx, ib = ismember(spikes['clusters'], clusters['metrics'].index)
+    clusters['metrics'].reset_index(drop=True, inplace=True)
+    spikes = Bunch({k: v[spike_idx] for k, v in spikes.items()})
+    spikes['clusters'] = clusters['metrics'].index[ib].astype(np.int32)
+
+    return spikes, clusters
 
 
 # -------------------------------------------------------------------------------------------------
@@ -334,20 +360,26 @@ class DataLoader:
         """
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.eid = self.session_info['eid']
-        self.spikes = load_spikes(pid, data_path=self.data_path)
+        self.spikes, self.clusters = filter_out_low_fr_clusters(load_spikes(pid, data_path=self.data_path),
+                                                                load_clusters(pid, data_path=self.data_path))
         self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid, data_path=self.data_path))
         self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
-        self.clusters = load_clusters(pid, data_path=self.data_path)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
         self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid, data_path=self.data_path)
         self.channels = load_channels(pid, data_path=self.data_path)
         self.rms_chns = load_rms(pid, data_path=self.data_path)
 
-        # self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
-        # self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
-        self.rms_ap = np.random.random(384)
-        self.lfp = np.random.random(384)
+        self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
+        # If not in the features table, load in a different way
+        if self.rms_ap is None:
+            self.rms_ap = self.rms_chns
+
+        self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        # If not in the features table, load in a different way
+        if self.lfp is None:
+            self.lfp = load_lfp(pid, data_path=self.data_path)
+            self.lfp = self.lfp[self.channels['rawInd']]
 
         self.depth_lim = [0, 4000]
         self.amp_lim = [-10, 800]
