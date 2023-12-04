@@ -219,7 +219,8 @@ def filter_out_low_fr_clusters(spikes, clusters):
     spike_idx, ib = ismember(spikes['clusters'], clusters['metrics'].index)
     clusters['metrics'].reset_index(drop=True, inplace=True)
     spikes = Bunch({k: v[spike_idx] for k, v in spikes.items()})
-    spikes['clusters'] = clusters['cluster_id'][clusters['metrics'].index[ib].astype(np.int32)].astype(np.uint32)
+    spikes['idx'] = clusters['metrics'].index[ib].astype(np.int32)
+    spikes['clusters'] = clusters['cluster_id'][spikes['idx']].astype(np.uint32)
 
     return spikes, clusters
 
@@ -662,9 +663,9 @@ class DataLoader:
 
         for iT, time in enumerate(times):
             spike_idx = slice(*np.searchsorted(self.spikes['samples'], [int((time + ts) * fs), int((time + te) * fs)]))
-            spike_channels = depths[self.clusters['channels'][self.spikes['clusters'][spike_idx]].astype(int)]
+            spike_channels = depths[self.clusters['channels'][self.spikes['idx'][spike_idx]].astype(int)]
             spike_times = (self.spikes['samples'][spike_idx] / fs - (time + ts)) * 1000
-            spike_labels = self.clusters['label'][self.spikes['clusters'][spike_idx]]
+            spike_labels = self.clusters['label'][self.spikes['idx'][spike_idx]]
 
             ax = axs[iT + 1] if raster else axs[iT]
 
