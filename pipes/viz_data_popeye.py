@@ -257,12 +257,10 @@ good_idx = np.where(clusters['label'] == 1)[0]
 idx = np.isin(spikes.clusters, clusters.cluster_id[good_idx])
 np.save(pid_path.joinpath('spikes.good.npy'), idx)
 
-metrics = next(pid_path.glob('clusters.metrics*'))
-metrics.unlink()
 
 # Make all the plots that we need for the website
 make_all_plots(pid, data_path=TEMP_PATH, cache_path=SAVE_PATH)
-# make_captions(data_path=TEMP_PATH, cache_path=SAVE_PATH)
+make_captions(data_path=TEMP_PATH, cache_path=SAVE_PATH)
 
 
 # from iblatlas.atlas import AllenAtlas

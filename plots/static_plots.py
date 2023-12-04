@@ -114,7 +114,6 @@ def load_lfp(pid, data_path=None):
     return lfp_avg_dB
 
 
-
 def load_raw_data(pid, data_path=None):
     data_path = data_path or DATA_DIR
     raw_data = np.load(data_path.joinpath(pid, 'raw_ephys_data.npy'))
@@ -362,6 +361,7 @@ class DataLoader:
         self.eid = self.session_info['eid']
         self.spikes, self.clusters = filter_out_low_fr_clusters(load_spikes(pid, data_path=self.data_path),
                                                                 load_clusters(pid, data_path=self.data_path))
+        self.clusters.pop('metrics')
         self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid, data_path=self.data_path))
         self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
