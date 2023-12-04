@@ -40,7 +40,7 @@ signature_eid = [
     ('_ibl_leftCamera.times.npy', 'alf'),
     ('_ibl_leftCamera.dlc.pqt', 'alf'),
     ('_ibl_leftCamera.features.pqt', 'alf'),
-    ('_ibl_leftCamera.ROIMotionEnergy.npy', 'alf'),
+    ('leftCamera.ROIMotionEnergy.npy', 'alf'),
     ('licks.times.npy', 'alf'),
 ]
 

@@ -2,7 +2,7 @@
 #SBATCH --job-name="viz_data_zzPIDzz"
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1
-#SBATCH --mem=16G
+#SBATCH --mem=8G
 #SBATCH --time=02:00:00   # Allow it to run for max 2 hours
 #SBATCH -o /mnt/home/mfaulkner/Documents/viz_logs/viz_data_zzPIDzz.log
 #SBATCH -e /mnt/home/mfaulkner/Documents/viz_logs/err_zzPIDzz.log
