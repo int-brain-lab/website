@@ -260,7 +260,7 @@ np.save(pid_path.joinpath('spikes.good.npy'), idx)
 
 # Make all the plots that we need for the website
 make_all_plots(pid, data_path=TEMP_PATH, cache_path=SAVE_PATH)
-make_captions(data_path=TEMP_PATH, cache_path=SAVE_PATH)
+# make_captions(data_path=TEMP_PATH, cache_path=SAVE_PATH)
 
 
 # from iblatlas.atlas import AllenAtlas
