@@ -216,7 +216,6 @@ with open(pid_path.joinpath('raw_ephys_info.yaml'), 'w+') as fp:
                            dtype="float16"), fp)
 
 
-
 spikes = alfio.load_object(pid_path, 'spikes')
 clusters = alfio.load_object(pid_path, 'clusters')
 channels = _channels_alf2bunch(alfio.load_object(pid_path, 'channels'), brain_regions=br)
@@ -257,6 +256,8 @@ good_idx = np.where(clusters['label'] == 1)[0]
 idx = np.isin(spikes.clusters, clusters.cluster_id[good_idx])
 np.save(pid_path.joinpath('spikes.good.npy'), idx)
 
+metrics = next(pid_path.glob('clusters.metrics*'))
+metrics.unlink()
 
 # Make all the plots that we need for the website
 make_all_plots(pid, data_path=TEMP_PATH, cache_path=SAVE_PATH)
