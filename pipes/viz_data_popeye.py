@@ -94,42 +94,38 @@ if 'times' not in camera.keys():
     create_fake_licks(eid_path, nan_array)
     # Create and save fake features file
     features = create_fake_features(nan_array)
-
-if 'dlc' not in camera.keys():
+elif 'dlc' not in camera.keys():
     nan_array = np.full_like(camera.times, np.nan)
     # Create and save fake lick times file
     create_fake_licks(eid_path, nan_array)
     # Create and save fake features file
     features = create_fake_features(nan_array)
-
-
-if camera.times.shape[0] != camera.dlc.shape[0]:
+elif camera.times.shape[0] != camera.dlc.shape[0]:
     nan_array = np.full_like(camera.times, np.nan)
     # Create and save fake lick times file
     create_fake_licks(eid_path, nan_array)
     # Create and save fake features file
     features = create_fake_features(nan_array)
-
-
-nan_array = np.full_like(camera.times, np.nan)
-if 'features' not in camera.keys():
-    camera.features = pd.DataFrame()
-    camera.features['pupilDiameter_raw'] = nan_array
-    camera.features['pupilDiameter_smooth'] = nan_array
-
-dlc = likelihood_threshold(camera.dlc)
-camera.features['paw_r_speed'] = get_speed(dlc, camera.times, 'left', feature='paw_r')
-camera.features['nose_tip_speed'] = get_speed(dlc, camera.times, 'left', feature='nose_tip')
-
-if 'ROIMotionEnergy' not in camera.keys():
-    camera.features['motion_energy'] = nan_array
 else:
-    camera.features['motion_energy'] = camera.ROIMotionEnergy
+    nan_array = np.full_like(camera.times, np.nan)
+    if 'features' not in camera.keys():
+        camera.features = pd.DataFrame()
+        camera.features['pupilDiameter_raw'] = nan_array
+        camera.features['pupilDiameter_smooth'] = nan_array
 
-if not eid_path.joinpath('licks.times.npy').exists():
-    create_fake_licks(eid_path, nan_array)
+    dlc = likelihood_threshold(camera.dlc)
+    camera.features['paw_r_speed'] = get_speed(dlc, camera.times, 'left', feature='paw_r')
+    camera.features['nose_tip_speed'] = get_speed(dlc, camera.times, 'left', feature='nose_tip')
 
-camera.features.to_parquet(eid_path.joinpath('_ibl_leftCamera.computedFeatures.pqt'))
+    if 'ROIMotionEnergy' not in camera.keys():
+        camera.features['motion_energy'] = nan_array
+    else:
+        camera.features['motion_energy'] = camera.ROIMotionEnergy
+
+    if not eid_path.joinpath('licks.times.npy').exists():
+        create_fake_licks(eid_path, nan_array)
+
+    camera.features.to_parquet(eid_path.joinpath('_ibl_leftCamera.computedFeatures.pqt'))
 
 
 # Now for the probe insertion
@@ -264,46 +260,49 @@ make_all_plots(pid, data_path=TEMP_PATH, cache_path=SAVE_PATH)
 # make_captions(data_path=TEMP_PATH, cache_path=SAVE_PATH)
 
 
-# from iblatlas.atlas import AllenAtlas
-# from iblatlas.atlas import Insertion
-# ba = AllenAtlas()
-# session_df = pd.DataFrame()
-# for pid in pids:
-#     ins = one.alyx.rest('insertions', 'list', id=pid)[0]
-#     traj = one.alyx.rest('trajectories', 'list', provenance='Ephys aligned histology track',
-#     probe_insertion=ins['id'])[0]
-#     # ins = one.alyx.rest('insertions', 'list', id=d['id'])[0]
-#     insert = Insertion.from_dict(traj, ba)
-#     subject = one.alyx.rest('subjects', 'list', nickname=ins['session_info']['subject'])[0]
-#
-#     tip = insert.tip
-#     tip_ccf = ba.xyz2ccf(tip)
-#
-#     selectable = True
-#     repeated = False
-#
-#     data = {
-#         'pid': ins['id'],
-#         'eid': ins['session_info']['id'],
-#         'probe': ins['name'],
-#         'lab': ins['session_info']['lab'],
-#         'subject': ins['session_info']['subject'],
-#         'date': ins['session_info']['start_time'][0:10],
-#         'dob': subject['birth_date'],
-#         'probe_model': ins['model'],
-#         'x': traj['x'],
-#         'y': traj['y'],
-#         'z': traj['z'],
-#         'depth': traj['depth'],
-#         'theta': traj['theta'],
-#         'phi': traj['phi'],
-#         'roll': traj['roll'],
-#         'ml_ccf_tip': tip_ccf[0],
-#         'ap_ccf_tip': tip_ccf[1],
-#         'dv_ccf_tip': tip_ccf[2],
-#         'selectable': selectable,
-#         '2022_Q4_IBL_et_al_BWM': True,
-#         '2022_Q2_IBL_et_al_RepeatedSite': repeated
-#     }
-#
-#     session_df = pd.concat([session_df, pd.DataFrame.from_dict([data])])
+from iblatlas.atlas import AllenAtlas
+from iblatlas.atlas import Insertion
+ba = AllenAtlas()
+session_df = pd.DataFrame()
+for pid in pids:
+    try:
+        ins = one.alyx.rest('insertions', 'list', id=pid)[0]
+        traj = one.alyx.rest('trajectories', 'list', provenance='Ephys aligned histology track',
+        probe_insertion=ins['id'])[0]
+        # ins = one.alyx.rest('insertions', 'list', id=d['id'])[0]
+        insert = Insertion.from_dict(traj, ba)
+        subject = one.alyx.rest('subjects', 'list', nickname=ins['session_info']['subject'])[0]
+
+        tip = insert.tip
+        tip_ccf = ba.xyz2ccf(tip)
+
+        selectable = True
+        repeated = False
+
+        data = {
+            'pid': ins['id'],
+            'eid': ins['session_info']['id'],
+            'probe': ins['name'],
+            'lab': ins['session_info']['lab'],
+            'subject': ins['session_info']['subject'],
+            'date': ins['session_info']['start_time'][0:10],
+            'dob': subject['birth_date'],
+            'probe_model': ins['model'],
+            'x': traj['x'],
+            'y': traj['y'],
+            'z': traj['z'],
+            'depth': traj['depth'],
+            'theta': traj['theta'],
+            'phi': traj['phi'],
+            'roll': traj['roll'],
+            'ml_ccf_tip': tip_ccf[0],
+            'ap_ccf_tip': tip_ccf[1],
+            'dv_ccf_tip': tip_ccf[2],
+            'selectable': selectable,
+            '2022_Q4_IBL_et_al_BWM': True,
+            '2022_Q2_IBL_et_al_RepeatedSite': repeated
+        }
+
+        session_df = pd.concat([session_df, pd.DataFrame.from_dict([data])])
+    except Exception as err:
+        print(f'{pid}: {err}')
