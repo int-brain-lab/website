@@ -364,10 +364,15 @@ class DataLoader:
             self.rms_ap = self.rms_chns
 
         # Need to make sure the sizes match out
-        if self.rms_ap.shape != self.channels.localCoordinates.shape[0]:
+        if self.rms_ap.size != self.channels.localCoordinates.shape[0]:
             self.rms_ap = self.rms_chns
 
         self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        if self.lfp is not None:
+            # Need to make sure the sizes match out
+            if self.lfp.size != self.channels.localCoordinates.shape[0]:
+                self.lfp = None
+
         # If not in the features table, load in a different way
         if self.lfp is None:
             self.lfp = load_lfp(pid, data_path=self.data_path)
