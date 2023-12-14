@@ -363,13 +363,22 @@ class DataLoader:
         if self.rms_ap is None:
             self.rms_ap = self.rms_chns
 
+        # Need to make sure the sizes match out
+        if self.rms_ap.shape != self.channels.localCoordinates.shape[0]:
+            self.rms_ap = self.rms_chns
+
         self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
         # If not in the features table, load in a different way
         if self.lfp is None:
             self.lfp = load_lfp(pid, data_path=self.data_path)
             self.lfp = self.lfp[self.channels['rawInd']]
 
-        self.depth_lim = [0, 4000]
+        if np.max(self.channels.localCoordinates[:, 1]) > 3000:
+            self.depth_lim = [0, 4000]
+        else:
+            # For np2 probes
+            self.depth_lim = [0, np.max(self.channels.localCoordinates[:, 1]) + 160]
+
         self.amp_lim = [-10, 800]
 
     def get_session_details(self):
@@ -1395,6 +1404,11 @@ class DataLoader:
 
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
         # Divide all channels by the noise on the max channel
         wfs_norm = wfs / amp_norm
 
@@ -1552,6 +1566,11 @@ class DataLoader:
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
 
         ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
         ax.set_xlim(-10, np.max(self.spikes.times))
@@ -1650,6 +1669,11 @@ class DataLoader:
         spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
 
         nc_pass, nc_value, first_bin_height = noise_cutoff(spikes.amps)
 
