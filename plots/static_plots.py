@@ -385,6 +385,7 @@ class DataLoader:
             self.depth_lim = [0, np.max(self.channels.localCoordinates[:, 1]) + 160]
 
         self.amp_lim = [-10, 800]
+        self.max_chn = np.max(self.channels.localCoordinates[:, 1])
 
     def get_session_details(self):
         """
@@ -513,7 +514,8 @@ class DataLoader:
         kp_idx = ~np.isnan(self.spikes_good.depths)
 
         self.session_raster, self.t_vals, self.d_vals = \
-            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
+            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin,
+                       ylim=[0, self.max_chn])
 
         self.session_raster = self.session_raster / t_bin
 
@@ -656,7 +658,7 @@ class DataLoader:
         if raster:
             ax0 = axs[0]
             self.plot_session_raster(ax=ax0)
-            ax0.set_ylim(20, 3840)
+            ax0.set_ylim(20, self.max_chn)
             ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
 
         for iT, time in enumerate(times):
@@ -671,12 +673,11 @@ class DataLoader:
             ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
             ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], color='g', alpha=1, s=3)
             ax.set_title(f'T = {time} s')
-            ax.images[0].set_extent([0, 50, 20, 3840])
+            ax.images[0].set_extent([0, 50, 20, self.max_chn])
             if not raster and iT != 0:
                 ax.get_yaxis().set_visible(False)
             else:
-                # ax.images[0].set_extent([0, 50, 20, 3840])
-                ax.set_ylim(20, 3840)
+                ax.set_ylim(20, self.max_chn)
                 ax.set_ylabel('Depth (um)')
 
         return fig
@@ -850,12 +851,6 @@ class DataLoader:
 
         ins = Insertion.from_dict(self.session_info, brain_atlas=self.BRAIN_ATLAS)
 
-        # def crawl_up_from_tip(ins, d):
-        #     return (ins.entry - ins.tip) * (d[:, np.newaxis] /
-        #                                     np.linalg.norm(ins.entry - ins.tip)) + ins.tip
-        # d = np.array([200, 200 + 3840])
-        # top_bottom = crawl_up_from_tip(ins, d / 1e6)
-
         ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax, return_sec=True)
         ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
         # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
@@ -921,7 +916,8 @@ class DataLoader:
         d_bin = 5
         kp_idx = ~np.isnan(spikes.depths)
 
-        raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
+        raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin,
+                                            ylim=[0, self.max_chn])
         raster = raster / t_bin
 
         ax.imshow(raster, extent=np.r_[np.min(t_vals), np.max(t_vals), np.min(d_vals), np.max(d_vals)],
@@ -1117,10 +1113,10 @@ class DataLoader:
         pre_stim = 0.4
         post_stim = 1
         data = get_stim_aligned_activity(stim_events, self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx],
-                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, 3840])
+                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, self.max_chn])
 
         for i, (key, d) in enumerate(data.items()):
-            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10,
+            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, self.max_chn], cmap='bwr', vmax=10, vmin=-10,
                                origin='lower')
             if i == 0:
                 set_axis_style(axs[i], xlabel=f'T from {key} (s)', ylabel=ylabel)

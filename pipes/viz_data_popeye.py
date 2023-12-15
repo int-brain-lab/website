@@ -16,6 +16,7 @@ from one.alf.files import add_uuid_string
 import one.alf.io as alfio
 from one.api import ONE
 import spikeglx
+import neuropixel
 
 sys.path.append('/mnt/home/mfaulkner/Documents/PYTHON/website')
 
@@ -183,6 +184,18 @@ def compute_cluster_average(spike_clusters, spike_var):
 
 ap_file = next(pid_path.glob('*ap.cbin'))
 sr = spikeglx.Reader(ap_file)
+th = sr.geometry
+
+if sr.meta.get('NP2.4_shank', None) is not None:
+    h = neuropixel.trace_header(sr.major_version, nshank=4)
+    h = neuropixel.split_trace_header(h, shank=int(sr.meta.get('NP2.4_shank')))
+else:
+    h = neuropixel.trace_header(sr.major_version, nshank=np.unique(th['shank']).size)
+    idx = np.isin(h['ind'], th['ind'])
+    for k in h.keys():
+        h[k] = h[k][idx]
+
+
 V_T0 = [600, 60 * 30, 60 * 50]  # sample at 10, 30, 50 min
 N_SEC_LOAD = 1
 DISPLAY_TIME = 0.05
@@ -196,7 +209,7 @@ for i, T0 in enumerate(V_T0):
         raw = np.full((sr.nc - sr.nsync, int(sr.fs * DISPLAY_TIME)), np.nan)
     else:
         raw = sr[start:end, :-sr.nsync].T
-        raw = destripe(raw, fs=sr.fs)
+        raw = destripe(raw, fs=sr.fs, h=h)
         ts = int(DISPLAY_START * sr.fs)
         te = int((DISPLAY_START + DISPLAY_TIME) * sr.fs)
         raw = raw[:, ts:te]
