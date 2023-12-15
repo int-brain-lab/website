@@ -240,15 +240,15 @@ for k in channels.keys():
 keys_to_keep = ['cluster_id', 'x', 'y', 'z', 'atlas_id', 'acronym', 'label', 'amp_max', 'channels']
 
 clust_id, amps, _ = compute_cluster_average(spikes.clusters, spikes.amps)
-clust_amps = np.full(clusters.cluster_id.size, np.nan)
+clust_amps = np.full(metrics.shape[0], np.nan)
 clust_amps[clust_id] = amps
 
 clust_id, depths, counts = compute_cluster_average(spikes.clusters, spikes.depths)
-clust_depths = np.full(clusters.cluster_id.size, np.nan)
+clust_depths = np.full(metrics.shape[0], np.nan)
 clust_depths[clust_id] = depths
 
 fr = counts / (np.max(spikes.times) - np.min(spikes.times))
-clust_fr = np.full(clusters.cluster_id.size, np.nan)
+clust_fr = np.full(metrics.shape[0], np.nan)
 clust_fr[clust_id] = fr
 
 clusters_new = pd.DataFrame()
