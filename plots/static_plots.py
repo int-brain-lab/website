@@ -165,8 +165,9 @@ def filter_clusters_by_good_clusters(clusters):
     return _filter(clusters, idx)
 
 
-def filter_spikes_by_cluster_idx(spikes, cluster_idx):
-    idx = np.where(spikes.clusters == cluster_idx)[0]
+def filter_spikes_by_cluster_idx(spikes, clusters, cluster_idx):
+    clu_idx = np.where(clusters.cluster_id == cluster_idx)[0][0]
+    idx = np.where(spikes.clusters == clu_idx)[0]
 
     return _filter(spikes, idx)
 
@@ -478,7 +479,7 @@ class DataLoader:
             'Cluster #': cluster_idx,
             # 'Brain region': BRAIN_REGIONS.id2acronym(cluster.atlas_id, mapping='Beryl')[0],
             'Brain region': self.BRAIN_REGIONS.get(cluster.atlas_id)['name'][0],
-            'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, cluster_idx)['times']),
+            'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)['times']),
             'Overall firing rate': f'{np.round(cluster["firing_rate"], 2)} Hz',
             'Max amplitude': f'{np.round(cluster["amp_max"] * 1e6, 2)} uV'
         }
@@ -699,7 +700,7 @@ class DataLoader:
 
         if cluster_idx is not None:
             # TODO Allen colours
-            spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+            spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
             ax.scatter(spikes.times, spikes.depths, s=spikes.sizes,
                        facecolors='none', edgecolors='r')
 
@@ -927,7 +928,7 @@ class DataLoader:
         ax.set_xlim(np.min(spikes.times), np.max(spikes.times))
 
         if cluster_idx is not None:
-            spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
+            spikes = filter_spikes_by_cluster_idx(spikes, self.clusters, cluster_idx)
             ax.scatter(spikes.times, spikes.depths, s=spikes.sizes, c='r')
 
         self.add_trial_events_to_raster(ax, trials)
@@ -1232,7 +1233,7 @@ class DataLoader:
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
                                               order='trial num'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side', order=order)
         fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
@@ -1246,7 +1247,7 @@ class DataLoader:
                                                      ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
                                                      order='trial num'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice', order=order)
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
@@ -1259,7 +1260,7 @@ class DataLoader:
     def plot_block_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                          ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx = np.arange(len(self.trials['probabilityLeft']))
         dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
 
@@ -1280,7 +1281,7 @@ class DataLoader:
     def plot_contrast_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                             ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         contrasts = np.nanmean(np.c_[self.trials.contrastLeft, self.trials.contrastRight], axis=1)
         trial_idx = np.argsort(contrasts)
         dividers = list(np.where(np.diff(np.sort(contrasts)) != 0)[0])
@@ -1304,7 +1305,7 @@ class DataLoader:
 
         contrasts = get_signed_contrast(self.trials)
         un_contrasts = np.unique(contrasts)
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         events = self.trials[event]
 
         bin_size = 0.35
@@ -1524,7 +1525,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         x_corr = xcorr(spikes.times, spikes.clusters, 1 / 1e3, 50 / 1e3)
         corr = x_corr[0, 0, :]
@@ -1544,7 +1545,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         isi, bins = _compute_histogram(np.diff(spikes.times), 0.01, 0, 50)
         bins = bins * 1e3
@@ -1564,7 +1565,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
         if np.isnan(amp_norm):
@@ -1599,7 +1600,7 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         [maxConfidenceAt10Cont, minContWith90Confidence, timeOfLowestCont, nSpikesBelow2, confMatrix, cont, rp, nACG,
          firingRate, xx] = slidingRP(spikes.times)
@@ -1667,7 +1668,7 @@ class DataLoader:
         n_bins = 100
         percent_threshold = 0.10
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
         if np.isnan(amp_norm):
