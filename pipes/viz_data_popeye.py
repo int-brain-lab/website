@@ -262,7 +262,7 @@ clusters_new['pid'] = pid
 clusters_new.to_parquet(pid_path.joinpath('clusters.table.pqt'))
 
 good_idx = np.where(clusters['label'] == 1)[0]
-idx = np.isin(spikes.clusters, clusters.cluster_id[good_idx])
+idx = np.isin(spikes.clusters, good_idx)
 np.save(pid_path.joinpath('spikes.good.npy'), idx)
 
 metrics = next(pid_path.glob('clusters.metrics*'))
@@ -275,6 +275,7 @@ make_all_plots(pid, data_path=TEMP_PATH, cache_path=SAVE_PATH)
 
 # from iblatlas.atlas import AllenAtlas
 # from iblatlas.atlas import Insertion
+# import pandas as pd
 # ba = AllenAtlas()
 # session_df = pd.DataFrame()
 # for pid in pids:
