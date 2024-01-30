@@ -1806,16 +1806,15 @@ function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
         return ID.toLowerCase().includes(query_);
     }
 
+    // Exact Allen region match: exact match on the acronyms.
+    if (ALLEN_ACRONYMS.includes(query_)) {
+        return _acronyms.includes(query_);
+    }
+
     // Search on lab, subject, regions.
     let out = Lab.toLowerCase().includes(query_) ||
         Subject.toLowerCase().includes(query_) ||
         _regions.includes(query_);
-
-    // Exact Allen region match: deactivate UUID filter to avoid regions like "aca" that could
-    // match some UUIDs.
-    if (!ALLEN_ACRONYMS.includes(query_)) {
-        out = out || ID.toLowerCase().includes(query_);
-    }
 
     return out;
 };
@@ -1870,6 +1869,10 @@ function loadAutoComplete() {
 
                         let out = sessions.filter(function (
                             { Lab, Subject, ID, _acronyms, _regions, dset_bwm, dset_rs }) {
+
+                            // NOTE: remove duplicates in acronyms.
+                            _acronyms = Array.from(new Set(_acronyms));
+                            _acronyms = _acronyms.map(a => a.toLowerCase());
 
                             var res = true;
 
