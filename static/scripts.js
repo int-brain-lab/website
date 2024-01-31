@@ -1800,7 +1800,7 @@ function arrowButton(name, dir) {
 
 
 
-function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
+function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions, _good_ids) {
     // For a valid UUID: return it.
     if (isValidUUID(query_)) {
         return ID.toLowerCase().includes(query_);
@@ -1808,13 +1808,21 @@ function filterQuery(query_, Lab, Subject, ID, _acronyms, _regions) {
 
     // Exact Allen region match: exact match on the acronyms.
     if (ALLEN_ACRONYMS.includes(query_)) {
-        return _acronyms.includes(query_);
+        // Keep good acronyms if not QC mode.
+        let acronyms = CTX.qc ? _acronyms : _acronyms.filter(filter_by_good, _good_ids);
+        let boo = acronyms.includes(query_);
+        return boo;
     }
+
+    // Keep good regions if not QC mode.
+    _regions = _regions.split(", ");
+    let regions = CTX.qc ? _regions : _regions.filter(filter_by_good, _good_ids);
+    regions = regions.join(", ");
 
     // Search on lab, subject, regions.
     let out = Lab.toLowerCase().includes(query_) ||
         Subject.toLowerCase().includes(query_) ||
-        _regions.includes(query_);
+        regions.includes(query_);
 
     return out;
 };
@@ -1868,7 +1876,7 @@ function loadAutoComplete() {
                         let sessions = FLASK_CTX.SESSIONS;
 
                         let out = sessions.filter(function (
-                            { Lab, Subject, ID, _acronyms, _regions, dset_bwm, dset_rs }) {
+                            { Lab, Subject, ID, _acronyms, _regions, _good_ids, dset_bwm, dset_rs }) {
 
                             // NOTE: remove duplicates in acronyms.
                             _acronyms = Array.from(new Set(_acronyms));
@@ -1879,7 +1887,7 @@ function loadAutoComplete() {
                             // If 1 session is already selected, show all of them.
                             if (!isValidUUID(query_) || query_ != CTX.pid) {
                                 for (let q of query_.split(/(\s+)/)) {
-                                    res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions);
+                                    res &= filterQuery(q, Lab, Subject, ID, _acronyms, _regions, _good_ids);
                                 }
                             }
 
