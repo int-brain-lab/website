@@ -205,4 +205,4 @@ if __name__ == '__main__':
     app = make_app()
     # to run with SSL, generate certificate with
     # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
-    app.run(ssl_context=('cert.pem', 'key.pem'))
+    app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
