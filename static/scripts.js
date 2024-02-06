@@ -487,13 +487,13 @@ function filterQuery(query_, Lab, Subject, ID, _acronyms, regions, _good_ids) {
 
     // Check if there is at least one acronym in "acronyms" for which "query" is a substring
     if (_acronyms.some(acronym => acronym.includes(query_))) {
-        console.log("ACRONYM", Subject, _acronyms, regions);
+        // console.trace("ACRONYM", Subject, _acronyms, regions);
         return true;
     }
 
     // Check if "query" is a substring of any of the full region names.
     if (regions.some(name => name.includes(query_))) {
-        console.log("NAME", Subject, _acronyms, regions);
+        // console.trace("NAME", Subject, _acronyms, regions);
         return true;
     }
 
