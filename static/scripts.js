@@ -554,20 +554,21 @@ function loadAutoComplete() {
                             { Lab, Subject, ID, _acronyms, _good_ids, dset_bwm, dset_rs }) {
 
                             // NOTE: remove duplicates in acronyms.
-                            _acronyms = Array.from(new Set(_acronyms));
                             _acronyms = _acronyms.map(a => a.toLowerCase());
 
                             // Keep good acronyms if not QC mode.
                             let acronyms = CTX.qc ? _acronyms : _acronyms.filter(filter_by_good, _good_ids);
 
+                            let acronymsUnique = Array.from(new Set(acronyms));
+
                             // Find the full region names of the kept acronyms above.
-                            let regions = acronyms.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
+                            let regions = acronymsUnique.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
 
                             var res = true;
                             // If 1 session is already selected, show all of them.
                             if (!isValidUUID(query_) || query_ != CTX.pid) {
                                 for (let q of query_.split(/(\s+)/)) {
-                                    res &= filterQuery(q, Lab, Subject, ID, acronyms, regions, _good_ids);
+                                    res &= filterQuery(q, Lab, Subject, ID, acronymsUnique, regions, _good_ids);
                                 }
                             }
 
