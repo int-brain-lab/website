@@ -565,13 +565,19 @@ function loadAutoComplete() {
                             let regions = acronymsUnique.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
 
                             var res = true;
-                            // If 1 session is already selected, show all of them.
-                            if (!isValidUUID(query_) || query_ != CTX.pid) {
-                                for (let q of query_.split(/(\s+)/)) {
-                                    res &= filterQuery(q, Lab, Subject, ID, acronymsUnique, regions, _good_ids);
-                                }
+
+                            // Is the query a UUID?
+                            if (isValidUUID(query_)) {
+                                // If 1 session is already selected, show all of them.
+                                if (query_ == CTX.pid) return true;
+                                // Otherwise, show the corresponding session.
+                                return query_ == ID;
                             }
 
+                            // Otherwise, search each term.
+                            for (let q of query_.split(/(\s+)/)) {
+                                res &= filterQuery(q, Lab, Subject, ID, acronymsUnique, regions, _good_ids);
+                            }
 
                             // Dataset selection
                             if (CTX.dset == 'bwm')
