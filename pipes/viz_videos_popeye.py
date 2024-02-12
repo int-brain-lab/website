@@ -295,11 +295,11 @@ def overlay_dlc(eid, label, frame_rate):
         frames = get_video_frames_preload(input_file, np.arange(first, last))
         for i, frame in enumerate(frames):
             for feat in DLC_FEATURES[label].keys():
-                x = int(dlc[f'{feat}_x'][first + i] / w_subsamp_factor)
-                y = int(dlc[f'{feat}_y'][first + i] / h_subsamp_factor)
+                x = dlc[f'{feat}_x'][first + i] / w_subsamp_factor
+                y = dlc[f'{feat}_y'][first + i] / h_subsamp_factor
                 if np.isnan(x) or np.isnan(y):
                     continue
-                image = cv2.circle(frame, (x, y), 5, DLC_FEATURES[label][feat], -1)
+                image = cv2.circle(frame, (int(x), int(y)), 4, DLC_FEATURES[label][feat], -1)
 
             video_out.write(image)
 
@@ -388,7 +388,7 @@ def process_all(eid, one):
     print_elapsed_time(start_time)
 
     print('Checking video status')
-    video_status = check_video_status(eid, one)
+    video_status = check_video_status(eid)
     labels = []
     for label, status in video_status.items():
         print(f'{label}: {status}')
@@ -436,9 +436,9 @@ def process_all(eid, one):
     concatenate_videos(eid)
     print_elapsed_time(start_time)
 
-    # print('Cleaning up')
-    # cleanup_data(eid)
-    # print_elapsed_time(start_time)
+    print('Cleaning up')
+    cleanup_data(eid)
+    print_elapsed_time(start_time)
 
 
 process_all(eid, one)
