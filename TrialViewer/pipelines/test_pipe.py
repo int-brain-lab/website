@@ -474,7 +474,7 @@ def process_all(eid, one, location=None):
         handler, data_path = download_data_local(session_path, one)
         print_elapsed_time(start_time)
 
-    video_status = {'body': False, 'left': True, 'right'}
+    #video_status = {'body': False, 'left': True, 'right'}
 
     print('Processing trials')
     load_trial_data(eid, data_path)
