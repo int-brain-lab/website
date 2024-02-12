@@ -135,10 +135,11 @@ def get_data_popeye(eid, one):
             Path(SDSC_ROOT_PATH.joinpath(file_uuid)))
 
 
-
-def check_video_status(eid):
+def check_video_status(eid, one):
 
     video_status = {}
+
+    sess_qc = one.alyx.rest('sessions', 'read', id=eid)['extended_qc']
 
     for label in CAMERAS:
         video = next(DATA_PATH.joinpath(eid).rglob(f'_iblrig_{label}Camera.raw.mp4'), False)
@@ -149,6 +150,8 @@ def check_video_status(eid):
             video_times = alfio.load_file_content(next(DATA_PATH.joinpath(eid).rglob(f'_ibl_{label}Camera.times.npy')))
             video_meta = get_video_meta(next(DATA_PATH.joinpath(eid).rglob(f'_iblrig_{label}Camera.raw.mp4')))
             if video_meta['length'] != video_times.size:
+                status = False
+            if sess_qc[f'video{label.capitalize()}'] == 'CRITICAL':
                 status = False
 
         video_status[label] = status
@@ -359,6 +362,26 @@ def cleanup_data(eid):
     shutil.rmtree(TEMP_VIDEO_DIR.joinpath(eid))
 
 
+def create_fake_video(eid, label):
+
+    times, start, end = load_frame_times(eid)
+    length_t = ffmpeg_time_format(end - start)
+    start_t = ffmpeg_time_format(start - times[0])
+
+    output_file = str(TEMP_VIDEO_DIR.joinpath(eid, f'{eid}_{label}_trim.mp4'))
+
+    # cmd = (f'ffmpeg -y -loop 1 -i {NO_VIDEO_IMG} -t {end - start} -vf scale={NEW_WIDTH}:{NEW_HEIGHT} -pix_fmt yuv420p '
+    #        f'-profile:v main -r {NEW_FS} {output_file}')
+    #
+    # cmd = (f'ffmpeg -y -i {video_file} -ss {start_t} -t {length_t} {trim_file}')
+
+    cmd = (f'ffmpeg -y -loop 1 -i {NO_VIDEO_IMG} -ss {start_t} -t {length_t} -vf scale={NEW_WIDTH}:{NEW_HEIGHT} -pix_fmt yuv420p '
+           f'-profile:v main -r {NEW_FS} {output_file}')
+    _ = _run_command(cmd)
+
+    return output_file
+
+
 def ffmpeg_time_format(time):
     date = datetime.timedelta(seconds=time)
     return str(date)
@@ -378,7 +401,6 @@ def status_with_pupil(labels):
 def process_all(eid, one):
 
     start_time = time.time()
-    session_path = one.eid2path(eid)
 
     make_directories()
     make_eid_directories(eid)
@@ -388,15 +410,19 @@ def process_all(eid, one):
     print_elapsed_time(start_time)
 
     print('Checking video status')
-    video_status = check_video_status(eid)
-    labels = []
+    video_status = check_video_status(eid, one)
+    good_labels = []
+    fake_labels = []
     for label, status in video_status.items():
         print(f'{label}: {status}')
         if status:
-            labels.append(label)
-    labels_pupil = status_with_pupil(labels.copy())
+            good_labels.append(label)
+        else:
+            fake_labels.append(label)
+
+    pupil_labels = status_with_pupil(good_labels.copy())
     frame_rates = {}
-    for label in labels_pupil:
+    for label in pupil_labels:
         frame_rates[label] = get_frame_rate(eid, label)
     print_elapsed_time(start_time)
 
@@ -404,31 +430,40 @@ def process_all(eid, one):
     load_trial_data(eid)
     print_elapsed_time(start_time)
 
-    print('Processing dlc')
-    load_dlc_data(eid)
-    print_elapsed_time(start_time)
+    if len(fake_labels) > 0:
+        print(f'Creating fake videos for {fake_labels}')
+        output_file = create_fake_video(eid, fake_labels[0])
+        if len(fake_labels) > 1:
+            for label in fake_labels:
+                shutil.copyfile(Path(output_file), Path(output_file).joinpath(f'{eid}_{label}_trim.mp4'))
+
+    if 'left' in good_labels:
+        print('Processing dlc')
+        load_dlc_data(eid)
+        print_elapsed_time(start_time)
 
     print('Downscaling videos')
-    for label in labels:
+    for label in good_labels:
         downscale_video(eid, label, frame_rates[label])
     print_elapsed_time(start_time)
 
-    print('Cropping pupil video')
-    crop_pupil_video(eid, frame_rates['left'])
-    print_elapsed_time(start_time)
+    if 'left' in good_labels:
+        print('Cropping pupil video')
+        crop_pupil_video(eid, frame_rates['left'])
+        print_elapsed_time(start_time)
 
     print('Overlaying dlc video')
-    for label in labels_pupil:
+    for label in pupil_labels:
         overlay_dlc(eid, label, frame_rates[label])
     print_elapsed_time(start_time)
 
     print('Downsampling video')
-    for label in labels_pupil:
+    for label in pupil_labels:
         downsample_video(eid, label, frame_rates[label])
     print_elapsed_time(start_time)
 
     print('Trimming videos')
-    for label in labels_pupil:
+    for label in pupil_labels:
         trim_videos(eid, label)
     print_elapsed_time(start_time)
 
