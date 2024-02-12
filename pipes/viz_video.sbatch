@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 #SBATCH --job-name="viz_video_fa8ad50d-76f2-45fa-a52f-08fe3d942345"
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1
-#SBATCH --mem=32G
+#SBATCH --mem=16G
 #SBATCH --time=02:00:00   # Allow it to run for 2 hours
 #SBATCH -o /mnt/home/mfaulkner/Documents/viz_video_fa8ad50d-76f2-45fa-a52f-08fe3d942345.log
 #SBATCH -e /mnt/home/mfaulkner/Documents/err_fa8ad50d-76f2-45fa-a52f-08fe3d942345.log
