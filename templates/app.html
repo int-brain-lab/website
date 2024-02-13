@@ -3,32 +3,8 @@
 
 {% block header %}
 
-<script>
-
-    // NOTE: this is not in scripts.js because we need the flask templating engine to make the
-    // replacements here.
-
-    // Query string parameters.
-    const QUERY_PARAMS = new Proxy(new URLSearchParams(window.location.search), {
-        get: (searchParams, prop) => searchParams.get(prop),
-    });
-
-    // Dictionary passed by Flask in the _render() function.
-    const FLASK_CTX = {{ FLASK_CTX | tojson }};
-
-    // Current context.
-    var CTX = {
-        dset: QUERY_PARAMS.dset || FLASK_CTX.DEFAULT_DSET, // initial tab dataset
-        pid: QUERY_PARAMS.pid || FLASK_CTX.DEFAULT_PID, // initial probe UUID
-        tid: parseInt(QUERY_PARAMS.tid, 10) || 0, // trial ID
-        cid: parseInt(QUERY_PARAMS.cid, 10) || 0, // cluster ID
-        trials: [],
-        trial_onsets: [], // for all trials, including nan ones, so we can index by the tid
-        trial_offsets: [],
-        dur: 0, // session duration
-        qc: parseInt(QUERY_PARAMS.qc, 10) || 0, // qc mode
-    };
-</script>
+<!-- Generated script with all data -->
+<script src="{{ url_for('static', filename='data.js') }}"></script>
 
 <!-- Custom Array class -->
 <script src="{{ url_for('static', filename='array.js') }}"></script>

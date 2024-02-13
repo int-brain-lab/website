@@ -5,7 +5,6 @@
 import argparse
 import io
 import locale
-from operator import itemgetter
 from pathlib import Path
 
 import png
@@ -30,8 +29,6 @@ locale.setlocale(locale.LC_ALL, '')
 
 ROOT_DIR = Path(__file__).parent.resolve()
 PORT = 4321
-DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
-DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -79,24 +76,6 @@ def send(path):
 
 
 # -------------------------------------------------------------------------------------------------
-# Functions
-# -------------------------------------------------------------------------------------------------
-
-def sessions():
-    CACHE_DIR.mkdir(exist_ok=True, parents=True)
-    pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
-    pids = [pid for pid in pids if is_valid_uuid(pid)]
-    sessions = [load_json(session_details_path(pid)) for pid in pids]
-    sessions = [_ for _ in sessions if _]
-    sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
-    return sessions
-
-
-def legends():
-    return load_json(figure_details_path())
-
-
-# -------------------------------------------------------------------------------------------------
 # Server
 # -------------------------------------------------------------------------------------------------
 
@@ -110,16 +89,7 @@ def make_app():
     # Entry points
     # ---------------------------------------------------------------------------------------------
 
-    def _render(fn):
-        return render_template(
-            fn,
-            FLASK_CTX={
-                "SESSIONS": sessions(),
-                "LEGENDS": legends(),
-                "DEFAULT_PID": DEFAULT_PID,
-                "DEFAULT_DSET": DEFAULT_DSET,
-            },
-        )
+    _render = render_template
 
     @app.route('/')
     def main():
