@@ -2,6 +2,7 @@
 # Imports
 # -------------------------------------------------------------------------------------------------
 
+import lzstring
 from datetime import datetime, date
 from uuid import UUID
 import io
@@ -1074,7 +1075,8 @@ def generate_data_js():
         "DEFAULT_DSET": DEFAULT_DSET,
     }
     ctx_json = json.dumps(FLASK_CTX)
-    return ctx_json
+    ctx_compressed = lzstring.LZString().compressToBase64(ctx_json)
+    return ctx_compressed
 
 
 def make_data_js():
@@ -1082,7 +1084,7 @@ def make_data_js():
     path = 'static/data.js'
     with open(path, 'r') as f:
         contents = f.read()
-    contents = re.sub('const FLASK_CTX = .+', f'const FLASK_CTX = {ctx_json};', contents)
+    contents = re.sub('const FLASK_CTX_COMPRESSED = .+', f'const FLASK_CTX_COMPRESSED = "{ctx_json}";', contents)
     with open(path, 'w') as f:
         f.write(contents)
 
