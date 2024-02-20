@@ -428,46 +428,44 @@ def process_all(eid, one):
     pupil_labels = status_with_pupil(good_labels.copy())
     frame_rates = {}
     for label in pupil_labels:
-        frame_rates[label] = get_frame_rate(eid, label)
-        if label == 'right':
-            frame_rates[label] = np.round(frame_rates[label], 2)
+        frame_rates[label] = np.round(get_frame_rate(eid, label), 2)
     print_elapsed_time(start_time)
 
     print('Processing trials')
     load_trial_data(eid)
     print_elapsed_time(start_time)
 
-    # if len(fake_labels) > 0:
-    #     print(f'Creating fake videos for {fake_labels}')
-    #     output_file = create_fake_video(eid, fake_labels[0])
-    #     if len(fake_labels) > 1:
-    #         for label in fake_labels[1:]:
-    #             shutil.copyfile(Path(output_file), Path(output_file).parent.joinpath(f'{eid}_{label}_trim.mp4'))
-    #
-    # if 'left' in good_labels:
-    #     print('Processing dlc')
-    #     load_dlc_data(eid)
-    #     print_elapsed_time(start_time)
-    #
-    # print('Downscaling videos')
-    # for label in good_labels:
-    #     downscale_video(eid, label, frame_rates[label])
-    # print_elapsed_time(start_time)
-    #
-    # if 'left' in good_labels:
-    #     print('Cropping pupil video')
-    #     crop_pupil_video(eid, frame_rates['left'])
-    #     print_elapsed_time(start_time)
-    #
-    # print('Overlaying dlc video')
-    # for label in pupil_labels:
-    #     overlay_dlc(eid, label, frame_rates[label])
-    # print_elapsed_time(start_time)
-    #
-    # print('Downsampling video')
-    # for label in pupil_labels:
-    #     downsample_video(eid, label, frame_rates[label])
-    # print_elapsed_time(start_time)
+    if len(fake_labels) > 0:
+        print(f'Creating fake videos for {fake_labels}')
+        output_file = create_fake_video(eid, fake_labels[0])
+        if len(fake_labels) > 1:
+            for label in fake_labels[1:]:
+                shutil.copyfile(Path(output_file), Path(output_file).parent.joinpath(f'{eid}_{label}_trim.mp4'))
+
+    if 'left' in good_labels:
+        print('Processing dlc')
+        load_dlc_data(eid)
+        print_elapsed_time(start_time)
+
+    print('Downscaling videos')
+    for label in good_labels:
+        downscale_video(eid, label, frame_rates[label])
+    print_elapsed_time(start_time)
+
+    if 'left' in good_labels:
+        print('Cropping pupil video')
+        crop_pupil_video(eid, frame_rates['left'])
+        print_elapsed_time(start_time)
+
+    print('Overlaying dlc video')
+    for label in pupil_labels:
+        overlay_dlc(eid, label, frame_rates[label])
+    print_elapsed_time(start_time)
+
+    print('Downsampling video')
+    for label in pupil_labels:
+        downsample_video(eid, label, frame_rates[label])
+    print_elapsed_time(start_time)
 
     print('Trimming videos')
     for label in pupil_labels:
