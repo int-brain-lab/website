@@ -1,8 +1,8 @@
 #!/usr/bin/bash
-#SBATCH --job-name="video_data_zzPIDzz"
+#SBATCH --job-name="video_data_zzEIDzz"
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1
-#SBATCH --mem=8G
+#SBATCH --mem=16G
 #SBATCH --time=02:00:00   # Allow it to run for max 2 hours
 #SBATCH -o /mnt/home/mfaulkner/Documents/video_logs/viz_data_zzEIDzz.log
 #SBATCH -e /mnt/home/mfaulkner/Documents/video_logs/err_zzEIDzz.log

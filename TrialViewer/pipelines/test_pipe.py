@@ -518,117 +518,117 @@ for eid in eids:
 
 
 # 0.2 PAD_S
-['9468fa93-21ae-4984-955c-e8402e280c83',
- 'e5c75b62-6871-4135-b3d0-f6464c2d90c0',
- 'a6fe44a8-07ab-49b8-81f9-e18575aa85cc',
- '0ac8d013-b91e-4732-bc7b-a1164ff3e445',
- 'aa3432cd-62bd-40bc-bc1c-a12d53bcbdcf',
- '0a018f12-ee06-4b11-97aa-bbbff5448e9f',
- 'b22f694e-4a34-4142-ab9d-2556c3487086',
- '3dd347df-f14e-40d5-9ff2-9c49f84d2157',
- '6668c4a0-70a4-4012-a7da-709660971d7a',
- '90d1e82c-c96f-496c-ad4e-ee3f02067f25',
- '36280321-555b-446d-9b7d-c2e17991e090',
- 'cf43dbb1-6992-40ec-a5f9-e8e838d0f643',
- 'e535fb62-e245-4a48-b119-88ce62a6fe67',
- 'f25642c6-27a5-4a97-9ea0-06652db79fbd',
- '4720c98a-a305-4fba-affb-bbfa00a724a4',
- 'c3d9b6fb-7fa9-4413-a364-92a54df0fc5d',
- '54238fd6-d2d0-4408-b1a9-d19d24fd29ce',
- 'e8b4fda3-7fe4-4706-8ec2-91036cfee6bd',
- '4a45c8ba-db6f-4f11-9403-56e06a33dfa4',
- 'e012d3e3-fdbc-4661-9ffa-5fa284e4e706',
- 'd7e60cc3-6020-429e-a654-636c6cc677ea',
- '9e9c6fc0-4769-4d83-9ea4-b59a1230510e',
- '09b2c4d1-058d-4c84-9fd4-97530f85baf6',
- '56bc129c-6265-407a-a208-cc16d20a6c01',
- '1a507308-c63a-4e02-8f32-3239a07dc578',
- '6f6d2c8e-28be-49f4-ae4d-06be2d3148c1',
- '7cec9792-b8f9-4878-be7e-f08103dc0323',
- 'dd4da095-4a99-4bf3-9727-f735077dba66',
- '193fe7a8-4eb5-4f3e-815a-0c45864ddd77',
- '3638d102-e8b6-4230-8742-e548cd87a949',
- '5139ce2c-7d52-44bf-8129-692d61dd6403',
- '49368f16-de69-4647-9a7a-761e94517821',
- '5285c561-80da-4563-8694-739da92e5dd0',
- 'ff96bfe1-d925-4553-94b5-bf8297adf259',
- 'f304211a-81b1-446f-a435-25e589fe3a5a',
- '821f1883-27f3-411d-afd3-fb8241bbc39a']
-
-# 0.18 pad
-['8b1f4024-3d96-4ee7-95f9-8a1dfd4ce4ef']
-
-
-# CREATE FAKE VIDEOS COS TIMINGS ARE OFF
-eids = ['e5fae088-ed96-4d9b-82f9-dfd13c259d52',
-        '4d8c7767-981c-4347-8e5e-5d5fffe38534',
-        'dd4da095-4a99-4bf3-9727-f735077dba66',
-        'c728f6fd-58e2-448d-aefb-a72c637b604c',
-        'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
-        'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
-        '09394481-8dd2-4d5c-9327-f2753ede92d7',
-        'd832d9f7-c96a-4f63-8921-516ba4a7b61f',
-        'dcceebe5-4589-44df-a1c1-9fa33e779727',
-        '65f5c9b4-4440-48b9-b914-c593a5184a18',
-        '4ddb8a95-788b-48d0-8a0a-66c7c796da96',
-        '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
-        '09394481-8dd2-4d5c-9327-f2753ede92d7']
-
-
-# TODO
-# rerun because timestamps have been patched
-eids = ['259927fd-7563-4b03-bc5d-17b4d0fa7a55',
-'e49d8ee7-24b9-416a-9d04-9be33b655f40', - need to concatenate again
-#'5139ce2c-7d52-44bf-8129-692d61dd6403',
-'66d98e6e-bcd9-4e78-8fbb-636f7e808b29',
-'ebc9392c-1ecb-4b4b-a545-4e3d70d23611',
-'32d27583-56aa-4510-bc03-669036edad20',
-#'09394481-8dd2-4d5c-9327-f2753ede92d7',
-#'952870e5-f2a7-4518-9e6d-71585460f6fe',
-#'695a6073-eae0-49e0-bb0f-e9e57a9275b9',
-'03063955-2523-47bd-ae57-f7489dd40f15']
-
-#all fake
-'09394481-8dd2-4d5c-9327-f2753ede92d7',
-'695a6073-eae0-49e0-bb0f-e9e57a9275b9',
-
-#body fake
-'952870e5-f2a7-4518-9e6d-71585460f6fe',
-
-
-['09394481-8dd2-4d5c-9327-f2753ede92d7',
-'4d8c7767-981c-4347-8e5e-5d5fffe38534',
-'6a601cc5-7b79-4c75-b0e8-552246532f82',
-'8c2f7f4d-7346-42a4-a715-4d37a5208535',
-'9a629642-3a9c-42ed-b70a-532db0e86199',
-'571d3ffe-54a5-473d-a265-5dc373eb7efc',
-'872ce8ff-9fb3-485c-be00-bc5479e0095b',
-'7082d8ff-255a-47d7-a839-bf093483ec30',
-'a82800ce-f4e3-4464-9b80-4c3d6fade333',
-'aad23144-0e52-4eac-80c5-c4ee2decb198',
-'ac7d3064-7f09-48a3-88d2-e86a4eb86461',
-'af55d16f-0e31-4073-bdb5-26da54914aa2',
-'b81e3e11-9a60-4114-b894-09f85074d9c3',
-'c728f6fd-58e2-448d-aefb-a72c637b604c',
-'cea755db-4eee-4138-bdd6-fc23a572f5a1',
-'dd4da095-4a99-4bf3-9727-f735077dba66',
-'e5fae088-ed96-4d9b-82f9-dfd13c259d52',
-'ebe090af-5922-4fcd-8fc6-17b8ba7bad6d',
-'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
-'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
- '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
-'e5fae088-ed96-4d9b-82f9-dfd13c259d52',
-        '4d8c7767-981c-4347-8e5e-5d5fffe38534',
-        'dd4da095-4a99-4bf3-9727-f735077dba66',
-        'c728f6fd-58e2-448d-aefb-a72c637b604c',
-        'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
-        'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
-        '09394481-8dd2-4d5c-9327-f2753ede92d7',
-        'd832d9f7-c96a-4f63-8921-516ba4a7b61f',
-        'dcceebe5-4589-44df-a1c1-9fa33e779727',
-        '65f5c9b4-4440-48b9-b914-c593a5184a18',
-        '4ddb8a95-788b-48d0-8a0a-66c7c796da96',
-        '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
-        '09394481-8dd2-4d5c-9327-f2753ede92d7']
-
-
+# ['9468fa93-21ae-4984-955c-e8402e280c83',
+#  'e5c75b62-6871-4135-b3d0-f6464c2d90c0',
+#  'a6fe44a8-07ab-49b8-81f9-e18575aa85cc',
+#  '0ac8d013-b91e-4732-bc7b-a1164ff3e445',
+#  'aa3432cd-62bd-40bc-bc1c-a12d53bcbdcf',
+#  '0a018f12-ee06-4b11-97aa-bbbff5448e9f',
+#  'b22f694e-4a34-4142-ab9d-2556c3487086',
+#  '3dd347df-f14e-40d5-9ff2-9c49f84d2157',
+#  '6668c4a0-70a4-4012-a7da-709660971d7a',
+#  '90d1e82c-c96f-496c-ad4e-ee3f02067f25',
+#  '36280321-555b-446d-9b7d-c2e17991e090',
+#  'cf43dbb1-6992-40ec-a5f9-e8e838d0f643',
+#  'e535fb62-e245-4a48-b119-88ce62a6fe67',
+#  'f25642c6-27a5-4a97-9ea0-06652db79fbd',
+#  '4720c98a-a305-4fba-affb-bbfa00a724a4',
+#  'c3d9b6fb-7fa9-4413-a364-92a54df0fc5d',
+#  '54238fd6-d2d0-4408-b1a9-d19d24fd29ce',
+#  'e8b4fda3-7fe4-4706-8ec2-91036cfee6bd',
+#  '4a45c8ba-db6f-4f11-9403-56e06a33dfa4',
+#  'e012d3e3-fdbc-4661-9ffa-5fa284e4e706',
+#  'd7e60cc3-6020-429e-a654-636c6cc677ea',
+#  '9e9c6fc0-4769-4d83-9ea4-b59a1230510e',
+#  '09b2c4d1-058d-4c84-9fd4-97530f85baf6',
+#  '56bc129c-6265-407a-a208-cc16d20a6c01',
+#  '1a507308-c63a-4e02-8f32-3239a07dc578',
+#  '6f6d2c8e-28be-49f4-ae4d-06be2d3148c1',
+#  '7cec9792-b8f9-4878-be7e-f08103dc0323',
+#  'dd4da095-4a99-4bf3-9727-f735077dba66',
+#  '193fe7a8-4eb5-4f3e-815a-0c45864ddd77',
+#  '3638d102-e8b6-4230-8742-e548cd87a949',
+#  '5139ce2c-7d52-44bf-8129-692d61dd6403',
+#  '49368f16-de69-4647-9a7a-761e94517821',
+#  '5285c561-80da-4563-8694-739da92e5dd0',
+#  'ff96bfe1-d925-4553-94b5-bf8297adf259',
+#  'f304211a-81b1-446f-a435-25e589fe3a5a',
+#  '821f1883-27f3-411d-afd3-fb8241bbc39a']
+#
+# # 0.18 pad
+# ['8b1f4024-3d96-4ee7-95f9-8a1dfd4ce4ef']
+#
+#
+# # CREATE FAKE VIDEOS COS TIMINGS ARE OFF
+# eids = ['e5fae088-ed96-4d9b-82f9-dfd13c259d52',
+#         '4d8c7767-981c-4347-8e5e-5d5fffe38534',
+#         'dd4da095-4a99-4bf3-9727-f735077dba66',
+#         'c728f6fd-58e2-448d-aefb-a72c637b604c',
+#         'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
+#         'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
+#         '09394481-8dd2-4d5c-9327-f2753ede92d7',
+#         'd832d9f7-c96a-4f63-8921-516ba4a7b61f',
+#         'dcceebe5-4589-44df-a1c1-9fa33e779727',
+#         '65f5c9b4-4440-48b9-b914-c593a5184a18',
+#         '4ddb8a95-788b-48d0-8a0a-66c7c796da96',
+#         '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
+#         '09394481-8dd2-4d5c-9327-f2753ede92d7']
+#
+#
+# # TODO
+# # rerun because timestamps have been patched
+# eids = ['259927fd-7563-4b03-bc5d-17b4d0fa7a55',
+# 'e49d8ee7-24b9-416a-9d04-9be33b655f40', - need to concatenate again
+# #'5139ce2c-7d52-44bf-8129-692d61dd6403',
+# '66d98e6e-bcd9-4e78-8fbb-636f7e808b29',
+# 'ebc9392c-1ecb-4b4b-a545-4e3d70d23611',
+# '32d27583-56aa-4510-bc03-669036edad20',
+# #'09394481-8dd2-4d5c-9327-f2753ede92d7',
+# #'952870e5-f2a7-4518-9e6d-71585460f6fe',
+# #'695a6073-eae0-49e0-bb0f-e9e57a9275b9',
+# '03063955-2523-47bd-ae57-f7489dd40f15']
+#
+# #all fake
+# '09394481-8dd2-4d5c-9327-f2753ede92d7',
+# '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
+#
+# #body fake
+# '952870e5-f2a7-4518-9e6d-71585460f6fe',
+#
+#
+# ['09394481-8dd2-4d5c-9327-f2753ede92d7',
+# '4d8c7767-981c-4347-8e5e-5d5fffe38534',
+# '6a601cc5-7b79-4c75-b0e8-552246532f82',
+# '8c2f7f4d-7346-42a4-a715-4d37a5208535',
+# '9a629642-3a9c-42ed-b70a-532db0e86199',
+# '571d3ffe-54a5-473d-a265-5dc373eb7efc',
+# '872ce8ff-9fb3-485c-be00-bc5479e0095b',
+# '7082d8ff-255a-47d7-a839-bf093483ec30',
+# 'a82800ce-f4e3-4464-9b80-4c3d6fade333',
+# 'aad23144-0e52-4eac-80c5-c4ee2decb198',
+# 'ac7d3064-7f09-48a3-88d2-e86a4eb86461',
+# 'af55d16f-0e31-4073-bdb5-26da54914aa2',
+# 'b81e3e11-9a60-4114-b894-09f85074d9c3',
+# 'c728f6fd-58e2-448d-aefb-a72c637b604c',
+# 'cea755db-4eee-4138-bdd6-fc23a572f5a1',
+# 'dd4da095-4a99-4bf3-9727-f735077dba66',
+# 'e5fae088-ed96-4d9b-82f9-dfd13c259d52',
+# 'ebe090af-5922-4fcd-8fc6-17b8ba7bad6d',
+# 'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
+# 'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
+#  '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
+# 'e5fae088-ed96-4d9b-82f9-dfd13c259d52',
+#         '4d8c7767-981c-4347-8e5e-5d5fffe38534',
+#         'dd4da095-4a99-4bf3-9727-f735077dba66',
+#         'c728f6fd-58e2-448d-aefb-a72c637b604c',
+#         'f8041c1e-5ef4-4ae6-afec-ed82d7a74dc1',
+#         'fa8ad50d-76f2-45fa-a52f-08fe3d942345',
+#         '09394481-8dd2-4d5c-9327-f2753ede92d7',
+#         'd832d9f7-c96a-4f63-8921-516ba4a7b61f',
+#         'dcceebe5-4589-44df-a1c1-9fa33e779727',
+#         '65f5c9b4-4440-48b9-b914-c593a5184a18',
+#         '4ddb8a95-788b-48d0-8a0a-66c7c796da96',
+#         '695a6073-eae0-49e0-bb0f-e9e57a9275b9',
+#         '09394481-8dd2-4d5c-9327-f2753ede92d7']
+#
+#

@@ -35,7 +35,7 @@ NO_VIDEO_IMG = str(ROOT_PATH.joinpath('img', 'video_not_available.png'))
 NEW_FS = 24
 NEW_WIDTH = 160
 NEW_HEIGHT = 128
-PAD_S = 0.2
+PAD_S = 0.5
 
 VIDEO_PARAMS = {
     'left': {
