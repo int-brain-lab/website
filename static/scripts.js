@@ -8,6 +8,7 @@
 const ENABLE_UNITY = true;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
+const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:f88d4... ; lab:churchlandlab ; subject:NYU-`;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
@@ -459,50 +460,105 @@ function setupClusterClick() {
 
 
 /*************************************************************************************************/
-/*  Session selection                                                                            */
+/*  Session Filtering                                                                            */
 /*************************************************************************************************/
 
-function arrowButton(name, dir) {
-    var select = document.getElementById(name);
-    if (dir > 0)
-        select.selectedIndex++;
+function contains(query_, arr, exact = false) {
+    if (!exact)
+        return arr.some(x => x.includes(query_));
     else
-        select.selectedIndex--;
+        return arr.some(x => x == query_);
+}
 
-    if (select.selectedIndex < 0)
-        select.selectedIndex = 0;
-
-    select.dispatchEvent(new Event('change'));
-
-};
-
-
-
-function filterQuery(query_, Lab, Subject, ID, _acronyms, regions, _good_ids) {
-    // For a valid UUID: return it.
+function filterQuery(query_, Lab, Subject, ID, acronyms, regions, _good_ids) {
+    // For a valid UUID: return yes if the query matches the current session's ID.
     if (isValidUUID(query_)) {
         return ID.toLowerCase().includes(query_);
     }
 
-
-    // Check if there is at least one acronym in "acronyms" for which "query" is a substring
-    if (_acronyms.some(acronym => acronym.includes(query_))) {
-        // console.trace("ACRONYM", Subject, _acronyms, regions);
-        return true;
+    // By default (no colon ":"), search the region names.
+    if (!query_.includes(":")) {
+        return regions.some(name => name.includes(query_));
     }
 
-    // Check if "query" is a substring of any of the full region names.
-    if (regions.some(name => name.includes(query_))) {
-        // console.trace("NAME", Subject, _acronyms, regions);
-        return true;
-    }
+    Lab = Lab.toLowerCase();
+    Subject = Subject.toLowerCase();
+    ID = ID.toLowerCase();
 
-    // Otherwise, search on lab or subject.
-    return Lab.toLowerCase().includes(query_) ||
-        Subject.toLowerCase().includes(query_);
+    // Otherwise, we assume the query is of the form:
+    [field, value] = query_.split(":");
+
+    // if (field == "region") return contains(query_, regions);
+    if (field == "region") return contains(value, acronyms, exact = true);
+    if (field == "pid") return ID.includes(value);
+    if (field == "lab") return Lab.includes(value);
+    if (field == "subject") return Subject.includes(value);
+
+    return false;
 };
 
 
+
+function getUniqueAcronyms(_acronyms, _good_ids) {
+    // Remove duplicates in acronyms.
+    _acronyms = _acronyms.map(a => a.toLowerCase());
+
+    // Keep good acronyms if not QC mode.
+    let acronyms = CTX.qc ? _acronyms : _acronyms.filter(filter_by_good, _good_ids);
+
+    return Array.from(new Set(acronyms));
+}
+
+function acronymsToNames(acronyms) {
+    return acronyms.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
+}
+
+function getSessionList() {
+
+    let sessions = FLASK_CTX.SESSIONS;
+
+    let out = sessions.filter(function (
+        { Lab, Subject, ID, _acronyms, _good_ids, dset_bwm, dset_rs }) {
+
+        // Is the query a UUID?
+        if (isValidUUID(query_)) {
+            // If 1 session is already selected, show all of them.
+            if (query_ == CTX.pid) return true;
+            // Otherwise, show the corresponding session.
+            return query_ == ID;
+        }
+
+        // Region acronyms and names.
+        let acronyms = getUniqueAcronyms(_acronyms, _good_ids);
+        let regions = acronymsToNames(acronyms);
+
+        // Filter on each term (space-separated).
+        var res = true;
+        for (let q of query_.split(/(\s+)/)) {
+            res &= filterQuery(q, Lab, Subject, ID, acronyms, regions, _good_ids);
+        }
+
+        // Dataset selection
+        if (CTX.dset == 'bwm')
+            res &= dset_bwm;
+        if (CTX.dset == 'rs')
+            res &= dset_rs;
+
+        return res;
+    });
+
+    // Update the mini brain viewer with the kept sessions.
+    let pids = out.map(({ ID }) => ID);
+    miniBrainActivatePIDs(pids);
+
+    return out;
+}
+
+
+
+/*************************************************************************************************/
+/*  Session selection                                                                            */
+/*************************************************************************************************/
 
 function onDatasetChanged(ev) {
     let dset = null;
@@ -521,12 +577,10 @@ function setupDataset() {
     if (CTX.dset == "rs") document.getElementById('dset-2').checked = true;
 }
 
-
-
 function loadAutoComplete() {
     autoCompleteJS = autocomplete({
         container: '#sessionSelector',
-        placeholder: 'search for session',
+        placeholder: SESSION_SEARCH_PLACEHOLDER,
         openOnFocus: true,
         initialState: { query: CTX.pid },
         onStateChange({ state }) {
@@ -548,48 +602,7 @@ function loadAutoComplete() {
                     sourceId: 'sessions',
                     getItemInputValue: ({ item }) => item.ID,
                     getItems() {
-                        let sessions = FLASK_CTX.SESSIONS;
-
-                        let out = sessions.filter(function (
-                            { Lab, Subject, ID, _acronyms, _good_ids, dset_bwm, dset_rs }) {
-
-                            // NOTE: remove duplicates in acronyms.
-                            _acronyms = _acronyms.map(a => a.toLowerCase());
-
-                            // Keep good acronyms if not QC mode.
-                            let acronyms = CTX.qc ? _acronyms : _acronyms.filter(filter_by_good, _good_ids);
-
-                            let acronymsUnique = Array.from(new Set(acronyms));
-
-                            // Find the full region names of the kept acronyms above.
-                            let regions = acronymsUnique.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
-
-                            var res = true;
-
-                            // Is the query a UUID?
-                            if (isValidUUID(query_)) {
-                                // If 1 session is already selected, show all of them.
-                                if (query_ == CTX.pid) return true;
-                                // Otherwise, show the corresponding session.
-                                return query_ == ID;
-                            }
-
-                            // Otherwise, search each term.
-                            for (let q of query_.split(/(\s+)/)) {
-                                res &= filterQuery(q, Lab, Subject, ID, acronymsUnique, regions, _good_ids);
-                            }
-
-                            // Dataset selection
-                            if (CTX.dset == 'bwm')
-                                res &= dset_bwm;
-                            if (CTX.dset == 'rs')
-                                res &= dset_rs;
-
-                            return res;
-                        });
-                        let pids = out.map(({ ID }) => ID);
-                        miniBrainActivatePIDs(pids);
-                        return out;
+                        return getSessionList();
                     },
                     templates: {
                         item({ item, html }) {
@@ -868,6 +881,22 @@ async function selectTrial(pid, tid, unityCalled = false) {
 
     // Fill the trial details table.
     fillHorizontalTable(details, 'trialDetails')
+};
+
+
+
+function arrowButton(name, dir) {
+    var select = document.getElementById(name);
+    if (dir > 0)
+        select.selectedIndex++;
+    else
+        select.selectedIndex--;
+
+    if (select.selectedIndex < 0)
+        select.selectedIndex = 0;
+
+    select.dispatchEvent(new Event('change'));
+
 };
 
 
