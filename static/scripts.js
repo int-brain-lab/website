@@ -8,7 +8,7 @@
 const ENABLE_UNITY = true;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:f88d4... ; lab:churchlandlab ; subject:NYU-`;
+const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
@@ -470,10 +470,15 @@ function contains(query_, arr, exact = false) {
         return arr.some(x => x == query_);
 }
 
-function filterQuery(query_, Lab, Subject, ID, acronyms, regions, _good_ids) {
-    // For a valid UUID: return yes if the query matches the current session's ID.
+function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_ids) {
+    Lab = Lab.toLowerCase();
+    Subject = Subject.toLowerCase();
+    pid = pid.toLowerCase();
+    eid = eid.toLowerCase();
+
+    // For a valid UUID: return yes if the query matches the current session's pid or eid.
     if (isValidUUID(query_)) {
-        return ID.toLowerCase().includes(query_);
+        return pid.includes(query_) || eid.includes(query_);
     }
 
     // By default (no colon ":"), search the region names.
@@ -481,16 +486,13 @@ function filterQuery(query_, Lab, Subject, ID, acronyms, regions, _good_ids) {
         return regions.some(name => name.includes(query_));
     }
 
-    Lab = Lab.toLowerCase();
-    Subject = Subject.toLowerCase();
-    ID = ID.toLowerCase();
-
     // Otherwise, we assume the query is of the form:
     [field, value] = query_.split(":");
 
     // if (field == "region") return contains(query_, regions);
     if (field == "region") return contains(value, acronyms, exact = true);
-    if (field == "pid") return ID.includes(value);
+    if (field == "pid") return pid.includes(value);
+    if (field == "eid") return eid.includes(value);
     if (field == "lab") return Lab.includes(value);
     if (field == "subject") return Subject.includes(value);
 
@@ -518,14 +520,14 @@ function getSessionList() {
     let sessions = FLASK_CTX.SESSIONS;
 
     let out = sessions.filter(function (
-        { Lab, Subject, ID, _acronyms, _good_ids, dset_bwm, dset_rs }) {
+        { Lab, Subject, pid, eid, _acronyms, _good_ids, dset_bwm, dset_rs }) {
 
         // Is the query a UUID?
         if (isValidUUID(query_)) {
             // If 1 session is already selected, show all of them.
             if (query_ == CTX.pid) return true;
             // Otherwise, show the corresponding session.
-            return query_ == ID;
+            return query_ == pid;
         }
 
         // Region acronyms and names.
@@ -535,7 +537,7 @@ function getSessionList() {
         // Filter on each term (space-separated).
         var res = true;
         for (let q of query_.split(/(\s+)/)) {
-            res &= filterQuery(q, Lab, Subject, ID, acronyms, regions, _good_ids);
+            res &= filterQuery(q, Lab, Subject, pid, eid, acronyms, regions, _good_ids);
         }
 
         // Dataset selection
@@ -548,7 +550,7 @@ function getSessionList() {
     });
 
     // Update the mini brain viewer with the kept sessions.
-    let pids = out.map(({ ID }) => ID);
+    let pids = out.map(({ pid }) => pid);
     miniBrainActivatePIDs(pids);
 
     return out;
@@ -600,7 +602,7 @@ function loadAutoComplete() {
             return [
                 {
                     sourceId: 'sessions',
-                    getItemInputValue: ({ item }) => item.ID,
+                    getItemInputValue: ({ item }) => item.pid,
                     getItems() {
                         return getSessionList();
                     },
@@ -628,7 +630,7 @@ function loadAutoComplete() {
                             <div class="item item-subject">${item.Subject}</div>
                             <div class="item item-date">${item['Recording date']}</div>
                             <div class="item item-acronyms">${acronyms}</div>
-                            <div class="item item-ID">${item.ID}</div>
+                            <div class="item item-ID">${item.pid}</div>
                             </div>`
                                 ;
                         },
