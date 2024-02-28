@@ -251,10 +251,6 @@ def trial_intervals_path(pid):
     return session_cache_path(pid) / f'trial_intervals.csv'
 
 
-def caption_path(figure):
-    return CACHE_DIR.joinpath(f'{figure}_px_locations.csv')
-
-
 def get_cluster_idx_from_xy(pid, cluster_idx, x, y):
     df = pd.read_csv(cluster_pixels_path(pid))
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
@@ -365,22 +361,27 @@ def make_app():
     # Figures
     # ---------------------------------------------------------------------------------------------
 
+    # Figure 1.
     @app.route('/api/session/<pid>/session_plot')
     def session_overview_plot(pid):
         return send(session_overview_path(pid))
 
+    # Figure 2.
     @app.route('/api/session/<pid>/behaviour_plot')
     def behaviour_overview_plot(pid):
         return send(behaviour_overview_path(pid))
 
+    # Figure 3.
     @app.route('/api/session/<pid>/trial_event_plot')
     def trial_event_overview_plot(pid):
         return send(trial_event_overview_path(pid))
 
+    # Figure 4.
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     def trial_overview_plot(pid, trial_idx):
         return send(trial_overview_path(pid, trial_idx))
 
+    # Figure 5.
     @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
     def cluster_overview_plot(pid, cluster_idx):
         return send(cluster_overview_path(pid, cluster_idx))
