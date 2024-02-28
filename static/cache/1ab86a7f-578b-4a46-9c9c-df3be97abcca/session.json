@@ -1,0 +1,44 @@
+{
+    "DOB": "2022-03-03",
+    "ID": "1ab86a7f-578b-4a46-9c9c-df3be97abcca",
+    "Lab": "steinmetzlab",
+    "N clusters": "73 good, 539 overall",
+    "N spikes": "3150221",
+    "N trials": "1191",
+    "Probe name": "probe00",
+    "Probe type": "3B2",
+    "Recording date": "2022-08-22",
+    "Recording length": "112 minutes",
+    "Subject": "NR_0027",
+    "_acronyms": [
+        "STR"
+    ],
+    "_cluster_ids": [
+        27
+    ],
+    "_colors": [
+        [
+            152,
+            214,
+            249
+        ]
+    ],
+    "_duration": 6754.416170970875,
+    "_good_ids": [
+        true
+    ],
+    "_regions": "anterior cingulate area dorsal part layer 6a, lateral septal nucleus rostral (rostroventral) part, lateral septal nucleus ventral part, nucleus accumbens, prelimbic area layer 6a, prelimbic area layer 6b, secondary motor area layer 5, secondary motor area layer 6a, striatum, acad6a, acb, lsr, lsv, mos5, mos6a, pl6a, pl6b, str",
+    "_trial_ids": [
+        400
+    ],
+    "_trial_offsets": [
+        5310.565740335309
+    ],
+    "_trial_onsets": [
+        5319.434370035319
+    ],
+    "dset_bwm": true,
+    "dset_rs": false,
+    "eid": "0f77ca5d-73c2-45bd-aa4c-4c5ed275dbde",
+    "pid": "1ab86a7f-578b-4a46-9c9c-df3be97abcca"
+}

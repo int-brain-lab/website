@@ -187,46 +187,8 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
-# Crashlytics generated file
-crashlytics-build.properties
-
-**/Assets/Resources/*
-**/Assets/Best HTTP/*
-**/Assets/UXIcons/*
-**/ServerData/*
-
 **/Server/node_modules/
 *.pyc
-Examples/.ipynb_checkpoints/*
-UnityClient/docs/*
-data/*
 .DS_Store
 *~
-cache
-cache.zip
-UnityMiniBrainClient/UserSettings/Layouts/default-2021.dwlt
-
-**/Assets/AddressableAssets/*
-UnityMiniBrainClient/UserSettings/Layouts/default-2021.dwlt
-
-**/UserSettings/*
-WebGL
-StreamingAssets
-TrialViewer/pipelines/password.txt
-TrialViewer/pipelines/username.txt
-static/Build/**
-static/TrialViewerBuild/**
-static/StreamingAssets/**
-TrialViewer/pipelines/data/*
-
-static/*Build
-static/data
-TrialViewer/pipelines/final/*
-TrialViewer/Assets/AddressableAssetsData/link.xml
-TrialViewer/Assets/AddressableAssetsData/link.xml.meta
-TrialViewer/pipelines/final.zip
 *.pem
-TrialViewer/Assets/AddressableAssetsData/link.xml.meta
-TrialViewer/UserSettings/Layouts/default-2021.dwlt
-TrialViewer/Assets/AddressableAssetsData/link.xml.meta
-TrialViewer/UserSettings/Layouts/default-2021.dwlt

@@ -11,3 +11,4 @@ arrow
 matplotlib
 psutil
 mpl_scatter_density
+ibllib
