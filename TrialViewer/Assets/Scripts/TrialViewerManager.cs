@@ -43,23 +43,6 @@ public class TrialViewerManager : MonoBehaviour
 
     [SerializeField] private VideoPlayer videoPlayer;
 
-    [SerializeField] private DLCPoint cr_pawL;
-    [SerializeField] private DLCPoint cr_pawR;
-    [SerializeField] private DLCPoint cr_tongueEnd;
-    [SerializeField] private DLCPoint cr_tubeTop;
-
-    [SerializeField] private DLCPoint cl_pawL;
-    [SerializeField] private DLCPoint cl_pawR;
-    [SerializeField] private DLCPoint cl_tongueEnd;
-    [SerializeField] private DLCPoint cl_tubeTop;
-
-    [SerializeField] private DLCPoint body_tail;
-
-    [SerializeField] private DLCPoint pupilTop;
-    [SerializeField] private DLCPoint pupilRight;
-    [SerializeField] private DLCPoint pupilBottom;
-    [SerializeField] private DLCPoint pupilLeft;
-
     [SerializeField] private GaborStimulus stimulus;
 
     [SerializeField] private WheelComponent wheel;
@@ -122,7 +105,7 @@ public class TrialViewerManager : MonoBehaviour
 #if !UNITY_EDITOR && UNITY_WEBGL
         TrialViewerLoaded();
 #elif UNITY_EDITOR
-        LoadData("5246af08-0730-40f7-83de-29b5d62b9b6d");
+        LoadData("59b7a543-8827-4157-a4f6-d5d0e50fdf39");
 #endif
     }
 
@@ -176,21 +159,11 @@ public class TrialViewerManager : MonoBehaviour
 
         Debug.Log("Passed initial load");
         // videos
-        videoPlayer.url = string.Format("https://viz.internationalbrainlab.org/WebGL/{0}.mp4", eid);
+        videoPlayer.url = $"https://viz.internationalbrainlab.org/WebGL2/{eid}.mp4";
 
         timestampData = new Dictionary<string, float[]>();
 
-        string[] dataTypes = {"left_ts", "wheel", "tail_start_x",
-                               "tail_start_y", "cl_nose_tip_x", "cl_nose_tip_y", "cl_paw_l_x",
-                               "cl_paw_l_y", "cl_paw_r_x", "cl_paw_r_y", "cl_tube_top_x",
-                               "cl_tube_top_y", "cl_tongue_end_l_x", "cl_tongue_end_l_y",
-                               "cl_tongue_end_r_x", "cl_tongue_end_r_y", "cr_nose_tip_x",
-                               "cr_nose_tip_y", "cr_paw_l_x", "cr_paw_l_y", "cr_paw_r_x", "cr_paw_r_y",
-                               "cr_tube_top_x", "cr_tube_top_y", "cr_tongue_end_l_x",
-                               "cr_tongue_end_l_y", "cr_tongue_end_r_x", "cr_tongue_end_r_y",
-                               "pupil_right_r_x", "pupil_right_r_y", "pupil_left_r_x",
-                               "pupil_left_r_y", "pupil_top_r_x", "pupil_top_r_y", "pupil_bottom_r_x",
-                               "pupil_bottom_r_y"};
+        string[] dataTypes = {"left_ts", "wheel"};
 
         Dictionary<string, AsyncOperationHandle<TextAsset>> dataHandles = new Dictionary<string, AsyncOperationHandle<TextAsset>>();
 
@@ -228,23 +201,6 @@ public class TrialViewerManager : MonoBehaviour
         UpdateTrial();
 
         MoveToFrameAndPrepare(currentTrialData.start);
-
-        cl_pawL.gameObject.SetActive(true);
-        cl_pawR.gameObject.SetActive(true);
-        cl_tongueEnd.gameObject.SetActive(true);
-        cl_tubeTop.gameObject.SetActive(true);
-
-        cr_pawL.gameObject.SetActive(true);
-        cr_pawR.gameObject.SetActive(true);
-        cr_tongueEnd.gameObject.SetActive(true);
-        cr_tubeTop.gameObject.SetActive(true);
-
-        body_tail.gameObject.SetActive(true);
-
-        pupilBottom.gameObject.SetActive(true);
-        pupilLeft.gameObject.SetActive(true);
-        pupilRight.gameObject.SetActive(true);
-        pupilTop.gameObject.SetActive(true);
 
         while (!videoPlayer.isPrepared)
             yield return null;
@@ -374,8 +330,6 @@ public class TrialViewerManager : MonoBehaviour
             else
                 stimulus.gameObject.SetActive(false);
 
-            // Set DLC points
-            SetDLC2Frame(_frame);
         }
     }
 
@@ -453,27 +407,6 @@ public class TrialViewerManager : MonoBehaviour
 
         videoPlayer.Prepare();
 
-        SetDLC2Frame(frame);
-    }
-
-    private void SetDLC2Frame(int frame)
-    {
-        cr_pawL.SetPosition(timestampData["cr_paw_l_x"][frame], timestampData["cr_paw_l_y"][frame]);
-        cr_pawR.SetPosition(timestampData["cr_paw_r_x"][frame], timestampData["cr_paw_r_y"][frame]);
-        cr_tongueEnd.SetPosition(timestampData["cr_tongue_end_l_x"][frame], timestampData["cr_tongue_end_l_y"][frame]);
-        cr_tubeTop.SetPosition(timestampData["cr_tube_top_x"][frame], timestampData["cr_tube_top_y"][frame]);
-
-        cl_pawL.SetPosition(timestampData["cl_paw_l_x"][frame], timestampData["cl_paw_l_y"][frame]);
-        cl_pawR.SetPosition(timestampData["cl_paw_r_x"][frame], timestampData["cl_paw_r_y"][frame]);
-        cl_tongueEnd.SetPosition(timestampData["cl_tongue_end_l_x"][frame], timestampData["cl_tongue_end_l_y"][frame]);
-        cl_tubeTop.SetPosition(timestampData["cl_tube_top_x"][frame], timestampData["cl_tube_top_y"][frame]);
-
-        body_tail.SetPosition(timestampData["tail_start_x"][frame], timestampData["tail_start_y"][frame]);
-
-        pupilTop.SetPosition(timestampData["pupil_top_r_x"][frame], timestampData["pupil_top_r_y"][frame]);
-        pupilRight.SetPosition(timestampData["pupil_right_r_x"][frame], timestampData["pupil_right_r_y"][frame]);
-        pupilBottom.SetPosition(timestampData["pupil_bottom_r_x"][frame], timestampData["pupil_bottom_r_y"][frame]);
-        pupilLeft.SetPosition(timestampData["pupil_left_r_x"][frame], timestampData["pupil_left_r_y"][frame]);
     }
 
     #region webpage callbacks
