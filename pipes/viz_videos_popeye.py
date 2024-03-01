@@ -6,6 +6,7 @@ import subprocess
 import time
 from pathlib import Path
 import sys
+import scipy.interpolate as interpolate
 
 from one.api import ONE
 import one.alf.io as alfio
@@ -80,7 +81,9 @@ CAMERAS = ['body', 'left', 'right']
 SIGNATURES = ([(f'_iblrig_{cam}Camera.raw.mp4', 'raw_video_data') for cam in CAMERAS] +
               [(f'_ibl_{cam}Camera.times.npy', 'alf') for cam in CAMERAS] +
               [(f'_ibl_{cam}Camera.dlc.pqt', 'alf') for cam in CAMERAS] +
-              [('_ibl_trials.table.pqt', 'alf')])
+              [('_ibl_trials.table.pqt', 'alf'),
+               ('_ibl_wheel.position.npy', 'alf'),
+               ('_ibl_wheel.timestamps.npy', 'alf')])
 
 
 def make_eid_directories(eid):
@@ -209,6 +212,19 @@ def load_trial_data(eid):
 
     # Save dataframe
     trials_df.to_csv(FINAL_DATA_DIR.joinpath(eid, f'{eid}.trials.csv'), index=False)
+
+    # Save the interpolated wheel times and the camera times
+    df = pd.DataFrame()
+    df['left_ts'] = frame_times
+    wheel_data = alfio.load_object(DATA_PATH.joinpath(eid), 'wheel')
+    wheel_pos = interpolate.interp1d(wheel_data.timestamps, wheel_data.position, kind='linear', bounds_error=False,
+                                     fill_value=wheel_data.position[0])(frame_times)
+    df['wheel'] = wheel_pos
+
+    for col in df.columns:
+        dat = df[col].values.astype(np.float32)
+        with open(FINAL_DATA_DIR.joinpath(eid, f'{eid}.{col}.bytes'), 'wb') as file:
+            file.write(dat.tobytes())
 
 
 def load_frame_times(eid):
