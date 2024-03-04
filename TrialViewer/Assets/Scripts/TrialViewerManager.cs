@@ -159,7 +159,7 @@ public class TrialViewerManager : MonoBehaviour
 
         Debug.Log("Passed initial load");
         // videos
-        videoPlayer.url = $"https://viz.internationalbrainlab.org/WebGL2/{eid}.mp4";
+        videoPlayer.url = $"https://viz.internationalbrainlab.org/static/WebGL2/{eid}.mp4";
 
         timestampData = new Dictionary<string, float[]>();
 
