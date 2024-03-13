@@ -391,6 +391,10 @@ body .row figure details ul li {
 #sessionSelector .aa-Form {}
 
 
+#sessionDetails table {
+    width: 100%;
+}
+
 
 #clusterSelector:not(:focus) option:checked {
     background: linear-gradient(#cecece, #cecece);
