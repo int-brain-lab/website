@@ -21,7 +21,6 @@ import mpl_scatter_density
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
-from brainbox.processing import bincount2D
 from brainbox.behavior.wheel import velocity, interpolate_position
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
@@ -30,6 +29,7 @@ from brainbox.metrics.single_units import noise_cutoff
 from ibllib.plots import Density
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
+from iblutil.numerical import bincount2D
 from slidingRP.metrics import slidingRP
 import time
 
@@ -65,60 +65,82 @@ CMAP = sns.diverging_palette(20, 220, n=3, center="dark")
 # -------------------------------------------------------------------------------------------------
 
 
-def load_clusters(pid):
-    clusters = alfio.load_object(DATA_DIR.joinpath(pid), object='clusters')
+def load_clusters(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    clusters = alfio.load_object(data_path.joinpath(pid), object='clusters')
     return clusters
 
 
-def load_channels(pid):
-    channels = alfio.load_object(DATA_DIR.joinpath(pid), object='channels')
+def load_channels(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    channels = alfio.load_object(data_path.joinpath(pid), object='channels')
     return channels
 
 
-def load_spikes(pid):
-    spikes = alfio.load_object(DATA_DIR.joinpath(pid), object='spikes')
+def load_spikes(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    spikes = alfio.load_object(data_path.joinpath(pid), object='spikes')
     return spikes
 
 
-def load_trials(eid):
-    trials = alfio.load_object(DATA_DIR.joinpath(eid), object='trials')
+def load_trials(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    trials = alfio.load_object(data_path.joinpath(eid), object='trials')
     return trials
 
 
-def load_cluster_waveforms(pid):
-    wfs = np.load(DATA_DIR.joinpath(pid, 'clusters.waveforms.npy'))
-    wf_chns = np.load(DATA_DIR.joinpath(
+def load_cluster_waveforms(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    wfs = np.load(data_path.joinpath(pid, 'clusters.waveforms.npy'))
+    wf_chns = np.load(data_path.joinpath(
         pid, 'clusters.waveformsChannels.npy'))
 
     return wfs, wf_chns
 
 
-def load_rms(pid):
-    rms = np.load(DATA_DIR.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
+def load_rms(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    rms = np.load(data_path.joinpath(pid, '_iblqc_ephysChannels.apRMS.npy'))
     return rms[1, :]
 
 
-def load_raw_data(pid):
-    raw_data = np.load(DATA_DIR.joinpath(pid, 'raw_ephys_data.npy'))
-    with open(DATA_DIR.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
+def load_raw_data(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    raw_data = np.load(data_path.joinpath(pid, 'raw_ephys_data.npy'))
+    with open(data_path.joinpath(pid, 'raw_ephys_info.yaml'), 'r') as fp:
         raw_info = yaml.safe_load(fp)
 
     return raw_info, raw_data
 
 
-def load_camera(eid, camera):
-    camera = alfio.load_object(DATA_DIR.joinpath(eid), object=f'{camera}Camera')
+def load_camera(eid, camera, data_path=None):
+    data_path = data_path or DATA_DIR
+    camera = alfio.load_object(data_path.joinpath(eid), object=f'{camera}Camera')
     return camera
 
 
-def load_licks(eid):
-    licks = np.load(DATA_DIR.joinpath(eid, 'licks.times.npy'))
+def load_licks(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    licks = np.load(data_path.joinpath(eid, 'licks.times.npy'))
     return licks
 
 
-def load_wheel(eid):
-    wheel = alfio.load_object(DATA_DIR.joinpath(eid), object='wheel')
+def load_wheel(eid, data_path=None):
+    data_path = data_path or DATA_DIR
+    wheel = alfio.load_object(data_path.joinpath(eid), object='wheel')
     return wheel
+
+
+def load_lfp(pid, data_path=None):
+    data_path = data_path or DATA_DIR
+    freq = [0, 4]
+    lfp = alfio.load_object(data_path.joinpath(pid), object='ephysSpectralDensityLF')
+    freq_idx = np.where((lfp['freqs'] >= freq[0]) & (lfp['freqs'] < freq[1]))[0]
+    lfp_avg = np.mean(lfp['power'][freq_idx], axis=0)
+    lfp_avg_dB = 10 * np.log10(lfp_avg)
+
+    return lfp_avg_dB
+
 
 
 # -------------------------------------------------------------------------------------------------
@@ -143,8 +165,9 @@ def filter_clusters_by_good_clusters(clusters):
     return _filter(clusters, idx)
 
 
-def filter_spikes_by_cluster_idx(spikes, cluster_idx):
-    idx = np.where(spikes.clusters == cluster_idx)[0]
+def filter_spikes_by_cluster_idx(spikes, clusters, cluster_idx):
+    clu_idx = np.where(clusters.cluster_id == cluster_idx)[0][0]
+    idx = np.where(spikes.clusters == clu_idx)[0]
 
     return _filter(spikes, idx)
 
@@ -181,6 +204,8 @@ def filter_wfs_by_cluster_idx(waveforms, waveform_channels, clusters, cluster_id
 
 def filter_features_by_pid(features, pid, column):
     feat = features[features['pid'] == pid]
+    if len(feat) == 0:
+        return None
     values = feat[column].values
     if len(values) == 0:
         return np.full(384, np.nan)
@@ -293,15 +318,14 @@ class DataLoader:
     # Loading functions
     # ---------------------------------------------------------------------------------------------
 
-    def __init__(self):
-        self.session_df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
+    def __init__(self, data_path=None):
+        self.data_path = data_path or DATA_DIR
+        self.session_df = pd.read_parquet(self.data_path.joinpath('session.table.pqt'))
         self.session_df = self.session_df.set_index('pid')
 
-        # # Channels and brain acronyms.
-        # self.channels_df = pd.read_parquet(DATA_DIR.joinpath('channels.pqt'))
-
         # load in the waveform tables
-        self.features = pd.read_parquet(DATA_DIR.joinpath('raw_ephys_features.pqt'))
+        # TODO add back in once we have the features table
+        self.features = pd.read_parquet(self.data_path.joinpath('raw_ephys_features.pqt'))
         self.features = self.features.reset_index()
 
         self.BRAIN_ATLAS = AllenAtlas()
@@ -315,7 +339,6 @@ class DataLoader:
 
         self.pid = pid
         self.load_session_data(pid)
-        # self.get_session_details()
         self.compute_session_raster()
 
     def load_session_data(self, pid):
@@ -326,26 +349,44 @@ class DataLoader:
         """
         self.session_info = self.session_df[self.session_df.index == pid].to_dict(orient='records')[0]
         self.eid = self.session_info['eid']
-        self.spikes = load_spikes(pid)
-        self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid))
-        self.trials = load_trials(self.eid)
+        self.spikes = load_spikes(pid, data_path=self.data_path)
+        self.spikes_good = filter_spikes_by_good_clusters(load_spikes(pid, data_path=self.data_path))
+        self.trials = load_trials(self.eid, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
-        self.clusters = load_clusters(pid)
+        self.clusters = load_clusters(pid, data_path=self.data_path)
         self.clusters_good = filter_clusters_by_good_clusters(self.clusters)
-        self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid)
-        self.channels = load_channels(pid)
-        self.rms_chns = load_rms(pid)
-
-        # # self.brain_regions is a string with the list of brain regions in a given session
-        # self.brain_regions = self.channels_df.groupby("pid")["acronym"].unique().\
-        #     transform(lambda x: ', '.join(sorted(x)))
-        # self.brain_regions = self.brain_regions[self.brain_regions.index == pid][0]
+        self.cluster_wfs, self.cluster_wf_chns = load_cluster_waveforms(pid, data_path=self.data_path)
+        self.channels = load_channels(pid, data_path=self.data_path)
+        self.rms_chns = load_rms(pid, data_path=self.data_path)
 
         self.rms_ap = filter_features_by_pid(self.features, pid, 'rms_ap')
-        self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        # If not in the features table, load in a different way
+        if self.rms_ap is None:
+            self.rms_ap = self.rms_chns
 
-        self.depth_lim = [0, 4000]
+        # Need to make sure the sizes match out
+        if self.rms_ap.size != self.channels.localCoordinates.shape[0]:
+            self.rms_ap = self.rms_chns
+
+        self.lfp = filter_features_by_pid(self.features, pid, 'psd_delta')
+        if self.lfp is not None:
+            # Need to make sure the sizes match out
+            if self.lfp.size != self.channels.localCoordinates.shape[0]:
+                self.lfp = None
+
+        # If not in the features table, load in a different way
+        if self.lfp is None:
+            self.lfp = load_lfp(pid, data_path=self.data_path)
+            self.lfp = self.lfp[self.channels['rawInd']]
+
+        if np.max(self.channels.localCoordinates[:, 1]) > 3000:
+            self.depth_lim = [0, 4000]
+        else:
+            # For np2 probes
+            self.depth_lim = [0, np.max(self.channels.localCoordinates[:, 1]) + 160]
+
         self.amp_lim = [-10, 800]
+        self.max_chn = np.max(self.channels.localCoordinates[:, 1])
 
     def get_session_details(self):
         """
@@ -438,7 +479,7 @@ class DataLoader:
             'Cluster #': cluster_idx,
             # 'Brain region': BRAIN_REGIONS.id2acronym(cluster.atlas_id, mapping='Beryl')[0],
             'Brain region': self.BRAIN_REGIONS.get(cluster.atlas_id)['name'][0],
-            'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, cluster_idx)['times']),
+            'N spikes': len(filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)['times']),
             'Overall firing rate': f'{np.round(cluster["firing_rate"], 2)} Hz',
             'Max amplitude': f'{np.round(cluster["amp_max"] * 1e6, 2)} uV'
         }
@@ -474,7 +515,8 @@ class DataLoader:
         kp_idx = ~np.isnan(self.spikes_good.depths)
 
         self.session_raster, self.t_vals, self.d_vals = \
-            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
+            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin,
+                       ylim=[0, self.max_chn])
 
         self.session_raster = self.session_raster / t_bin
 
@@ -522,7 +564,6 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        # TODO use actual data
         data_bank, x_bank, y_bank = arrange_channels2banks(self.rms_ap * 1e6, self.channels.localCoordinates, depth=None,
                                                            pad=True, x_offset=1)
         data = ProbePlot(data_bank, x=x_bank, y=y_bank, cmap='plasma')
@@ -602,7 +643,7 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        info, raw_ephys = load_raw_data(self.pid)
+        info, raw_ephys = load_raw_data(self.pid, data_path=self.data_path)
 
         times = info['t']
         ts = info['t_offset']
@@ -618,7 +659,7 @@ class DataLoader:
         if raster:
             ax0 = axs[0]
             self.plot_session_raster(ax=ax0)
-            ax0.set_ylim(20, 3840)
+            ax0.set_ylim(20, self.max_chn)
             ax0.vlines(times, *ax0.get_ylim(), color='k', ls='--')
 
         for iT, time in enumerate(times):
@@ -633,12 +674,11 @@ class DataLoader:
             ax.scatter(spike_times[spike_labels != 1], spike_channels[spike_labels != 1], c='r', alpha=0.8, s=3)
             ax.scatter(spike_times[spike_labels == 1], spike_channels[spike_labels == 1], color='g', alpha=1, s=3)
             ax.set_title(f'T = {time} s')
-            ax.images[0].set_extent([0, 50, 20, 3840])
+            ax.images[0].set_extent([0, 50, 20, self.max_chn])
             if not raster and iT != 0:
                 ax.get_yaxis().set_visible(False)
             else:
-                # ax.images[0].set_extent([0, 50, 20, 3840])
-                ax.set_ylim(20, 3840)
+                ax.set_ylim(20, self.max_chn)
                 ax.set_ylabel('Depth (um)')
 
         return fig
@@ -660,7 +700,7 @@ class DataLoader:
 
         if cluster_idx is not None:
             # TODO Allen colours
-            spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+            spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
             ax.scatter(spikes.times, spikes.depths, s=spikes.sizes,
                        facecolors='none', edgecolors='r')
 
@@ -812,13 +852,7 @@ class DataLoader:
 
         ins = Insertion.from_dict(self.session_info, brain_atlas=self.BRAIN_ATLAS)
 
-        # def crawl_up_from_tip(ins, d):
-        #     return (ins.entry - ins.tip) * (d[:, np.newaxis] /
-        #                                     np.linalg.norm(ins.entry - ins.tip)) + ins.tip
-        # d = np.array([200, 200 + 3840])
-        # top_bottom = crawl_up_from_tip(ins, d / 1e6)
-
-        ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax)
+        ax, sec_ax = self.BRAIN_ATLAS.plot_tilted_slice(ins.xyz, 1, volume='annotation', ax=ax, return_sec=True)
         ax.plot(ins.xyz[:, 0] * 1e6, ins.xyz[:, 2] * 1e6, 'k', linewidth=2)
         # ax.plot(top_bottom[:, 0] * 1e6, top_bottom[:, 2] * 1e6, 'grey', linewidth=2)
         remove_frame(ax)
@@ -883,7 +917,8 @@ class DataLoader:
         d_bin = 5
         kp_idx = ~np.isnan(spikes.depths)
 
-        raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin, ylim=[0, 3840])
+        raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin,
+                                            ylim=[0, self.max_chn])
         raster = raster / t_bin
 
         ax.imshow(raster, extent=np.r_[np.min(t_vals), np.max(t_vals), np.min(d_vals), np.max(d_vals)],
@@ -893,7 +928,7 @@ class DataLoader:
         ax.set_xlim(np.min(spikes.times), np.max(spikes.times))
 
         if cluster_idx is not None:
-            spikes = filter_spikes_by_cluster_idx(spikes, cluster_idx)
+            spikes = filter_spikes_by_cluster_idx(spikes, self.clusters, cluster_idx)
             ax.scatter(spikes.times, spikes.depths, s=spikes.sizes, c='r')
 
         self.add_trial_events_to_raster(ax, trials)
@@ -1079,10 +1114,10 @@ class DataLoader:
         pre_stim = 0.4
         post_stim = 1
         data = get_stim_aligned_activity(stim_events, self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx],
-                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, 3840])
+                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, self.max_chn])
 
         for i, (key, d) in enumerate(data.items()):
-            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, 3840], cmap='bwr', vmax=10, vmin=-10,
+            im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, self.max_chn], cmap='bwr', vmax=10, vmin=-10,
                                origin='lower')
             if i == 0:
                 set_axis_style(axs[i], xlabel=f'T from {key} (s)', ylabel=ylabel)
@@ -1103,7 +1138,7 @@ class DataLoader:
     def plot_dlc_feature_raster(self, camera, feature, axs=None, xlabel='T from Stim On (s)', ylabel0='Speed (px/s)',
                                 ylabel1='Sorted Trial Number', title=None, zscore_flag=False, norm=False):
 
-        camera = load_camera(self.eid, camera)
+        camera = load_camera(self.eid, camera, data_path=self.data_path)
         feature = camera.computedFeatures[feature]
 
         if zscore_flag:
@@ -1127,7 +1162,7 @@ class DataLoader:
 
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
 
-        camera = load_camera(self.eid, camera)
+        camera = load_camera(self.eid, camera, data_path=self.data_path)
         idx = np.searchsorted(camera.times, self.trial_intervals[trial_idx])
         ax.plot(camera.times[idx[0]:idx[1]], camera.computedFeatures[feature][idx[0]:idx[1]], c='k')
         self.add_trial_events_to_raster(ax, trials, text=False)
@@ -1142,7 +1177,7 @@ class DataLoader:
     def plot_lick_raster(self, axs=None, xlabel='T from Feedback (s)', ylabel0='Licks (count)',
                          ylabel1='Sorted Trial Number', title=None):
 
-        licks = load_licks(self.eid)
+        licks = load_licks(self.eid, data_path=self.data_path)
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
         fig, axs = self.single_cluster_raster(licks, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
@@ -1156,7 +1191,7 @@ class DataLoader:
     def plot_wheel_raster(self, axs=None, xlabel='T from First Move (s)', ylabel0='Wheel velocity (rad/s)',
                           ylabel1='Sorted Trial Number', title=None):
 
-        wheel = load_wheel(self.eid)
+        wheel = load_wheel(self.eid, data_path=self.data_path)
         speed = velocity(wheel.timestamps, wheel.position)
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='side')
@@ -1175,7 +1210,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        wheel = load_wheel(self.eid)
+        wheel = load_wheel(self.eid, data_path=self.data_path)
         trials = filter_trials_by_trial_idx(self.trials, trial_idx)
 
         wheel_pos, wheel_time = interpolate_position(wheel.timestamps, wheel.position)
@@ -1198,7 +1233,7 @@ class DataLoader:
                                               ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
                                               order='trial num'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='side', order=order)
         fig, axs = self.single_cluster_raster(
             spikes.times, self.trials['firstMovement_times'], trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
@@ -1212,7 +1247,7 @@ class DataLoader:
                                                      ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number',
                                                      order='trial num'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice', order=order)
         fig, axs = self.single_cluster_raster(spikes.times, self.trials['feedback_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs)
@@ -1225,7 +1260,7 @@ class DataLoader:
     def plot_block_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                          ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         trial_idx = np.arange(len(self.trials['probabilityLeft']))
         dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
 
@@ -1246,7 +1281,7 @@ class DataLoader:
     def plot_contrast_single_cluster_raster(self, cluster_idx, axs=None, xlabel='T from Stim On (s)',
                                             ylabel0='Firing Rate (Hz)', ylabel1='Sorted Trial Number'):
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         contrasts = np.nanmean(np.c_[self.trials.contrastLeft, self.trials.contrastRight], axis=1)
         trial_idx = np.argsort(contrasts)
         dividers = list(np.where(np.diff(np.sort(contrasts)) != 0)[0])
@@ -1270,7 +1305,7 @@ class DataLoader:
 
         contrasts = get_signed_contrast(self.trials)
         un_contrasts = np.unique(contrasts)
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         events = self.trials[event]
 
         bin_size = 0.35
@@ -1371,6 +1406,11 @@ class DataLoader:
 
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
         # Divide all channels by the noise on the max channel
         wfs_norm = wfs / amp_norm
 
@@ -1485,7 +1525,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         x_corr = xcorr(spikes.times, spikes.clusters, 1 / 1e3, 50 / 1e3)
         corr = x_corr[0, 0, :]
@@ -1505,7 +1545,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         isi, bins = _compute_histogram(np.diff(spikes.times), 0.01, 0, 50)
         bins = bins * 1e3
@@ -1525,9 +1565,14 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
 
         ax.scatter(spikes.times, spikes.amps * 1e6, color='grey', s=2)
         ax.set_xlim(-10, np.max(self.spikes.times))
@@ -1555,7 +1600,7 @@ class DataLoader:
         else:
             fig = axs[0].get_figure()
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
 
         [maxConfidenceAt10Cont, minContWith90Confidence, timeOfLowestCont, nSpikesBelow2, confMatrix, cont, rp, nACG,
          firingRate, xx] = slidingRP(spikes.times)
@@ -1623,9 +1668,14 @@ class DataLoader:
         n_bins = 100
         percent_threshold = 0.10
 
-        spikes = filter_spikes_by_cluster_idx(self.spikes, cluster_idx)
+        spikes = filter_spikes_by_cluster_idx(self.spikes, self.clusters, cluster_idx)
         clusters = filter_clusters_by_cluster_idx(self.clusters, cluster_idx)
         amp_norm = self.rms_chns[clusters.channels]
+        if np.isnan(amp_norm):
+            amp_norm = self.rms_ap[clusters.channels]
+
+        if np.isnan(amp_norm):
+            amp_norm = 1
 
         nc_pass, nc_value, first_bin_height = noise_cutoff(spikes.amps)
 

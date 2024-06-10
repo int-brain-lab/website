@@ -15,6 +15,7 @@ import os.path as op
 import png
 import re
 import sys
+import gc
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -112,13 +113,6 @@ def normalize(x, target='float'):
     raise ValueError("unknow normalization target")
 
 
-def to_png(arr):
-    p = png.from_array(arr, mode="L")
-    b = io.BytesIO()
-    p.write(b)
-    b.seek(0)
-    return b
-
 
 def is_valid_uuid(uuid_to_test, version=4):
     """
@@ -162,11 +156,11 @@ def load_json(path):
         return json.load(f)
 
 
-def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc):
+def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc, cache_path=None):
     if qc == 1:
-        df = pd.read_parquet(cluster_qc_pixels_path(pid))
+        df = pd.read_parquet(cluster_qc_pixels_path(pid, cache_path=cache_path))
     else:
-        df = pd.read_parquet(cluster_pixels_path(pid))
+        df = pd.read_parquet(cluster_pixels_path(pid, cache_path=cache_path))
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
     min_idx = np.nanargmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
@@ -184,84 +178,87 @@ def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc):
 #     return DATA_DIR / pid
 
 
-def session_cache_path(pid):
-    cp = CACHE_DIR / pid
+def session_cache_path(pid, cache_path=None):
+    cache_path = cache_path or CACHE_DIR
+    cp = cache_path / pid
     cp.mkdir(exist_ok=True, parents=True)
     assert cp.exists(), f"the path `{cp}` does not exist"
     return cp
 
 
-def figure_details_path():
-    return CACHE_DIR / 'figures.json'
+def figure_details_path(cache_path=None):
+    cache_path = cache_path or CACHE_DIR
+    return cache_path / 'figures.json'
 
 
-def session_details_path(pid):
-    return session_cache_path(pid) / 'session.json'
+def session_details_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'session.json'
 
 
-def trial_details_path(pid, trial_idx):
-    return session_cache_path(pid) / f'trial-{trial_idx:04d}.json'
+def trial_details_path(pid, trial_idx, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
 
 
-def cluster_details_path(pid, cluster_idx):
-    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.json'
+def cluster_details_path(pid, cluster_idx, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.json'
 
 
-def session_overview_path(pid):
-    return session_cache_path(pid) / 'overview.png'
+def session_overview_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'overview.png'
 
 
-def behaviour_overview_path(pid):
-    return session_cache_path(pid) / 'behaviour_overview.png'
+def behaviour_overview_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'behaviour_overview.png'
 
 
-def trial_event_overview_path(pid):
-    return session_cache_path(pid) / 'trial_overview.png'
+def trial_event_overview_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'trial_overview.png'
 
 
-def trial_overview_path(pid, trial_idx):
-    return session_cache_path(pid) / f'trial-{trial_idx:04d}.png'
+def trial_overview_path(pid, trial_idx, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.png'
 
 
-def cluster_overview_path(pid, cluster_idx):
-    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}.png'
+def cluster_overview_path(pid, cluster_idx, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.png'
 
 
-def cluster_qc_overview_path(pid, cluster_idx):
-    return session_cache_path(pid) / f'cluster-{cluster_idx:04d}_qc.png'
+def cluster_qc_overview_path(pid, cluster_idx, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}_qc.png'
 
 
-def cluster_pixels_path(pid):
-    return session_cache_path(pid) / 'cluster_pixels.pqt'
+def cluster_pixels_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels.pqt'
 
 
-def cluster_qc_pixels_path(pid):
-    return session_cache_path(pid) / 'cluster_pixels_qc.pqt'
+def cluster_qc_pixels_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels_qc.pqt'
 
 
-def trial_intervals_path(pid):
-    return session_cache_path(pid) / f'trial_intervals.pqt'
+def trial_intervals_path(pid, cache_path=None):
+    return session_cache_path(pid, cache_path=cache_path) / f'trial_intervals.pqt'
 
 
-def caption_path(figure):
-    return CACHE_DIR.joinpath(f'{figure}_px_locations.pqt')
+def caption_path(figure, cache_path=None):
+    cache_path = cache_path or CACHE_DIR
+    return cache_path.joinpath(f'{figure}_px_locations.pqt')
 
 
 # -------------------------------------------------------------------------------------------------
 # Session iterator
 # -------------------------------------------------------------------------------------------------
 
-def get_pids():
-    df = pd.read_parquet(DATA_DIR.joinpath('session.table.pqt'))
+def get_pids(data_path=None):
+    data_path = data_path or DATA_DIR
+    df = pd.read_parquet(data_path.joinpath('session.table.pqt'))
     pids = df.pid.values
-    # pids = sorted([str(p.name) for p in DATA_DIR.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
     assert pids
     return pids
 
 
-def iter_session():
-    yield from get_pids()
+def iter_session(data_path=None):
+    yield from get_pids(data_path=data_path)
 
 
 # def generate_figure_json():
@@ -286,19 +283,20 @@ def get_subplot_position(ax1, ax2):
 # -------------------------------------------------------------------------------------------------
 
 class Generator:
-    def __init__(self, pid):
-        self.dl = DataLoader()
+    def __init__(self, pid, cache_path=None, data_path=None):
+        self.cache_path = cache_path or CACHE_DIR
+        self.dl = DataLoader(data_path=data_path)
         self.dl.session_init(pid)
         self.pid = pid
 
         # Ensure the session cache folder exists.
-        session_cache_path(pid).mkdir(exist_ok=True, parents=True)
+        session_cache_path(pid, cache_path=self.cache_path).mkdir(exist_ok=True, parents=True)
 
         # Load the session details.
-        path = session_details_path(pid)
         self.session_details = self.dl.get_session_details()
 
         # Save the session details to a JSON file.
+        path = session_details_path(pid, cache_path=self.cache_path)
         logger.debug(f"Saving session details for session {pid}")
         save_json(path, self.session_details)
 
@@ -339,13 +337,13 @@ class Generator:
     def save_trial_details(self, trial_idx):
         logger.debug(f"saving trial #{trial_idx:04} details for session {self.pid}")
         details = self.dl.get_trial_details(trial_idx)
-        path = trial_details_path(self.pid, trial_idx)
+        path = trial_details_path(self.pid, trial_idx, cache_path=self.cache_path)
         save_json(path, details)
 
     def save_cluster_details(self, cluster_idx):
         logger.debug(f"saving cluster #{cluster_idx:04} details for session {self.pid}")
         details = self.dl.get_cluster_details(cluster_idx)
-        path = cluster_details_path(self.pid, cluster_idx)
+        path = cluster_details_path(self.pid, cluster_idx, cache_path=self.cache_path)
         save_json(path, details)
 
     # -------------------------------------------------------------------------------------------------
@@ -356,7 +354,7 @@ class Generator:
 
     def make_session_plot(self, force=False, captions=False):
 
-        path = session_overview_path(self.pid)
+        path = session_overview_path(self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making session overview plot for session {self.pid}")
@@ -465,12 +463,13 @@ class Generator:
                 subplots.append({'panel': 'K', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
                 df = pd.DataFrame.from_dict(subplots)
-                df.to_parquet(caption_path('figure1'))
+                df.to_parquet(caption_path('figure1', cache_path=self.cache_path))
             else:
 
                 fig.savefig(path)
 
             plt.close(fig)
+            gc.collect()
         except Exception as e:
             logger.error(f"error with session overview plot {self.pid}: {str(e)}")
 
@@ -478,7 +477,7 @@ class Generator:
 
     def make_behavior_plot(self, force=False, captions=False):
 
-        path = behaviour_overview_path(self.pid)
+        path = behaviour_overview_path(self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making behavior plot for session {self.pid}")
@@ -565,11 +564,12 @@ class Generator:
             subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
             df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure2'))
+            df.to_parquet(caption_path('figure2', cache_path=self.cache_path))
         else:
             fig.savefig(path)
 
         plt.close(fig)
+        gc.collect()
 
     # -------------------------------------------------------------------------------------------------
     # SINGLE TRIAL OVERVIEW
@@ -578,7 +578,7 @@ class Generator:
     # FIGURE 3
 
     def make_trial_plot(self, trial_idx, force=False, captions=False):
-        path = trial_overview_path(self.pid, trial_idx)
+        path = trial_overview_path(self.pid, trial_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
@@ -625,17 +625,18 @@ class Generator:
             subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
 
             df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure3'))
+            df.to_parquet(caption_path('figure3', cache_path=self.cache_path))
             fig.savefig(path)
         else:
             fig.savefig(path)
 
         plt.close(fig)
+        gc.collect()
 
     # FIGURE 4
 
     def make_trial_event_plot(self, force=False, captions=False):
-        path = trial_event_overview_path(self.pid)
+        path = trial_event_overview_path(self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making trial event plot for session {self.pid}")
@@ -667,17 +668,18 @@ class Generator:
             subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
 
             df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure4'))
+            df.to_parquet(caption_path('figure4', cache_path=self.cache_path))
         else:
             fig.savefig(path)
 
-            path_interval = trial_intervals_path(self.pid)
+            path_interval = trial_intervals_path(self.pid, cache_path=self.cache_path)
             df = pd.DataFrame()
             df['t0'] = loader.trial_intervals[:, 0]
             df['t1'] = loader.trial_intervals[:, 1]
             df.to_parquet(path_interval)
 
         plt.close(fig)
+        gc.collect()
 
     # -------------------------------------------------------------------------------------------------
     # SINGLE CLUSTER OVERVIEW
@@ -686,7 +688,7 @@ class Generator:
     # FIGURE 5
 
     def make_cluster_plot(self, cluster_idx, force=False, captions=False):
-        path = cluster_overview_path(self.pid, cluster_idx)
+        path = cluster_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
@@ -788,12 +790,12 @@ class Generator:
             subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
             df = pd.DataFrame.from_dict(subplots)
 
-            df.to_parquet(caption_path('figure5'))
+            df.to_parquet(caption_path('figure5', cache_path=self.cache_path))
             fig.savefig(path)
         else:
             fig.savefig(path)
 
-            path_scat = cluster_pixels_path(self.pid)
+            path_scat = cluster_pixels_path(self.pid, cache_path=self.cache_path)
             if not path_scat.exists():
                 idx = np.argsort(loader.clusters_good.depths)[::-1]
                 pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
@@ -809,10 +811,11 @@ class Generator:
                 df.to_parquet(path_scat)
 
         plt.close(fig)
+        gc.collect()
 
     def make_cluster_qc_plot(self, cluster_idx, force=False, captions=False):
 
-        path = cluster_qc_overview_path(self.pid, cluster_idx)
+        path = cluster_qc_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making cluster qc overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
@@ -909,12 +912,12 @@ class Generator:
             subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
             df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure5_qc'))
+            df.to_parquet(caption_path('figure5_qc', cache_path=self.cache_path))
             fig.savefig(path)
         else:
             fig.savefig(path)
 
-            path_scat = cluster_qc_pixels_path(self.pid)
+            path_scat = cluster_qc_pixels_path(self.pid, cache_path=self.cache_path)
             if not path_scat.exists() or force:
                 idx = np.argsort(loader.clusters.depths)[::-1]
                 pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
@@ -930,13 +933,14 @@ class Generator:
                 df.to_parquet(path_scat)
 
         plt.close(fig)
+        gc.collect()
 
     # Plot generator functions
     # -------------------------------------------------------------------------------------------------
 
     def make_all_trial_plots(self, force=False):
 
-        path = trial_overview_path(self.pid, self.first_trial())
+        path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping trial plot generation as they seem to already exist")
             return
@@ -951,7 +955,7 @@ class Generator:
 
     def make_all_cluster_plots(self, force=False):
 
-        path = cluster_overview_path(self.pid, self.first_good_cluster())
+        path = cluster_overview_path(self.pid, self.first_good_cluster(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping cluster plot generation as they seem to already exist")
             return
@@ -966,7 +970,7 @@ class Generator:
 
     def make_all_cluster_qc_plots(self, force=False):
 
-        path = cluster_qc_overview_path(self.pid, self.first_cluster())
+        path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping cluster plot generation as they seem to already exist")
             return
@@ -1017,7 +1021,7 @@ class Generator:
 
         caption_json = {}
         for fig in CAPTIONS.keys():
-            df = pd.read_parquet(caption_path(fig))
+            df = pd.read_parquet(caption_path(fig, cache_path=self.cache_path))
             fig_panels = {}
             for _, row in df.iterrows():
                 fig_panels[row['panel']] = {'coords': (row['xmin'], 1 - row['ymax'], row['xmax'], 1 - row['ymin']),
@@ -1025,18 +1029,18 @@ class Generator:
 
             caption_json[fig] = fig_panels
 
-        save_json(figure_details_path(), caption_json, indent=2)
+        save_json(figure_details_path(cache_path=self.cache_path), caption_json, indent=2)
 
 
-def make_captions():
-    pid = get_pids()[0]
+def make_captions(cache_path=None, data_path=None):
+    pid = get_pids(data_path=data_path)[0]
     pid = '9117969a-3f0d-478b-ad75-98263e3bfacf'
-    Generator(pid).make_captions()
+    Generator(pid, cache_path=cache_path, data_path=data_path).make_captions()
 
 
-def make_all_plots(pid, nums=()):
+def make_all_plots(pid, nums=(), cache_path=None, data_path=None):
     logger.info(f"Generating all plots for session {pid}")
-    Generator(pid).make_all_plots(nums=nums)
+    Generator(pid, cache_path=cache_path, data_path=data_path).make_all_plots(nums=nums)
 
 
 # -------------------------------------------------------------------------------------------------
