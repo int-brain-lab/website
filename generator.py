@@ -204,7 +204,7 @@ def cluster_details_path(pid, cluster_idx, cache_path=None):
 
 
 def session_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'overview.png'
+    return session_cache_path(pid, cache_path=cache_path) / 'session_overview.png'
 
 
 def behaviour_overview_path(pid, cache_path=None):
