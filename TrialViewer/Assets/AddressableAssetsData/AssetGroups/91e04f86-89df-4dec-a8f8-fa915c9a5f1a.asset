@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: 91e04f86-89df-4dec-a8f8-fa915c9a5f1a
+  m_EditorClassIdentifier: 
+  m_GroupName: 91e04f86-89df-4dec-a8f8-fa915c9a5f1a
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 4e96a34114790184e9b78fcdcd192cb6
+  m_SerializeEntries:
+  - m_GUID: 5200f65e4f39e74478e4136d6916b66d
+    m_Address: Assets/AddressableAssets/91e04f86-89df-4dec-a8f8-fa915c9a5f1a/91e04f86-89df-4dec-a8f8-fa915c9a5f1a.left_ts.bytes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6b967c4e1c339754e9d4be0c81f033c8
+    m_Address: Assets/AddressableAssets/91e04f86-89df-4dec-a8f8-fa915c9a5f1a/91e04f86-89df-4dec-a8f8-fa915c9a5f1a.trials.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c2e401bddc1fb44ea07e3d903f106d5
+    m_Address: Assets/AddressableAssets/91e04f86-89df-4dec-a8f8-fa915c9a5f1a/91e04f86-89df-4dec-a8f8-fa915c9a5f1a.wheel.bytes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 9fc1257868a6ce1488968c72223134bd, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 1f1fa31ed5048fe4f9f7d24b63aa7118, type: 2}
+    - {fileID: 11400000, guid: 909a56ec2d926d64c9e36830a3df3f71, type: 2}

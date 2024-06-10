@@ -2,18 +2,18 @@
 # Imports
 # -------------------------------------------------------------------------------------------------
 
+import lzstring
 from datetime import datetime, date
-# from pathlib import Path
-# from pprint import pprint
 from uuid import UUID
-# import argparse
-# import functools
 import io
 import json
 import locale
 import logging
 import logging
+from operator import itemgetter
 import os.path as op
+import png
+import re
 import sys
 import gc
 
@@ -36,6 +36,7 @@ from plots.captions import CAPTIONS
 mpl.use('Agg')
 # mpl.style.use('seaborn')
 locale.setlocale(locale.LC_ALL, '')
+
 
 # -------------------------------------------------------------------------------------------------
 # Logging
@@ -78,6 +79,8 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
+DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1040,7 +1043,61 @@ def make_all_plots(pid, nums=(), cache_path=None, data_path=None):
     Generator(pid, cache_path=cache_path, data_path=data_path).make_all_plots(nums=nums)
 
 
+# -------------------------------------------------------------------------------------------------
+# Data JSON generator
+# -------------------------------------------------------------------------------------------------
+
+def load_json_c(path):
+    precision = 1000.0
+    data = load_json(path)
+    for k in data.keys():
+        v = data[k]
+        if isinstance(v, list) and v and isinstance(v[0], float):
+            data[k] = [(int(n * precision) / precision) if n is not None else None for n in v]
+    return data
+
+
+def sessions():
+    CACHE_DIR.mkdir(exist_ok=True, parents=True)
+    pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
+    pids = [pid for pid in pids if is_valid_uuid(pid)]
+    sessions = [load_json_c(session_details_path(pid)) for pid in pids]
+    sessions = [_ for _ in sessions if _]
+    sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
+    return sessions
+
+
+def legends():
+    return load_json(figure_details_path())
+
+
+def generate_data_js():
+    FLASK_CTX = {
+        "SESSIONS": sessions(),
+        "LEGENDS": legends(),
+        "DEFAULT_PID": DEFAULT_PID,
+        "DEFAULT_DSET": DEFAULT_DSET,
+    }
+    ctx_json = json.dumps(FLASK_CTX)
+    ctx_compressed = lzstring.LZString().compressToBase64(ctx_json)
+    return ctx_compressed
+
+
+def make_data_js():
+    ctx_json = generate_data_js()
+    path = 'static/data.js'
+    with open(path, 'r') as f:
+        contents = f.read()
+    contents = re.sub('const FLASK_CTX_COMPRESSED = .+', f'const FLASK_CTX_COMPRESSED = "{ctx_json}";', contents)
+    with open(path, 'w') as f:
+        f.write(contents)
+
+
 if __name__ == '__main__':
+
+    # Regenerate static/data.js with all the data.
+    make_data_js()
+    exit()
 
     # Regenerate all figures.
     if len(sys.argv) == 1:

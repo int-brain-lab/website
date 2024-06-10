@@ -17,154 +17,21 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 645746b576ee59245b83e25dd4719e7e
   m_SerializeEntries:
-  - m_GUID: edb5803d5787cce448e815dfc362bded
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_nose_tip_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 2e78e043c3266e84dad82328fd5a06d9
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_nose_tip_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: ab41d8139bafebe4496bbdd2fab3b79e
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_paw_l_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: bbe9f5c00da938f4fab674315ea40fd1
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_paw_l_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 37aa154540d49d54085ea10098bd7219
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_paw_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 5677fcb0429238b44af35cb8fcbc3fa9
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_paw_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: cf13f510bdc29c248824e4057313b342
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tongue_end_l_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 4ca351814f3b10a47963838df1de8d61
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tongue_end_l_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: ffc69c18a08e0d248ad0e8d25ecb9f44
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tongue_end_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: a2fea41c567150a409ca9e8fde7fa719
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tongue_end_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 4ac816c5cb1f60c45a222b25a9577ea5
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tube_top_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: aa9dd98798dcd864ba860a3237182977
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cl_tube_top_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 633b020f668159d43982f5b09a35ac2d
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_nose_tip_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: fa1969fdaebbec047bbea64d2864def6
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_nose_tip_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: c7efe7ca82e741348af7d731694188c2
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_paw_l_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: b891e8a9263378a4ca64e9884924b956
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_paw_l_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 20e7c6960d5c5ce49bad6e33475ebb9c
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_paw_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: d8840759f93129c4399e3cbc2170ae59
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_paw_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: df6bd9410f1929b4d995627dd613e0ce
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tongue_end_l_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 8e9522cd17cffc741b610991e28aba05
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tongue_end_l_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 5b307c63eb1bc1343a0ddd3f11520344
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tongue_end_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 37bf8d296bfded946aa1e0819e7bcbc4
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tongue_end_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: cbb68343e05e12147b7c1349b2837700
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tube_top_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 2cfe48ba5ce4025478371e4bf50b6be5
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.cr_tube_top_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 43fc3cd7af1e82f4f8fad7cceaf545a1
+  - m_GUID: c5f75d6c63e07c24d8d849c10ab70395
     m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.left_ts.bytes
     m_ReadOnly: 0
     m_SerializedLabels: []
-  - m_GUID: 8cc39ba2343548b428f5d85fdf77fbac
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_bottom_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 773aac665dc43f74b85d61cfd1dc35de
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_bottom_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 96532d87d69eb384f94ca07cc7a3b485
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_left_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: c18e2656ac0cb114886c3c90defd1f0e
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_left_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: d17fc673d5b2cf943b5ecc314462fd97
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_right_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 579db4975dde87d4ab887240277602f1
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_right_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 32e7116d547d8374fbc663f7e115dfb4
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_top_r_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: f4e1fdb0c7cfdb7469d1cf59c0eec041
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.pupil_top_r_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: e83a2514e1c4c9044b659218866a0c82
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.tail_start_x.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 6cdb1add4a1ff3b4ea369f1a08a74c15
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.tail_start_y.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 5e3ff37b22eabec41aa40b603fa125a9
-    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.trials.csv
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-  - m_GUID: 10c1f74cbfb9f444f883ff52cf116cd5
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a1ee3575b090b364aaa7c75d8ff2c3f7
     m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.wheel.bytes
     m_ReadOnly: 0
     m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 461bcbee865b9bb448adc682bae6d35e
+    m_Address: Assets/AddressableAssets/032452e9-1886-449d-9c13-0f192572e19f/032452e9-1886-449d-9c13-0f192572e19f.trials.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 9fc1257868a6ce1488968c72223134bd, type: 2}
   m_SchemaSet:
