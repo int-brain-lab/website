@@ -5,7 +5,7 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = true;   // disable for debugging
+const ENABLE_UNITY = false;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
@@ -273,7 +273,8 @@ function getUrl() {
     params.set("dset", CTX.dset);
     params.set("pid", CTX.pid);
     params.set("tid", CTX.tid);
-    params.set("cid", CTX.cid);
+    params.set("rid", CTX.rid);
+    params.set("preprocess", CTX.preprocess);
     params.set("qc", CTX.qc);
 
     return url.toString();
@@ -414,47 +415,57 @@ function setupTrialCallback() {
 
 
 /*************************************************************************************************/
-/*  Setup cluster selection                                                                     */
+/*  Setup roi selection                                                                     */
 /*************************************************************************************************/
 
-function setupClusterDropdown(cluster_ids, acronyms, colors, cluster_id = -1) {
+function setupRoiDropdown(roi_ids, roi_id = -1) {
     // Set the cluster selector.
-    var s = document.getElementById('clusterSelector');
-    $('#clusterSelector option').remove();
-    for (var i = 0; i < cluster_ids.length; i++) {
-        var cid = cluster_ids[i];
-        var acronym = acronyms[i];
-        var color = colors[i];
-        option = new Option(`${acronym} — #${cid}`, cid);
-        var r = color[0];
-        var g = color[1];
-        var b = color[2];
-        option.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        if (((cluster_id == -1) && (i == 0)) || (cid == cluster_id))
+    var s = document.getElementById('roiSelector');
+    $('#roiSelector option').remove();
+    for (var i = 0; i < roi_ids.length; i++) {
+        var rid = roi_ids[i];
+        option = new Option(`roi ${rid}`, rid);
+        if (((roi_id == -1) && (i == 0)) || (rid == roi_id))
             option.selected = true;
         s.options[s.options.length] = option;
     }
 }
 
 
-
-function setupClusterCallback() {
+function setupRoiCallback() {
     // Cluster selector.
-    document.getElementById('clusterSelector').onchange = function (e) {
-        var cid = e.target.value;
-        if (!cid) return;
-        selectCluster(CTX.pid, cid);
+    document.getElementById('roiSelector').onchange = function (e) {
+        var rid = e.target.value;
+        if (!rid) return;
+        selectRoi(CTX.pid, rid, CTX.preprocess);
     }
 };
 
+/*************************************************************************************************/
+/*  Setup preprocess selection                                                                     */
+/*************************************************************************************************/
+
+function setupPreprocessDropdown(preprocess_ids, preprocess_id = -1) {
+    // Set the cluster selector.
+    var s = document.getElementById('preprocessSelector');
+    $('#preprocessSelector option').remove();
+    for (var i = 0; i < preprocess_ids.length; i++) {
+        var preid = preprocess_ids[i];
+        option = new Option(`${preid}`, preid);
+        if (((preprocess_id == -1) && (preprocess == 0)) || (preid == preprocess_id))
+            option.selected = true;
+        s.options[s.options.length] = option;
+    }
+}
 
 
-function setupClusterClick() {
-    const canvas = document.getElementById('clusterPlot');
-    canvas.addEventListener('click', function (e) {
-        console.log("click cluster", e);
-        onClusterClick(canvas, e);
-    }, true);
+function setupPreprocessCallback() {
+    // Cluster selector.
+    document.getElementById('preprocessSelector').onchange = function (e) {
+        var preprocess = e.target.value;
+        if (!preprocess) return;
+        selectPreprocess(CTX.pid, CTX.rid, preprocess);
+    }
 };
 
 
@@ -540,11 +551,11 @@ function getSessionList() {
             res &= filterQuery(q, Lab, Subject, pid, eid, acronyms, regions, _good_ids);
         }
 
-        // Dataset selection
-        if (CTX.dset == 'bwm')
-            res &= dset_bwm;
-        if (CTX.dset == 'rs')
-            res &= dset_rs;
+//        // Dataset selection
+//        if (CTX.dset == 'bwm')
+//            res &= dset_bwm;
+//        if (CTX.dset == 'rs')
+//            res &= dset_rs;
 
         return res;
     });
@@ -561,23 +572,6 @@ function getSessionList() {
 /*************************************************************************************************/
 /*  Session selection                                                                            */
 /*************************************************************************************************/
-
-function onDatasetChanged(ev) {
-    let dset = null;
-    if (ev.target.id == "dset-1") dset = "bwm";
-    else if (ev.target.id == "dset-2") dset = "rs";
-    else { console.log("unknown dset name " + dset); return; }
-    CTX.dset = dset;
-    autoCompleteJS.refresh();
-}
-
-function setupDataset() {
-    document.getElementById('dset-1').onclick = onDatasetChanged;
-    document.getElementById('dset-2').onclick = onDatasetChanged;
-
-    if (CTX.dset == "bwm") document.getElementById('dset-1').checked = true;
-    if (CTX.dset == "rs") document.getElementById('dset-2').checked = true;
-}
 
 function loadAutoComplete() {
     autoCompleteJS = autocomplete({
@@ -646,8 +640,8 @@ function loadAutoComplete() {
 
 
 
-function updateSessionPlot(pid) {
-    showImage('sessionPlot', `/api/session/${pid}/session_plot`);
+function updateSessionPlot(pid, rid, preprocess) {
+    showImage('sessionPlot', `/api/session/${pid}/session_plot/${rid}/${preprocess}`);
 };
 
 
@@ -680,19 +674,8 @@ async function selectSession(pid) {
     // NOTE: these fields start with a leading _ so will be ignored by tablefromjson
     // which controls which fields are displayed in the session details box.
     var trial_ids = details['_trial_ids']
-    var good_idx = details["_good_ids"];
-
-    if (CTX.qc) {
-        var cluster_ids = details["_cluster_ids"];
-        var acronyms = details["_acronyms"];
-        var colors = details["_colors"];
-    }
-    else {
-        var cluster_ids = details["_cluster_ids"].filter(filter_by_good, good_idx);
-        var acronyms = details["_acronyms"].filter(filter_by_good, good_idx);
-        var colors = details["_colors"].filter(filter_by_good, good_idx);
-    }
-
+    var roi_ids = details['_roi_ids']
+    var preprocess_ids = ['window_10', 'window_100', 'window_250', 'window_500']
 
     CTX.dur = details["_duration"];
     CTX.trial_ids = trial_ids;
@@ -702,14 +685,6 @@ async function selectSession(pid) {
     // Make table with session details.
     fillVerticalTable(details, 'sessionDetails')
 
-    // Show the session overview plot.
-    updateSessionPlot(pid);
-
-    // Show the behaviour overview plot.
-    updateBehaviourPlot(pid);
-
-    // Show the trial plot.
-    updateTrialPlot(pid);
 
     // Setup the trial selector.
     var trial_id = 0;
@@ -717,20 +692,29 @@ async function selectSession(pid) {
         trial_id = CTX.tid;
     setupTrialDropdown(trial_ids, trial_id);
 
-    // Setup the cluster selector.
-    setupClusterDropdown(cluster_ids, acronyms, colors, cluster_id = CTX.cid);
+    // Setup the roi selector.
+    var roi_id = 0;
+    if (CTX.pid == pid && CTX.rid)
+        roi_id = CTX.rid;
+    setupRoiDropdown(roi_ids, roi_id);
 
-    // Update the other plots.
+    // Setup the preprocess selector
+    var preprocess_id = 'window_250';
+    if (CTX.pid == pid && CTX.preprocess)
+        preprocess_id = CTX.preprocess;
+    setupPreprocessDropdown(preprocess_ids, preprocess_id);
+
+    // Set the Roi and update plots
+    selectRoi(pid, roi_id, preprocess_id)
+
+    // Set the preprocess and update plots
+    selectPreprocess(pid, roi_id, preprocess_id)
+
+    // Show the behaviour overview plot.
+    updateBehaviourPlot(pid);
+
+    // Set the trial and update plots
     selectTrial(pid, CTX.tid);
-
-    // Need to make sure first cluster is a good one, otherwise get error
-    var cluster_id = null;
-    if ((CTX.pid == pid) && (CTX.cid && CTX.cid >= 0))
-        cluster_id = CTX.cid;
-    else if (cluster_ids)
-        cluster_id = cluster_ids[0];
-    if ((cluster_id !== null) && (cluster_ids.includes(cluster_id)))
-        selectCluster(pid, cluster_id);
 
     CTX.pid = pid;
     isLoading = false;
@@ -821,8 +805,8 @@ function changeTrial(trialNum) {
 
 
 
-function updateTrialPlot(pid) {
-    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot`);
+function updateTrialPlot(pid, rid, preprocess) {
+    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`);
 };
 
 
@@ -855,6 +839,7 @@ function clickTrial(event) {
     y = clamp(y, 0, 1);
 
     var t = x * CTX.dur;
+
     console.log("select trial at time " + t);
 
     var tidx = findStartIdx(CTX.trial_onsets, t);
@@ -967,58 +952,41 @@ function setupAllLegends() {
     setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
     setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
     setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
-    if (CTX.qc) {
-        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5_qc');
-    } else {
-        setupLegends('clusterPlot', 'clusterPlotLegend', 'figure5');
-    }
 }
 
-
-
 /*************************************************************************************************/
-/*  Cluster selection                                                                            */
+/*  Roi selection                                                                            */
 /*************************************************************************************************/
 
-async function onClusterClick(canvas, event) {
-    const rect = canvas.getBoundingClientRect()
-    const x = (event.clientX - rect.left) / rect.width
-    const y = Math.abs((event.clientY - rect.bottom)) / rect.height
-    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}/${Number(CTX.qc)}`;
-    var r = await fetch(url);
-    var details = await r.json();
+async function selectRoi(pid, rid, preprocess) {
+    console.log(`select roi #${rid}`);
+    CTX.rid = rid;
 
-    var new_cluster_idx = details["cluster_idx"];
+    // TODO eventually use updateSessionPlot
+    var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
+    showImage('sessionPlot', url);
 
-    if (new_cluster_idx !== CTX.cid)
-        selectCluster(CTX.pid, details["cluster_idx"]);
-    var select = document.getElementById(`clusterSelector`);
-    select.selectedIndex = details["idx"];
-};
-
-
-
-async function selectCluster(pid, cid) {
-    console.log(`select cluster #${cid}`);
-    CTX.cid = cid;
-
-    if (CTX.qc) {
-        var url = `/api/session/${pid}/cluster_qc_plot/${cid}`;
-    } else {
-        var url = `/api/session/${pid}/cluster_plot/${cid}`;
-    }
-    showImage('clusterPlot', url);
-
-    // Show information about cluster in table
-    var url = `/api/session/${pid}/cluster_details/${cid}`;
-    var r = await fetch(url).then();
-    var details = await r.json();
-
-    fillHorizontalTable(details, 'clusterDetails')
+    var url = `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`;
+    showImage('trialEventPlot', url);
 
 };
 
 
+/*************************************************************************************************/
+/*  Preprocessing selection                                                                            */
+/*************************************************************************************************/
+
+async function selectPreprocess(pid, rid, preprocess) {
+    console.log(`select preprocess ${preprocess}`);
+    CTX.preprocess = preprocess;
+
+    var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
+    showImage('sessionPlot', url);
+
+    var url = `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`;
+    showImage('trialEventPlot', url);
+
+};
 
 /*************************************************************************************************/
 /*  Entry point                                                                                  */
@@ -1028,16 +996,17 @@ function load() {
     setupShare();
     setupQC();
 
-    setupDataset();
     loadAutoComplete();
 
     setupUnitySession();
     setupUnityTrial();
 
-    setupAllLegends();
-    setupClusterClick()
+    // Remove for now until legends are settled
+    //setupAllLegends();
+
+    setupRoiCallback();
+    setupPreprocessCallback();
     setupTrialCallback();
-    setupClusterCallback();
 
     // Initial selection.
     selectSession(CTX.pid);

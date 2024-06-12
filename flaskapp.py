@@ -125,17 +125,17 @@ def make_app():
     # Figures
     # ---------------------------------------------------------------------------------------------
 
-    @app.route('/api/session/<pid>/session_plot')
-    def session_overview_plot(pid):
-        return send(session_overview_path(pid))
+    @app.route('/api/session/<pid>/session_plot/<rid>/<preprocess>')
+    def session_overview_plot(pid, rid, preprocess):
+        return send(session_overview_path(pid, rid, preprocess))
 
     @app.route('/api/session/<pid>/behaviour_plot')
     def behaviour_overview_plot(pid):
         return send(behaviour_overview_path(pid))
 
-    @app.route('/api/session/<pid>/trial_event_plot')
-    def trial_event_overview_plot(pid):
-        return send(trial_event_overview_path(pid))
+    @app.route('/api/session/<pid>/trial_event_plot/<rid>/<preprocess>')
+    def trial_event_overview_plot(pid, rid, preprocess):
+        return send(trial_event_overview_path(pid, rid, preprocess))
 
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     def trial_overview_plot(pid, trial_idx):
@@ -155,4 +155,5 @@ if __name__ == '__main__':
     app = make_app()
     # to run with SSL, generate certificate with
     # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
-    app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
+    # app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
+    app.run(port=port)

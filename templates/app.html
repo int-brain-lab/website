@@ -81,10 +81,7 @@
 
         <div id="dset-container">
             <input id="dset-1" type="radio" name="dset-group" checked="checked" />
-            <label for="dset-1">Brain wide map</label>
-
-            <input id="dset-2" type="radio" name="dset-group" />
-            <label for="dset-2">Repeated sites</label>
+            <label for="dset-1">Photometry</label>
         </div>
     </div>
 </div>
@@ -111,19 +108,23 @@
 
 
 <div class="row">
-    <!-- PRE-PROCESSING SELECTOR -->
-    <div class="six columns">
+
+    <!-- ROI SELECTOR -->
+    <div class="four columns">
         <!-- Select -->
-        <select size="1" id="preProcessingSelector" class="u-full-width multiple">
+        <p><b>Select ROI</b></p>
+        <select size="1" id="roiSelector" class="u-full-width">
         </select>
     </div>
 
-    <!-- ROI SELECTOR -->
-    <div class="six columns">
+    <!-- PRE-PROCESSING SELECTOR -->
+    <div class="four columns">
         <!-- Select -->
-        <select size="1" id="roiSelector" class="u-full-width multiple">
+        <p><b>Select preprocessing</b></p>
+        <select size="1" id="preprocessSelector" class="u-full-width">
         </select>
     </div>
+
 </div>
 
 
@@ -144,20 +145,7 @@
 <!-- SESSION TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>In each session, the electrical activity recorded on the probe is sorted into "clusters",
-            groups of spikes that appear to come from the same neuron. We sub-select from these
-            clusters only those that pass three stringent quality control metrics. </p>
-
-        <p>In the panel below we show the activity of these <i>good</i> clusters throughout the whole session as well
-            as some metrics computed on the raw ephys signals (e.g. the RMS of the high-frequency AP signal;
-            and the power in the delta band of the LFP). These signals help us identify the boundaries between brain
-            regions.</p>
-
-        <p>We also show the behavior of the mouse throughout this session, in a trained mouse you expect to see
-            biased performance when stimuli were more likely to appear on one side or the other. Most mice increase
-            their
-            reaction time throughout the session.
-        </p>
+        <p></p>
     </div>
 </div>
 
@@ -172,54 +160,11 @@
             <details>
                 <summary id="sessionPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
                     its figure legend here.</summary>
-                <!-- summary>Figure 1: click to read the legend</summary>
-
-                <p>From top to bottom, left to right :</p>
-                <p><strong>Top:</strong></p>
-                <ul>
-                    <li>Amplitude (uV) of units along the probe depth (um), colored by the quality: good units in green,
-                        multi-units (mua) in red</li>
-                    <li>Amplitude (uV) of units along the probe depth (um), colored by their firing rate (Hz)</li>
-                    <li>Raster plot of the spikes of good units along the probe depth (um), throughout the whole
-                        experiment time (s)</li>
-                    <li>Root mean square (RMS) values of the action potential (AP) band along the probe depth (um)</li>
-                    <li>Power (dB) in the delta band (0-4Hz) of the low-frequency (LFP) band</li>
-                    <li>Brain region acronyms along the probe depth (um)</li>
-                </ul>
-
-                <p><strong>Bottom:</strong></p>
-                <ul>
-                    <li>3 raw electrophysiology data snippets of 50 millisecond (ms) duration are shown (one at T=600s,
-                        1800s, and 3000s). The raw data recorded on each channel is plotted as a gray code, and ordered
-                        along the probe depth. Divergence from the gray color (black or white) indicates a shift from
-                        baseline activity. Overlaid dots indicate when spikes were detected (green: good units, red:
-                        multi-units)</li>
-                    <li>Brain region acronyms along the probe depth (um)</li>
-                </ul>
-
-                <p><strong>Code:</strong></p>
-                <ul>
-                    <li><a href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_trials_data.html">Example
-                            to load trials data and plot a psychometric curve</a></li>
-                    <li><a
-                            href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_spikesorting_data.html">Example
-                            to load spike sorting data and plot a raster</a></li>
-
-                    <li><a href="https://int-brain-lab.github.io/iblenv/notebooks_external/loading_ephys_data.html">Example
-                            to load LFP data and compute the power spectrum</a></li>
-                </ul -->
             </details>
         </figure>
     </div>
 </div>
 
-<!-- POST-PLOT TEXT -->
-<!-- <div class="row">
-    <div class="twelve columns">
-        <p>Get insights on the behavior performance thanks to psychometric curves, chronometric functions or reaction
-            time distribution across the recording session.</p>
-    </div>
-</div> -->
 
 
 <!--                                          FIGURE 2                                          -->
@@ -233,55 +178,26 @@
             <details>
                 <summary id="behaviourPlotLegend">Please hover your mouse over a subplot panel of interest above to
                     obtain its figure legend here.</summary>
-                <!--summary>Figure 2: click to read the legend</summary>
-                <p>From top to bottom, left to right:</p>
-                <p><strong>Top:</strong></p>
-                <ul>
-                    <li>Psychometric curves computed in different types of trial block ; for a trial block type, the
-                        probability of the visual stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8
-                        (blue)</li>
-                    <li>Reaction time (s) curves computed in different trial blocks (same color scheme as the
-                        psychometric curve plots)</li>
-                    <li>Reaction time (s) for each trial, plotted throughout the whole experiment</li>
-                </ul>
-
-                <p><strong>Bottom:</strong></p>
-                <ul>
-                    <li>Raster plot of the left paw speed, sorted by trial outcome (correct in blue, incorrect in red)
-                        and aligned to the visual stimulus onset; averages (mean and STD) for each condition
-                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
-                        ascending from bottom to top. Left paw speed has been computed from DLC points detected on the
-                        left camera</li>
-                    <li>Raster plot of the nose tip speed, sorted by trial outcome (correct in blue, incorrect in red)
-                        and aligned to the visual stimulus onset; averages (mean and STD) for each condition
-                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
-                        ascending from bottom to top. Nose tip speed has been computed from DLC points detected on the
-                        left camera</li>
-                    <li>Raster plot of the whisker pad motion energy, sorted by trial outcome (correct in blue,
-                        incorrect in red) and aligned to the visual stimulus onset; averages (mean and STD) for each
-                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
-                        are kept ascending from bottom to top. Motion energy has been computed using the left
-                        camera </li>
-                    <li>Raster plot of pupil diameter, sorted by trial outcome (correct in blue,
-                        incorrect in red) and aligned to the visual stimulus onset; averages (mean and STD) for each
-                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
-                        are kept ascending from bottom to top. The pupil diameter has been computed from DLC points on
-                        the left camera </li>
-                    <li>Raster plot of wheel velocity, sorted by visual stimulus side (right in
-                        yellow, left in green) and aligned to the movement onset ; averages (mean and STD) for each
-                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
-                        are kept ascending from bottom to top </li>
-                    <li>Raster plot of lick events, sorted by visual stimulus side (right in
-                        yellow, left in green) and aligned to feedback time ; averages (mean and STD) for each
-                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
-                        are kept ascending from bottom to top. Lick events have been computed using DLC points detected
-                        on both the left and right cameras</li>
-                </ul-->
             </details>
         </figure>
     </div>
 </div>
 
+
+<!--                                          FIGURE 3                                          -->
+<!-- Trial event plot -->
+<div class="row">
+    <div class="twelve columns">
+        <figure>
+            <div class="imgWrapper"><img id="trialEventPlot"></div>
+            <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <details>
+                <summary id="trialEventPlotLegend">Please hover your mouse over a subplot panel of interest above to
+                    obtain its figure legend here.</summary>
+            </details>
+        </figure>
+    </div>
+</div>
 
 
 
@@ -300,10 +216,7 @@
 <!-- TRIAL TEXT -->
 <div class="row">
     <div class="twelve columns">
-        <p>Select a trial from the dropdown menu to see trial parameters and the mouse's behavior. In the lower panels
-            you can see the
-            position of this trial in the recording and whether any ephys activity is clustering around important
-            behavioral events.</p>
+        <p></p>
     </div>
 </div>
 
@@ -329,7 +242,7 @@
     </div>
 </div>
 
-<!--                                          FIGURE 3                                          -->
+<!--                                          FIGURE 4                                          -->
 <!-- TRIAL PLOTS -->
 <div class="row">
     <div class="twelve columns">
@@ -340,145 +253,10 @@
             <details>
                 <summary id="trialPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
                     its figure legend here.</summary>
-                <!--<summary>Figure 3: click to read the legend</summary>
-
-                <p>From left to right:</p>
-                <ul>
-                    <li>Raster plot of the spikes of all good units along the probe depth (um), throughout the whole
-                        experiment time (s) ; the dash line indicates the trial selected for visualization</li>
-                    <li>Zoomed-in view of the raster around the time of the selected trial ; the lines indicate events
-                        in the trial (go cue in blue, first movement in green, and feedback in red).</li>
-                    <li>Brain region acronyms along the probe depth (um)</li>
-                </ul>-->
-
             </details>
         </figure>
     </div>
 </div>
-
-<!-- Placeholder for unity -->
-<div class="row">
-    <div class="twelve columns">
-        <canvas id="unity-canvas-trial"></canvas>
-    </div>
-</div>
-
-<!--                                          FIGURE 4                                          -->
-<!-- Trial event plot -->
-<div class="row">
-    <div class="twelve columns">
-        <figure>
-            <div class="imgWrapper"><img id="trialEventPlot"></div>
-            <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
-            <details>
-                <summary id="trialEventPlotLegend">Please hover your mouse over a subplot panel of interest above to
-                    obtain its figure legend here.</summary>
-                <!--<summary>Figure 4: click to read the legend</summary>-->
-                <!--<p>Average of the firing rate (z-scored) for good units along the probe depths (um), locked to a
-                    particular event: visual stimulus onset (left plot), first movement (middle plot), feedback (right
-                    plot).</p>-->
-            </details>
-        </figure>
-    </div>
-</div>
-
-
-
-
-<!------------------------------------------------------------------------------------------------>
-<!--                                   SINGLE CLUSTER OVERVIEW                                  -->
-<!------------------------------------------------------------------------------------------------>
-
-<!-- CLUSTER HEADER -->
-<div class="row">
-    <div class="twelve columns">
-        <h2>Single cluster overview</h2>
-    </div>
-</div>
-
-<!-- CLUSTER TEXT -->
-<div class="row">
-    <div class="twelve columns">
-        <p>Select a good cluster from the dropdown menu or by clicking directly on the unit to visualize its properties.
-        </p>
-    </div>
-</div>
-
-<!-- CLUSTER SELECTOR -->
-<div class="row">
-    <!-- Cluster selector -->
-    <div class="three columns">
-
-        <!-- Select -->
-        <select size="15" id="clusterSelector" class="u-full-width multiple">
-        </select>
-
-        <!-- Arrow button for navigation -->
-        <div class="buttonNav">
-            <div>
-                <button class="clusterLeft" onclick="arrowButton('clusterSelector', -1);">&lt;</button>
-                <button class="clusterRight" onclick="arrowButton('clusterSelector', +1);">&gt;</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cluster details -->
-    <div class="nine columns" id="clusterDetails">
-    </div>
-
-</div>
-
-<!--                                          FIGURE 5                                          -->
-<!-- CLUSTER PLOTS -->
-<div class="row">
-    <div class="twelve columns">
-        <figure>
-            <div class="imgWrapper"><img id="clusterPlot"></div>
-            <img id="clusterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
-            <details>
-                <summary id="clusterPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
-                    its figure legend here.</summary>
-
-                <!-- <summary>Figure 5: click to read the legend</summary> -->
-                <!-- <p>From top to bottom, left to right :</p>
-                <p><strong>Top:</strong></p>
-                <ul>
-                    <li>Amplitude (uV) of good units along the probe depth (um), colored by the brain region color ; the
-                        selected unit for visualization is highlighted in black</li>
-                    <li>Raster plot of the spikes of the selected good unit, with the trial block type shown (the
-                        probability of the visual stimulus being on the left is either 0.5 (black), 0.2 (orange), or 0.8
-                        (blue) and aligned to the visual stimulus onset ; averages (mean and STD) for each condition
-                        are displayed at the top with the same color scheme. Trial numbers are ascending from bottom to
-                        top, and kept in a similar order as during the experiment.</li>
-                    <li>Raster plot of the spikes of the selected good unit, sorted by visual stimulus contrasts (0,
-                        6.25, 12.5, 25, 100%, from pale to dark gray) and aligned to the visual stimulus onset ;
-                        averages (mean and STD) for each condition are displayed at the top with the same color scheme.
-                        Trial numbers within a condition are kept ascending from bottom to top.</li>
-                    <li>Raster plot of the spikes of the selected good unit, sorted by visual stimulus side (right in
-                        yellow, left in green) and aligned to the movement onset ; averages (mean and STD) for each
-                        condition are displayed at the top with the same color scheme. Trial numbers within a condition
-                        are kept ascending from bottom to top.</li>
-                    <li>Raster plot of the spikes of the selected good unit, sorted by trial outcome (correct in blue,
-                        incorrect in red) and aligned to feedback time ; averages (mean and STD) for each condition
-                        are displayed at the top with the same color scheme. Trial numbers within a condition are kept
-                        ascending from bottom to top.</li>
-                    <li>Template waveforms of the selected good unit, presented for the electrode channels where spikes
-                        were detected. Scale bar indicates amplitude of waveforms in uV and as a ratio to the standard
-                        deviation of the noise on the peak channel. The location of electrode channels within the whole
-                        probe is presented on the right.</li>
-                </ul>
-                <p><strong>Bottom:</strong></p>
-                <ul>
-                    <li>Autocorrelogram of the selected good unit.</li>
-                    <li>Inter-spike-interval (ISI) distribution for the selected good unit.</li>
-                    <li>Amplitude (uV) of the spikes of the selected good unit across the experiment time (s).</li>
-                </ul> -->
-            </details>
-        </figure>
-    </div>
-</div>
-
-
 
 
 {% endblock %}

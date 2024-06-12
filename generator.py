@@ -79,7 +79,7 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
-DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+DEFAULT_eid = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
 DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
@@ -156,31 +156,17 @@ def load_json(path):
         return json.load(f)
 
 
-def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc, cache_path=None):
-    if qc == 1:
-        df = pd.read_parquet(cluster_qc_pixels_path(pid, cache_path=cache_path))
-    else:
-        df = pd.read_parquet(cluster_pixels_path(pid, cache_path=cache_path))
-    norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
-    min_idx = np.nanargmin(norm_dist)
-    if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
-        return df.iloc[min_idx].cluster_id, min_idx
-    else:
-        idx = np.where(df.cluster_id.values == cluster_idx)[0]
-        return cluster_idx, idx
-
-
 # -------------------------------------------------------------------------------------------------
 # Path functions
 # -------------------------------------------------------------------------------------------------
 
-# def session_data_path(pid):
-#     return DATA_DIR / pid
+# def session_data_path(eid):
+#     return DATA_DIR / eid
 
 
-def session_cache_path(pid, cache_path=None):
+def session_cache_path(eid, cache_path=None):
     cache_path = cache_path or CACHE_DIR
-    cp = cache_path / pid
+    cp = cache_path / eid
     cp.mkdir(exist_ok=True, parents=True)
     assert cp.exists(), f"the path `{cp}` does not exist"
     return cp
@@ -191,52 +177,32 @@ def figure_details_path(cache_path=None):
     return cache_path / 'figures.json'
 
 
-def session_details_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'session.json'
+def session_details_path(eid, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / 'session.json'
 
 
-def trial_details_path(pid, trial_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
+def trial_details_path(eid, trial_idx, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
 
 
-def cluster_details_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.json'
+def session_overview_path(eid, roi, preprocess, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'session_overview_roi{roi}_pre_{preprocess}.png'
 
 
-def session_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'session_overview.png'
+def behaviour_overview_path(eid, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / 'behaviour_overview.png'
 
 
-def behaviour_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'behaviour_overview.png'
+def trial_event_overview_path(eid, roi, preprocess, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial_overview_roi{roi}_pre_{preprocess}.png'
 
 
-def trial_event_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'trial_overview.png'
+def trial_overview_path(eid, trial_idx, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial-{trial_idx:04d}.png'
 
 
-def trial_overview_path(pid, trial_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.png'
-
-
-def cluster_overview_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.png'
-
-
-def cluster_qc_overview_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}_qc.png'
-
-
-def cluster_pixels_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels.pqt'
-
-
-def cluster_qc_pixels_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels_qc.pqt'
-
-
-def trial_intervals_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial_intervals.pqt'
+def trial_intervals_path(eid, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial_intervals.pqt'
 
 
 def caption_path(figure, cache_path=None):
@@ -248,27 +214,17 @@ def caption_path(figure, cache_path=None):
 # Session iterator
 # -------------------------------------------------------------------------------------------------
 
-def get_pids(data_path=None):
+def get_eids(data_path=None):
     data_path = data_path or DATA_DIR
     df = pd.read_parquet(data_path.joinpath('session.table.pqt'))
-    pids = df.pid.values
-    pids = [pid for pid in pids if is_valid_uuid(pid)]
-    assert pids
-    return pids
+    eids = df.eid.values
+    eids = [eid for eid in eids if is_valid_uuid(eid)]
+    assert eids
+    return eids
 
 
 def iter_session(data_path=None):
-    yield from get_pids(data_path=data_path)
-
-
-# def generate_figure_json():
-#     # Read the Parquet table and convert to JSON to make it loadable by flaskapp.
-#     # TODO: integrate somewhere (in the Generator) the code used to generate this file
-#     df = pd.read_parquet(DATA_DIR / 'cluster_fig_subplots.pqt')
-#     details = {
-#         'cluster': {panel: (xmin, 1 - ymax, xmax, 1 - ymin)
-#                     for _, (panel, xmin, ymax, xmax, ymin) in df.iterrows()}}
-#     save_json(figure_details_path(), details, indent=2)
+    yield from get_eids(data_path=data_path)
 
 
 def get_subplot_position(ax1, ax2):
@@ -283,32 +239,29 @@ def get_subplot_position(ax1, ax2):
 # -------------------------------------------------------------------------------------------------
 
 class Generator:
-    def __init__(self, pid, cache_path=None, data_path=None):
+    def __init__(self, eid, cache_path=None, data_path=None):
         self.cache_path = cache_path or CACHE_DIR
         self.dl = DataLoader(data_path=data_path)
-        self.dl.session_init(pid)
-        self.pid = pid
+        self.dl.session_init(eid)
+        self.eid = eid
 
         # Ensure the session cache folder exists.
-        session_cache_path(pid, cache_path=self.cache_path).mkdir(exist_ok=True, parents=True)
+        session_cache_path(eid, cache_path=self.cache_path).mkdir(exist_ok=True, parents=True)
 
         # Load the session details.
         self.session_details = self.dl.get_session_details()
 
         # Save the session details to a JSON file.
-        path = session_details_path(pid, cache_path=self.cache_path)
-        logger.debug(f"Saving session details for session {pid}")
+        path = session_details_path(eid, cache_path=self.cache_path)
+        logger.debug(f"Saving session details for session {eid}")
         save_json(path, self.session_details)
 
         self.trial_idxs = self.session_details['_trial_ids']
         self.n_trials = len(self.trial_idxs)
-        self.cluster_idxs = self.session_details['_cluster_ids']
-        self.cluster_idxs = [int(_) for _ in self.cluster_idxs]
-        self.n_clusters = len(self.cluster_idxs)
-        self.good_cluster_idxs = \
-            [int(_) for _ in np.array(self.session_details['_cluster_ids'])[
-                np.array(self.session_details['_good_ids'])]]
-        self.n_good_clusters = len(self.good_cluster_idxs)
+
+        # Get the number of rois - need to figure this out
+        self.n_rois = self.dl.n_rois
+
 
     # Iterators
     # -------------------------------------------------------------------------------------------------
@@ -319,31 +272,13 @@ class Generator:
     def iter_trial(self):
         yield from sorted(self.trial_idxs)
 
-    def first_cluster(self):
-        return int(sorted(self.cluster_idxs)[0])
-
-    def first_good_cluster(self):
-        return int(sorted(self.good_cluster_idxs)[0])
-
-    def iter_cluster(self):
-        yield from sorted(self.cluster_idxs)
-
-    def iter_good_cluster(self):
-        yield from sorted(self.good_cluster_idxs)
-
     # Saving JSON details
     # -------------------------------------------------------------------------------------------------
 
     def save_trial_details(self, trial_idx):
-        logger.debug(f"saving trial #{trial_idx:04} details for session {self.pid}")
+        logger.debug(f"saving trial #{trial_idx:04} details for session {self.eid}")
         details = self.dl.get_trial_details(trial_idx)
-        path = trial_details_path(self.pid, trial_idx, cache_path=self.cache_path)
-        save_json(path, details)
-
-    def save_cluster_details(self, cluster_idx):
-        logger.debug(f"saving cluster #{cluster_idx:04} details for session {self.pid}")
-        details = self.dl.get_cluster_details(cluster_idx)
-        path = cluster_details_path(self.pid, cluster_idx, cache_path=self.cache_path)
+        path = trial_details_path(self.eid, trial_idx, cache_path=self.cache_path)
         save_json(path, details)
 
     # -------------------------------------------------------------------------------------------------
@@ -352,65 +287,72 @@ class Generator:
 
     # FIGURE 1
 
-    def make_session_plot(self, force=False, captions=False):
+    def make_session_plot(self, roi, preprocess, force=False, captions=False):
 
-        path = session_overview_path(self.pid, cache_path=self.cache_path)
+        path = session_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
         if not force and path.exists():
             return
-        logger.debug(f"making session overview plot for session {self.pid}")
-        loader = self.dl
+        logger.debug(f"making session overview plot for session: {self.eid}, roi: {roi}, "
+                     f"preprocessing: {preprocess}")
+
+        self.dl.load_photometry_data(roi, preprocess)
 
         try:
-            fig = plt.figure(figsize=(15, 10))
-            gs = gridspec.GridSpec(3, 1, figure=fig, height_ratios=[9, 4, 4], wspace=0.3, hspace=0.3)
+            fig = plt.figure(figsize=(15, 8))
+            gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[9, 4], wspace=0.3, hspace=0.3)
 
             # First row
-            gs0 = gridspec.GridSpecFromSubplotSpec(2, 7, subplot_spec=gs[0], width_ratios=[6, 1, 1, 1, 1, 1, 1],
-                                                   height_ratios=[1, 10], wspace=0.1, hspace=0.3)
+            gs0 = gridspec.GridSpecFromSubplotSpec(3, 4, subplot_spec=gs[0], width_ratios=[6, 2, 1, 1],
+                                                   wspace=0.2, hspace=0.3)
             gs0_ax1 = fig.add_subplot(gs0[0, 0])
             gs0_ax2 = fig.add_subplot(gs0[1, 0])
-            gs0_ax3 = fig.add_subplot(gs0[0, 1])
-            gs0_ax4 = fig.add_subplot(gs0[1, 1])
-            gs0_ax5 = fig.add_subplot(gs0[0, 2])
-            gs0_ax6 = fig.add_subplot(gs0[1, 2])
-            gs0_ax7 = fig.add_subplot(gs0[0, 3])
-            gs0_ax8 = fig.add_subplot(gs0[1, 3])
-            gs0_ax9 = fig.add_subplot(gs0[0, 4])
-            gs0_ax10 = fig.add_subplot(gs0[1, 4])
-            gs0_ax11 = fig.add_subplot(gs0[0, 5])
-            gs0_ax12 = fig.add_subplot(gs0[1, 5])
-            gs0_ax13 = fig.add_subplot(gs0[0, 6])
-            gs0_ax14 = fig.add_subplot(gs0[1, 6])
+            gs0_ax3 = fig.add_subplot(gs0[2, 0])
+            gs0_ax4 = fig.add_subplot(gs0[0, 1])
+            gs0_ax5 = fig.add_subplot(gs0[1, 1])
+            gs0_ax6 = fig.add_subplot(gs0[2, 1])
+            gs0_ax7 = fig.add_subplot(gs0[1:, 3])
 
-            loader.plot_session_raster(ax=gs0_ax2)
-            loader.plot_good_bad_clusters(ax=gs0_ax4, ax_legend=gs0_ax3, xlabel='Amp (uV)')
-            loader.plot_spikes_amp_vs_depth_vs_firing_rate(ax=gs0_ax6, ax_cbar=gs0_ax5, xlabel='Amp (uV)')
-            loader.plot_ap_rms(ax=gs0_ax8, ax_cbar=gs0_ax7)
-            loader.plot_lfp_spectrum(ax=gs0_ax10, ax_cbar=gs0_ax9)
-            loader.plot_brain_slice(ax=gs0_ax12)
-            loader.plot_brain_regions(ax=gs0_ax14)
+            # Full session photometry signal
+            _, gs0_ax1_r = self.dl.plot_raw_photometry_signal(ax=gs0_ax1, xlabel=None, ylabel='Raw isobestic')
+            self.dl.plot_photometry_signal('calcium', ax=gs0_ax2, xlabel=None, ylabel='Calcium')
+            self.dl.plot_photometry_signal('calcium_moving_avg', ax=gs0_ax3, xlabel='Time in session (s)',
+                                           ylabel='Mov avg calcium')
 
-            gs0_ax4.get_yaxis().set_visible(False)
-            gs0_ax6.get_yaxis().set_visible(False)
-            gs0_ax8.get_yaxis().set_visible(False)
-            gs0_ax10.get_yaxis().set_visible(False)
-            remove_frame(gs0_ax1)
-            remove_frame(gs0_ax11)
-            remove_frame(gs0_ax13)
+            gs0_ax1_r.yaxis.set_ticklabels([])
+
+            # Zoomed in photometry signal
+            self.dl.plot_raw_photometry_signal(ax=gs0_ax4, xlim=self.dl.photometry_lim, xlabel=None,
+                                               ylabel2='Raw calcium')
+            self.dl.plot_photometry_signal('calcium', xlim=self.dl.photometry_lim, ax=gs0_ax5)
+            self.dl.plot_photometry_signal('calcium_moving_avg', xlim=self.dl.photometry_lim, xlabel='Time in session (s)',
+                                           ax=gs0_ax6)
+
+            gs0_ax4.yaxis.set_ticklabels([])
+            gs0_ax5.yaxis.set_ticklabels([])
+            gs0_ax6.yaxis.set_ticklabels([])
+
+            # Zoomed in slice (placeholder for now)
+            self.dl.plot_brain_slice(ax=gs0_ax7)
+
+            gs0_ax1.get_xaxis().set_visible(False)
+            gs0_ax2.get_xaxis().set_visible(False)
+            gs0_ax4.get_xaxis().set_visible(False)
+            gs0_ax5.get_xaxis().set_visible(False)
+            remove_frame(gs0_ax7)
 
             # Second row
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 7, subplot_spec=gs[1], width_ratios=[6, 1, 1, 1, 1, 1, 1],
-                                                   wspace=0.1)
+            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[6, 2, 1, 1],
+                                                   wspace=0.2)
             gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 3, 1, 3])
             ax_a = fig.add_subplot(gs11[0, 0])
             ax_b = fig.add_subplot(gs11[1, 0])
             ax_c = fig.add_subplot(gs11[2, 0])
             ax_d = fig.add_subplot(gs11[3, 0])
 
-            gs13 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 2])
+            gs13 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 1])
             ax_leg = fig.add_subplot(gs13[0])
-            loader.plot_session_reaction_time(ax=ax_a)
-            loader.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
+            self.dl.plot_session_reaction_time(ax=ax_a)
+            self.dl.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
 
             ax_a.sharex(gs0_ax2)
             ax_b.sharex(gs0_ax2)
@@ -420,47 +362,36 @@ class Generator:
             plt.setp(ax_a.get_xticklabels(), visible=False)
             plt.setp(ax_b.get_xticklabels(), visible=False)
 
-            gs14 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 3:])
+            gs14 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 2:])
             ax_cor = fig.add_subplot(gs14[0])
-            loader.plot_coronal_slice(ax_cor)
+            self.dl.plot_coronal_slice(ax_cor)
 
-            # Third row
-            gs2 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[2], width_ratios=[4, 4, 4, 1], wspace=0.1)
-            ax13 = fig.add_subplot(gs2[0, 0])
-            ax14 = fig.add_subplot(gs2[0, 1])
-            ax15 = fig.add_subplot(gs2[0, 2])
-            ax16 = fig.add_subplot(gs2[0, 3])
-
-            loader.plot_raw_data(axs=[ax13, ax14, ax15], raster=False)
-            loader.plot_brain_regions(ax16)
-            ax16.set_ylim(20, 3840)
-
-            set_figure_style_all(fig, margin_inches=0.8)
+            set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
             if captions:
                 subplots = []
-                fig_pos = get_subplot_position(gs0_ax1, gs0_ax2)
-                subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax3, gs0_ax4)
-                subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax5, gs0_ax6)
-                subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax7, gs0_ax8)
-                subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax9, gs0_ax10)
-                subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
-                subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(gs0_ax13, gs0_ax14)
-                subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax_a, ax_d)
-                subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax_cor, ax_cor)
-                subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax13, ax15)
-                subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                fig_pos = get_subplot_position(ax16, ax16)
-                subplots.append({'panel': 'K', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax1, gs0_ax2)
+                # subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax3, gs0_ax4)
+                # subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax5, gs0_ax6)
+                # subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax7, gs0_ax8)
+                # subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax9, gs0_ax10)
+                # subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
+                # subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(gs0_ax13, gs0_ax14)
+                # subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(ax_a, ax_d)
+                # subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(ax_cor, ax_cor)
+                # subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(ax13, ax15)
+                # subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+                # fig_pos = get_subplot_position(ax16, ax16)
+                # subplots.append({'panel': 'K', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
 
                 df = pd.DataFrame.from_dict(subplots)
                 df.to_parquet(caption_path('figure1', cache_path=self.cache_path))
@@ -471,17 +402,16 @@ class Generator:
             plt.close(fig)
             gc.collect()
         except Exception as e:
-            logger.error(f"error with session overview plot {self.pid}: {str(e)}")
+            logger.error(f"error with session overview plot {self.eid}: {str(e)}")
 
     # FIGURE 2
 
     def make_behavior_plot(self, force=False, captions=False):
 
-        path = behaviour_overview_path(self.pid, cache_path=self.cache_path)
+        path = behaviour_overview_path(self.eid, cache_path=self.cache_path)
         if not force and path.exists():
             return
-        logger.debug(f"making behavior plot for session {self.pid}")
-        loader = self.dl
+        logger.debug(f"making behavior plot for session {self.eid}")
 
         fig = plt.figure(figsize=(15, 10))
 
@@ -492,9 +422,9 @@ class Generator:
         ax2 = fig.add_subplot(gs1[0, 1])
         ax3 = fig.add_subplot(gs1[0, 2])
         ax4 = fig.add_subplot(gs1[0, 3])
-        loader.plot_psychometric_curve(ax=ax1, ax_legend=ax2)
-        loader.plot_chronometric_curve(ax=ax3)
-        loader.plot_reaction_time(ax=ax4)
+        self.dl.plot_psychometric_curve(ax=ax1, ax_legend=ax2)
+        self.dl.plot_chronometric_curve(ax=ax3)
+        self.dl.plot_reaction_time(ax=ax4)
 
         gs1 = gridspec.GridSpecFromSubplotSpec(2, 6, subplot_spec=gs[1], height_ratios=[1, 3], hspace=0, wspace=0.5)
         ax5 = fig.add_subplot(gs1[0, 0])
@@ -510,15 +440,23 @@ class Generator:
         ax15 = fig.add_subplot(gs1[0, 5])
         ax16 = fig.add_subplot(gs1[1, 5])
 
-        loader.plot_dlc_feature_raster('left', 'paw_r_speed', axs=[ax5, ax6], ylabel0='Speed (px/s)', title='Left paw')
-        loader.plot_dlc_feature_raster('left', 'nose_tip_speed', axs=[ax7, ax8], ylabel0='Speed (px/s)', ylabel1=None,
-                                       title='Nose tip')
-        loader.plot_dlc_feature_raster('left', 'motion_energy', axs=[ax9, ax10], zscore_flag=True, ylabel0='ME (z-score)',
-                                       ylabel1=None, title='Motion energy')
-        loader.plot_dlc_feature_raster('left', 'pupilDiameter_smooth', axs=[ax11, ax12], zscore_flag=True, norm=True,
-                                       ylabel0='Pupil (z-score)', ylabel1=None, title='Pupil diameter')
-        loader.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
-        loader.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
+        if self.dl.camera_flag:
+            self.dl.plot_dlc_feature_raster('left', 'paw_r_speed', axs=[ax5, ax6], ylabel0='Speed (px/s)', title='Left paw')
+            self.dl.plot_dlc_feature_raster('left', 'nose_tip_speed', axs=[ax7, ax8], ylabel0='Speed (px/s)', ylabel1=None,
+                                            title='Nose tip')
+            self.dl.plot_dlc_feature_raster('left', 'motion_energy', axs=[ax9, ax10], zscore_flag=True, ylabel0='ME (z-score)',
+                                            ylabel1=None, title='Motion energy')
+            self.dl.plot_dlc_feature_raster('left', 'pupilDiameter_smooth', axs=[ax11, ax12], zscore_flag=True, norm=True,
+                                            ylabel0='Pupil (z-score)', ylabel1=None, title='Pupil diameter')
+        else:
+            for ax in [ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]:
+                remove_frame(ax)
+        self.dl.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
+        if self.dl.lick_flag:
+            self.dl.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
+        else:
+            for ax in [ax15, ax16]:
+                remove_frame(ax)
 
         ax5.get_xaxis().set_visible(False)
         ax7.get_xaxis().set_visible(False)
@@ -571,197 +509,90 @@ class Generator:
         plt.close(fig)
         gc.collect()
 
-    # -------------------------------------------------------------------------------------------------
-    # SINGLE TRIAL OVERVIEW
-    # -------------------------------------------------------------------------------------------------
-
     # FIGURE 3
 
-    def make_trial_plot(self, trial_idx, force=False, captions=False):
-        path = trial_overview_path(self.pid, trial_idx, cache_path=self.cache_path)
+    def make_trial_event_plot(self, roi, preprocess, force=False, captions=False):
+
+        path = trial_event_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
         if not force and path.exists():
             return
-        logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
-        loader = self.dl
-
-        fig = plt.figure(figsize=(12, 5))
-
-        gs = gridspec.GridSpec(2, 3, figure=fig, width_ratios=[7.5, 15, 1], height_ratios=[8, 3], hspace=0.12, wspace=0.05)
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax2 = fig.add_subplot(gs[0, 1])
-        ax3 = fig.add_subplot(gs[0, 2])
-
-        loader.plot_session_raster(trial_idx=trial_idx, ax=ax1, xlabel='T in session (s)')
-        loader.plot_trial_raster(trial_idx=trial_idx, ax=ax2, xlabel=None)
-        ax2.get_yaxis().set_visible(False)
-        loader.plot_brain_regions(ax3)
-
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[4], hspace=0.4)
-        ax4 = fig.add_subplot(gs1[0, 0])
-        ax5 = fig.add_subplot(gs1[1, 0])
-
-        loader.plot_wheel_trace(trial_idx=trial_idx, ax=ax4, ylabel='Wheel pos (rad)', xlabel=None)
-        loader.plot_dlc_feature_trace('left', 'paw_r_speed', trial_idx, ax=ax5, xlabel='T in trial (s)', ylabel='Paw speed (px/s)')
-
-        ax4.sharex(ax2)
-        ax5.sharex(ax2)
-
-        plt.setp(ax2.get_xticklabels(), visible=False)
-        plt.setp(ax4.get_xticklabels(), visible=False)
-
-        set_figure_style(fig)
-
-        if captions:
-            subplots = []
-            fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax5, ax5)
-            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-
-            df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure3', cache_path=self.cache_path))
-            fig.savefig(path)
-        else:
-            fig.savefig(path)
-
-        plt.close(fig)
-        gc.collect()
-
-    # FIGURE 4
-
-    def make_trial_event_plot(self, force=False, captions=False):
-        path = trial_event_overview_path(self.pid, cache_path=self.cache_path)
-        if not force and path.exists():
-            return
-        logger.debug(f"making trial event plot for session {self.pid}")
-        loader = self.dl
-
-        fig = plt.figure(figsize=(12, 5))
-        gs = gridspec.GridSpec(2, 4, figure=fig, height_ratios=[1, 15], width_ratios=[5, 5, 5, 1], wspace=0.2, hspace=0.5)
-
-        ax1 = fig.add_subplot(gs[0, 0:3])
-        ax2 = fig.add_subplot(gs[1, 0])
-        ax3 = fig.add_subplot(gs[1, 1])
-        ax4 = fig.add_subplot(gs[1, 2])
-        ax5 = fig.add_subplot(gs[1, 3])
-
-        loader.plot_event_aligned_activity(axs=[ax2, ax3, ax4], ax_cbar=ax1)
-        loader.plot_brain_regions(ax=ax5)
-        set_figure_style_all(fig, margin_inches=0.8)
-
-        if captions:
-
-            subplots = []
-            fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax5, ax5)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-
-            df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure4', cache_path=self.cache_path))
-        else:
-            fig.savefig(path)
-
-            path_interval = trial_intervals_path(self.pid, cache_path=self.cache_path)
-            df = pd.DataFrame()
-            df['t0'] = loader.trial_intervals[:, 0]
-            df['t1'] = loader.trial_intervals[:, 1]
-            df.to_parquet(path_interval)
-
-        plt.close(fig)
-        gc.collect()
-
-    # -------------------------------------------------------------------------------------------------
-    # SINGLE CLUSTER OVERVIEW
-    # -------------------------------------------------------------------------------------------------
-
-    # FIGURE 5
-
-    def make_cluster_plot(self, cluster_idx, force=False, captions=False):
-        path = cluster_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
-        if not force and path.exists():
-            return
-        logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
-        loader = self.dl
+        logger.debug(f"making trial event plot for session: {self.eid}, roi: {roi}, "
+                     f"preprocessing: {preprocess}")
+        self.dl.load_photometry_data(roi, preprocess)
 
         fig = plt.figure(figsize=(15, 10))
 
-        gs = gridspec.GridSpec(3, 3, figure=fig, width_ratios=[2, 10, 3], height_ratios=[6, 2, 2], wspace=0.2, hspace=0.4)
+        gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[1, 1])
 
-        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
+        gs0 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 0], height_ratios=[1, 3], hspace=0, wspace=0.5)
         ax1 = fig.add_subplot(gs0[0, 0])
+        ax2 = fig.add_subplot(gs0[1, 0])
+        ax3 = fig.add_subplot(gs0[0, 1])
+        ax4 = fig.add_subplot(gs0[1, 1])
+        ax5 = fig.add_subplot(gs0[0, 2])
+        ax6 = fig.add_subplot(gs0[1, 2])
+        ax7 = fig.add_subplot(gs0[0, 3])
+        ax8 = fig.add_subplot(gs0[1, 3])
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 1], height_ratios=[1, 3], hspace=0, wspace=0.2)
-        ax2 = fig.add_subplot(gs1[0, 0])
-        ax3 = fig.add_subplot(gs1[1, 0])
-        ax4 = fig.add_subplot(gs1[0, 1])
-        ax5 = fig.add_subplot(gs1[1, 1])
-        ax6 = fig.add_subplot(gs1[0, 2])
-        ax7 = fig.add_subplot(gs1[1, 2])
-        ax8 = fig.add_subplot(gs1[0, 3])
-        ax9 = fig.add_subplot(gs1[1, 3])
+        event = 'feedback_times'
+        xlabel = 'T from Feedback (s)'
+        self.dl.plot_block_raster(event, axs=[ax1, ax2], xlabel=xlabel)
+        self.dl.plot_contrast_raster(event, axs=[ax3, ax4], xlabel=xlabel, ylabel0=None, ylabel1=None)
+        self.dl.plot_left_right_raster(event, axs=[ax5, ax6], xlabel=xlabel, ylabel0=None, ylabel1=None)
+        self.dl.plot_correct_incorrect_raster(event, axs=[ax7, ax8], xlabel=xlabel, ylabel0=None, ylabel1=None)
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[0:2, 2], width_ratios=[8, 1])
-        ax10 = fig.add_subplot(gs2[0, 0])
-        ax11 = fig.add_subplot(gs2[0, 1])
+        ax1.get_xaxis().set_visible(False)
+        ax3.get_xaxis().set_visible(False)
+        ax5.get_xaxis().set_visible(False)
+        ax7.get_xaxis().set_visible(False)
 
-        gs3 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[2, :])
-        ax12 = fig.add_subplot(gs3[0, 0])
-        ax13 = fig.add_subplot(gs3[0, 1])
-        ax14 = fig.add_subplot(gs3[0, 2])
+        ax1.sharex(ax2)
+        ax3.sharex(ax4)
+        ax5.sharex(ax6)
+        ax7.sharex(ax8)
 
-        gs4 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[1, 0:2])
-        ax15 = fig.add_subplot(gs4[0, 0])
-        ax16 = fig.add_subplot(gs4[0, 1])
-        ax17 = fig.add_subplot(gs4[0, 2])
-
-        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
-
-        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)')
-
-        loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
-        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax8, ax9], ylabel0=None, ylabel1=None)
-        ax2.get_xaxis().set_visible(False)
-        ax4.get_xaxis().set_visible(False)
-        ax6.get_xaxis().set_visible(False)
-        ax8.get_xaxis().set_visible(False)
-        ax5.get_yaxis().set_visible(False)
-        ax7.get_yaxis().set_visible(False)
-        ax9.get_yaxis().set_visible(False)
-
-        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
-        loader.plot_channel_probe_location(cluster_idx, ax=ax11)
-
-        loader.plot_tuning_curves(cluster_idx, event='stimOn_times', ax=ax15, title='Stim On')
-        loader.plot_tuning_curves(cluster_idx, event='firstMovement_times', ax=ax16, ylabel='', title='First Move')
-        loader.plot_tuning_curves(cluster_idx, event='feedback_times', ax=ax17, ylabel='', title='Feedback')
-
-        loader.plot_autocorrelogram(cluster_idx, ax=ax12)
-        loader.plot_inter_spike_interval(cluster_idx, ax=ax13)
-        loader.plot_cluster_amplitude(cluster_idx, ax=ax14)
-
-        ax2.sharex(ax3)
-        ax4.sharex(ax5)
-        ax6.sharex(ax7)
-        ax8.sharex(ax9)
-
-        yax_to_lim = [ax2, ax4, ax6, ax8]
+        yax_to_lim = [ax1, ax3, ax5, ax7]
         max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
         min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
         for ax in yax_to_lim:
             ax.set_ylim(min_ax, max_ax)
+            ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
+
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[1, 0], height_ratios=[1, 3], hspace=0, wspace=0.5)
+        ax9 = fig.add_subplot(gs1[0, 0])
+        ax10 = fig.add_subplot(gs1[1, 0])
+        ax11 = fig.add_subplot(gs1[0, 1])
+        ax12 = fig.add_subplot(gs1[1, 1])
+        ax13 = fig.add_subplot(gs1[0, 2])
+        ax14 = fig.add_subplot(gs1[1, 2])
+        ax15 = fig.add_subplot(gs1[0, 3])
+        ax16 = fig.add_subplot(gs1[1, 3])
+
+        event = 'stimOnTrigger_times'
+        xlabel = 'T from Stim on (s)'
+        self.dl.plot_block_raster(event, axs=[ax9, ax10], xlabel=xlabel)
+        self.dl.plot_contrast_raster(event, axs=[ax11, ax12], xlabel=xlabel, ylabel0=None, ylabel1=None)
+        self.dl.plot_left_right_raster(event, axs=[ax13, ax14], xlabel=xlabel, ylabel0=None, ylabel1=None)
+        self.dl.plot_correct_incorrect_raster(event, axs=[ax15, ax16], xlabel=xlabel, ylabel0=None, ylabel1=None)
+
+        ax9.get_xaxis().set_visible(False)
+        ax11.get_xaxis().set_visible(False)
+        ax13.get_xaxis().set_visible(False)
+        ax15.get_xaxis().set_visible(False)
+
+        ax9.sharex(ax10)
+        ax11.sharex(ax12)
+        ax13.sharex(ax14)
+        ax15.sharex(ax16)
+
+        yax_to_lim = [ax9, ax11, ax13, ax15]
+        max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
+        min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+        for ax in yax_to_lim:
+            ax.set_ylim(min_ax, max_ax)
+            ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
+
+        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
         fig.savefig(path)
 
@@ -795,142 +626,71 @@ class Generator:
         else:
             fig.savefig(path)
 
-            path_scat = cluster_pixels_path(self.pid, cache_path=self.cache_path)
-            if not path_scat.exists():
-                idx = np.argsort(loader.clusters_good.depths)[::-1]
-                pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
-                                                            loader.clusters_good.depths[idx].astype(np.float64)]).T)
-                width, height = fig.canvas.get_width_height()
-                pixels[:, 0] /= width
-                pixels[:, 1] /= height
-                df = pd.DataFrame()
-                # Sort by depth so they are in the same order as the cluster selector drop down
-                df['cluster_id'] = loader.clusters_good.cluster_id[idx].astype(np.int32)
-                df['x'] = pixels[:, 0]
-                df['y'] = pixels[:, 1]
-                df.to_parquet(path_scat)
-
         plt.close(fig)
         gc.collect()
 
-    def make_cluster_qc_plot(self, cluster_idx, force=False, captions=False):
+    # -------------------------------------------------------------------------------------------------
+    # SINGLE TRIAL OVERVIEW
+    # -------------------------------------------------------------------------------------------------
 
-        path = cluster_qc_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
+    # FIGURE 4
+
+    def make_trial_plot(self, trial_idx, force=False, captions=False):
+        path = trial_overview_path(self.eid, trial_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
-        logger.debug(f"making cluster qc overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
+        logger.debug(f"making trial overview plot for session {self.eid}, trial #{trial_idx:04d}")
 
-        loader = self.dl
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(12, 5))
 
-        gs = gridspec.GridSpec(3, 4, figure=fig, width_ratios=[2, 10, 3, 1], height_ratios=[6, 2, 2], wspace=0.2, hspace=0.4)
+        gs = gridspec.GridSpec(2, 2, figure=fig, width_ratios=[7.5, 15], height_ratios=[5, 3], hspace=0.12,
+                               wspace=0.05)
+        ax1 = fig.add_subplot(gs[0, 0])
+        ax2 = fig.add_subplot(gs[0, 1])
 
-        gs0 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0, 0])
-        ax1 = fig.add_subplot(gs0[0, 0])
+        self.dl.plot_photometry_signal('calcium', trial_idx=trial_idx, ax=ax1, xlabel='Time in session (s)',
+                                       ylabel='Calcium')
+        t0 = self.dl.trial_intervals[trial_idx, 0]
+        t1 = self.dl.trial_intervals[trial_idx, 1]
+        self.dl.plot_photometry_signal('calcium', trial_idx=trial_idx, ax=ax2, xlim=[t0, t1], xlabel=None)
+        ax2.get_yaxis().set_visible(False)
 
-        loader.plot_spikes_amp_vs_depth(cluster_idx, ax=ax1, xlabel='Amp (uV)', type='all')
+        gs1 = gridspec.GridSpecFromSubplotSpec(2, 1, subplot_spec=gs[1, 1], hspace=0.4)
+        ax3 = fig.add_subplot(gs1[0, 0])
+        ax4 = fig.add_subplot(gs1[1, 0])
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 1], height_ratios=[1, 3], hspace=0, wspace=0.2)
-        ax2 = fig.add_subplot(gs1[0, 0])
-        ax3 = fig.add_subplot(gs1[1, 0])
-        ax4 = fig.add_subplot(gs1[0, 1])
-        ax5 = fig.add_subplot(gs1[1, 1])
-        ax6 = fig.add_subplot(gs1[0, 2])
-        ax7 = fig.add_subplot(gs1[1, 2])
-        ax8 = fig.add_subplot(gs1[0, 3])
-        ax9 = fig.add_subplot(gs1[1, 3])
+        if self.dl.camera_flag:
+            self.dl.plot_wheel_trace(trial_idx=trial_idx, ax=ax3, ylabel='Wheel pos (rad)', xlabel=None)
+            self.dl.plot_dlc_feature_trace('left', 'paw_r_speed', trial_idx, ax=ax4, xlabel='T in trial (s)',
+                                           ylabel='Paw speed (px/s)')
+        else:
+            self.dl.plot_wheel_trace(trial_idx=trial_idx, ax=ax3, ylabel='Wheel pos (rad)', xlabel='T in trial (s)')
+            remove_frame(ax4)
 
-        loader.plot_block_single_cluster_raster(cluster_idx, axs=[ax2, ax3])
-        loader.plot_contrast_single_cluster_raster(cluster_idx, axs=[ax4, ax5], ylabel0=None, ylabel1=None)
-        loader.plot_left_right_single_cluster_raster(cluster_idx, axs=[ax6, ax7], ylabel0=None, ylabel1=None)
-        loader.plot_correct_incorrect_single_cluster_raster(cluster_idx, axs=[ax8, ax9], ylabel0=None, ylabel1=None)
-        ax2.get_xaxis().set_visible(False)
-        ax4.get_xaxis().set_visible(False)
-        ax6.get_xaxis().set_visible(False)
-        ax8.get_xaxis().set_visible(False)
-        ax5.get_yaxis().set_visible(False)
-        ax7.get_yaxis().set_visible(False)
-        ax9.get_yaxis().set_visible(False)
+        ax3.sharex(ax2)
+        ax4.sharex(ax2)
 
-        gs2 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0:2, 2])
-        ax10 = fig.add_subplot(gs2[0])
-        loader.plot_cluster_waveforms(cluster_idx, ax=ax10)
+        plt.setp(ax2.get_xticklabels(), visible=False)
+        plt.setp(ax3.get_xticklabels(), visible=False)
 
-        gs3 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs[0:2, 3])
-        ax11 = fig.add_subplot(gs3[0])
-        loader.plot_channel_probe_location(cluster_idx, ax=ax11)
-
-        gs5 = gridspec.GridSpecFromSubplotSpec(1, 3, subplot_spec=gs[1, 0:2])
-        gs_5_ax1 = fig.add_subplot(gs5[0, 0])
-        gs_5_ax2 = fig.add_subplot(gs5[0, 1])
-        gs_5_ax3 = fig.add_subplot(gs5[0, 2])
-
-        loader.plot_tuning_curves(cluster_idx, event='stimOn_times', ax=gs_5_ax1, title='Stim On')
-        loader.plot_tuning_curves(cluster_idx, event='firstMovement_times', ax=gs_5_ax2, ylabel='', title='First Move')
-        loader.plot_tuning_curves(cluster_idx, event='feedback_times', ax=gs_5_ax3, ylabel='', title='Feedback')
-
-        gs4 = gridspec.GridSpecFromSubplotSpec(1, 2, subplot_spec=gs[2, :])
-        gs00 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[0], height_ratios=[1, 10],
-                                                width_ratios=[3, 1], wspace=0.05)
-
-        gs00_ax0 = fig.add_subplot(gs00[0, 0])
-        gs00_ax1 = fig.add_subplot(gs00[0, 1])
-        gs00_ax2 = fig.add_subplot(gs00[1, 0], projection='scatter_density')
-        gs00_ax3 = fig.add_subplot(gs00[1, 1])
-
-        loader.plot_noise_cutoff(cluster_idx, axs=[gs00_ax2, gs00_ax3, gs00_ax0, gs00_ax1])
-
-        gs01 = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=gs4[1], height_ratios=[1, 10])
-        gs01_ax0 = fig.add_subplot(gs01[0, :])
-        gs01_ax1 = fig.add_subplot(gs01[1, 0])
-        gs01_ax2 = fig.add_subplot(gs01[1, 1])
-
-        loader.plot_sliding_rp(cluster_idx, axs=[gs01_ax1, gs01_ax2, gs01_ax0])
-
-        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
+        set_figure_style(fig)
 
         if captions:
-
             subplots = []
             fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax2, ax3)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax4, ax5)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax6, ax7)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax8, ax9)
-            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax10, ax11)
-            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(gs_5_ax1, gs_5_ax3)
-            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(gs00_ax0, gs00_ax3)
-            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(gs01_ax0, gs01_ax2)
-            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
+            fig_pos = get_subplot_position(ax2, ax2)
+            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
+            fig_pos = get_subplot_position(ax3, ax3)
+            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
+            fig_pos = get_subplot_position(ax4, ax4)
+            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
 
             df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure5_qc', cache_path=self.cache_path))
+            df.to_parquet(caption_path('figure3', cache_path=self.cache_path))
             fig.savefig(path)
         else:
             fig.savefig(path)
-
-            path_scat = cluster_qc_pixels_path(self.pid, cache_path=self.cache_path)
-            if not path_scat.exists() or force:
-                idx = np.argsort(loader.clusters.depths)[::-1]
-                pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
-                                                            loader.clusters.depths[idx].astype(np.float64)]).T)
-                width, height = fig.canvas.get_width_height()
-                pixels[:, 0] /= width
-                pixels[:, 1] /= height
-                df = pd.DataFrame()
-                # Sort by depth so they are in the same order as the cluster selector drop down
-                df['cluster_id'] = loader.clusters.cluster_id[idx].astype(np.int32)
-                df['x'] = pixels[:, 0]
-                df['y'] = pixels[:, 1]
-                df.to_parquet(path_scat)
 
         plt.close(fig)
         gc.collect()
@@ -940,7 +700,7 @@ class Generator:
 
     def make_all_trial_plots(self, force=False):
 
-        path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
+        path = trial_overview_path(self.eid, self.first_trial(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping trial plot generation as they seem to already exist")
             return
@@ -951,73 +711,39 @@ class Generator:
             try:
                 self.make_trial_plot(trial_idx, force=force)
             except Exception as e:
-                logger.error(f"error with session {self.pid} trial #{trial_idx}: {str(e)}")
-
-    def make_all_cluster_plots(self, force=False):
-
-        path = cluster_overview_path(self.pid, self.first_good_cluster(), cache_path=self.cache_path)
-        if not force and path.exists():
-            logger.debug("Skipping cluster plot generation as they seem to already exist")
-            return
-
-        desc = "Making all cluster plots"
-        for cluster_idx in tqdm(self.iter_good_cluster(), total=self.n_good_clusters, desc=desc):
-            self.save_cluster_details(cluster_idx)
-            try:
-                self.make_cluster_plot(cluster_idx, force=force)
-            except Exception as e:
-                logger.error(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
-
-    def make_all_cluster_qc_plots(self, force=False):
-
-        path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
-        if not force and path.exists():
-            logger.debug("Skipping cluster plot generation as they seem to already exist")
-            return
-
-        desc = "Making all cluster qc plots"
-        for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
-            self.save_cluster_details(cluster_idx)
-            try:
-                self.make_cluster_qc_plot(cluster_idx, force=force)
-            except Exception as e:
-                logger.error(f"error with session {self.pid} cluster #{cluster_idx}: {str(e)}")
+                logger.error(f"error with session {self.eid} trial #{trial_idx}: {str(e)}")
 
     def make_all_plots(self, nums=()):
         if 0 in nums:  # used to regenerate the session.json only
             return
         # nums is a list of numbers 1-5 (figure numbers)
 
-        logger.info(f"Making all session plots for session {self.pid} {nums}")
+        logger.info(f"Making all session plots for session {self.eid} {nums}")
 
         # Figure 1
-        self.make_session_plot(force=1 in nums)
+        for roi in range(self.n_rois):
+            for preprocess in PREPROCESS.keys():
+                self.make_session_plot(roi, preprocess, force=1 in nums)
 
         # Figure 2
         try:
             self.make_behavior_plot(force=2 in nums)
         except Exception as e:
-            logger.error(f"error with session {self.pid} behavior plot: {str(e)}")
+            logger.error(f"error with session {self.eid} behavior plot: {str(e)}")
 
-        # Figure 3 (one plot per trial)
-        self.make_all_trial_plots(force=3 in nums)
+        # Figure 3
+        for roi in range(self.n_rois):
+            for preprocess in PREPROCESS.keys():
+                self.make_trial_event_plot(roi, preprocess, force=3 in nums)
 
-        # Figure 4
-        self.make_trial_event_plot(force=4 in nums)
-
-        # Figure 5 (one plot per cluster)
-        self.make_all_cluster_plots(force=5 in nums)
-
-        # Figure 5 QC (one plot per cluster)
-        self.make_all_cluster_qc_plots(force=6 in nums)
+        # Figure 4 (one plot per trial)
+        #self.make_all_trial_plots(force=4 in nums)
 
     def make_captions(self):
-        self.make_session_plot(force=True, captions=True)
+        self.make_session_plot(DEFAULT_ROI, DEFAULT_PREPROCESS, force=True, captions=True)
         self.make_behavior_plot(force=True, captions=True)
+        self.make_trial_event_plot(DEFAULT_ROI, DEFAULT_PREPROCESS, force=True, captions=True)
         self.make_trial_plot(self.trial_idxs[0], force=True, captions=True)
-        self.make_trial_event_plot(force=True, captions=True)
-        self.make_cluster_plot(self.good_cluster_idxs[0], force=True, captions=True)
-        self.make_cluster_qc_plot(self.good_cluster_idxs[0], force=True, captions=True)
 
         caption_json = {}
         for fig in CAPTIONS.keys():
@@ -1033,14 +759,13 @@ class Generator:
 
 
 def make_captions(cache_path=None, data_path=None):
-    pid = get_pids(data_path=data_path)[0]
-    pid = '9117969a-3f0d-478b-ad75-98263e3bfacf'
-    Generator(pid, cache_path=cache_path, data_path=data_path).make_captions()
+    eid = get_eids(data_path=data_path)[0]
+    Generator(eid, cache_path=cache_path, data_path=data_path).make_captions()
 
 
-def make_all_plots(pid, nums=(), cache_path=None, data_path=None):
-    logger.info(f"Generating all plots for session {pid}")
-    Generator(pid, cache_path=cache_path, data_path=data_path).make_all_plots(nums=nums)
+def make_all_plots(eid, nums=(), cache_path=None, data_path=None):
+    logger.info(f"Generating all plots for session {eid}")
+    Generator(eid, cache_path=cache_path, data_path=data_path).make_all_plots(nums=nums)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -1059,9 +784,9 @@ def load_json_c(path):
 
 def sessions():
     CACHE_DIR.mkdir(exist_ok=True, parents=True)
-    pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
-    pids = [pid for pid in pids if is_valid_uuid(pid)]
-    sessions = [load_json_c(session_details_path(pid)) for pid in pids]
+    eids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
+    eids = [eid for eid in eids if is_valid_uuid(eid)]
+    sessions = [load_json_c(session_details_path(eid)) for eid in eids]
     sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
@@ -1075,7 +800,7 @@ def generate_data_js():
     FLASK_CTX = {
         "SESSIONS": sessions(),
         "LEGENDS": legends(),
-        "DEFAULT_PID": DEFAULT_PID,
+        "DEFAULT_eid": DEFAULT_eid,
         "DEFAULT_DSET": DEFAULT_DSET,
     }
     ctx_json = json.dumps(FLASK_CTX)
@@ -1101,7 +826,7 @@ if __name__ == '__main__':
 
     # Regenerate all figures.
     if len(sys.argv) == 1:
-        Parallel(n_jobs=-4)(delayed(make_all_plots)(pid) for pid in iter_session())
+        Parallel(n_jobs=-4)(delayed(make_all_plots)(eid) for eid in iter_session())
 
     # Regenerate some figures for all sessions.
     elif len(sys.argv) >= 2 and not is_valid_uuid(sys.argv[1]):
@@ -1114,8 +839,8 @@ if __name__ == '__main__':
             nums = list(map(int, which.split(',')))
             logger.info(f"Regenerating figures {', '.join('#%d' % _ for _ in nums)}")
 
-            # [make_all_plots(pid, nums=nums) for pid in iter_session()]
-            Parallel(n_jobs=-3)(delayed(make_all_plots)(pid, nums=nums) for pid in iter_session())
+            # [make_all_plots(eid, nums=nums) for eid in iter_session()]
+            Parallel(n_jobs=-3)(delayed(make_all_plots)(eid, nums=nums) for eid in iter_session())
 
     # Regenerate figures for 1 session.
     elif len(sys.argv) >= 2 and is_valid_uuid(sys.argv[1]):
