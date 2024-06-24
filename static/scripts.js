@@ -675,7 +675,7 @@ async function selectSession(pid) {
     // which controls which fields are displayed in the session details box.
     var trial_ids = details['_trial_ids']
     var roi_ids = details['_roi_ids']
-    var preprocess_ids = ['window_10', 'window_100', 'window_250', 'window_500']
+    var preprocess_ids = ['calcium', 'isosbestic_control', 'photobleach']
 
     CTX.dur = details["_duration"];
     CTX.trial_ids = trial_ids;
@@ -687,10 +687,10 @@ async function selectSession(pid) {
 
 
     // Setup the trial selector.
-    var trial_id = 0;
-    if (CTX.pid == pid && CTX.tid)
-        trial_id = CTX.tid;
-    setupTrialDropdown(trial_ids, trial_id);
+//    var trial_id = 0;
+//    if (CTX.pid == pid && CTX.tid)
+//        trial_id = CTX.tid;
+//    setupTrialDropdown(trial_ids, trial_id);
 
     // Setup the roi selector.
     var roi_id = 0;
@@ -699,7 +699,7 @@ async function selectSession(pid) {
     setupRoiDropdown(roi_ids, roi_id);
 
     // Setup the preprocess selector
-    var preprocess_id = 'window_250';
+    var preprocess_id = 'calcium';
     if (CTX.pid == pid && CTX.preprocess)
         preprocess_id = CTX.preprocess;
     setupPreprocessDropdown(preprocess_ids, preprocess_id);
@@ -714,7 +714,7 @@ async function selectSession(pid) {
     updateBehaviourPlot(pid);
 
     // Set the trial and update plots
-    selectTrial(pid, CTX.tid);
+    // selectTrial(pid, CTX.tid);
 
     CTX.pid = pid;
     isLoading = false;
@@ -806,7 +806,8 @@ function changeTrial(trialNum) {
 
 
 function updateTrialPlot(pid, rid, preprocess) {
-    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`);
+    showImage('trialRasterPlot', `/api/session/${pid}/trial_raster_plot/${rid}/${preprocess}`);
+    showImage('trialPsthPlot', `/api/session/${pid}/trial_psth_plot/${rid}/${preprocess}`);
 };
 
 
@@ -951,7 +952,7 @@ function setupAllLegends() {
     setupLegends('sessionPlot', 'sessionPlotLegend', 'figure1');
     setupLegends('behaviourPlot', 'behaviourPlotLegend', 'figure2');
     setupLegends('trialPlot', 'trialPlotLegend', 'figure3');
-    setupLegends('trialEventPlot', 'trialEventPlotLegend', 'figure4');
+    setupLegends('trialRasterPlot', 'trialRasterPlotLegend', 'figure4');
 }
 
 /*************************************************************************************************/
@@ -966,8 +967,7 @@ async function selectRoi(pid, rid, preprocess) {
     var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
     showImage('sessionPlot', url);
 
-    var url = `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`;
-    showImage('trialEventPlot', url);
+    updateTrialPlot(pid, rid, preprocess)
 
 };
 
@@ -983,8 +983,8 @@ async function selectPreprocess(pid, rid, preprocess) {
     var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
     showImage('sessionPlot', url);
 
-    var url = `/api/session/${pid}/trial_event_plot/${rid}/${preprocess}`;
-    showImage('trialEventPlot', url);
+    updateTrialPlot(pid, rid, preprocess);
+
 
 };
 
@@ -998,15 +998,15 @@ function load() {
 
     loadAutoComplete();
 
-    setupUnitySession();
-    setupUnityTrial();
+    // setupUnitySession();
+    // setupUnityTrial();
 
     // Remove for now until legends are settled
     //setupAllLegends();
 
     setupRoiCallback();
     setupPreprocessCallback();
-    setupTrialCallback();
+    // setupTrialCallback();
 
     // Initial selection.
     selectSession(CTX.pid);

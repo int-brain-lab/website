@@ -3,9 +3,7 @@
 # -------------------------------------------------------------------------------------------------
 
 import matplotlib.pyplot as plt
-from matplotlib.image import NonUniformImage
 from matplotlib.lines import Line2D
-from matplotlib.colors import LinearSegmentedColormap
 import matplotlib
 import matplotlib.gridspec as gridspec
 from pathlib import Path
@@ -16,20 +14,14 @@ from collections import OrderedDict
 import seaborn as sns
 import yaml
 from scipy.stats import zscore
+import scipy.signal
 
 from brainbox.task.trials import find_trial_ids
-from brainbox.task.passive import get_stim_aligned_activity
-from brainbox.population.decode import xcorr
 from brainbox.behavior.wheel import velocity_filtered, interpolate_position
-from brainbox.ephys_plots import plot_brain_regions
-from brainbox.plot_base import arrange_channels2banks, ProbePlot
-from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast
-from brainbox.metrics.single_units import noise_cutoff
-from ibllib.plots import Density
+from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
-from iblutil.numerical import bincount2D
-import time
+import iblphotometry.preprocessing as iblphot
 
 import one.alf.io as alfio
 from one.alf.exceptions import ALFObjectNotFound
@@ -87,21 +79,27 @@ LINE_COLOURS = {
     'raw_isosbestic': '#9d4edd',
     'raw_calcium': '#43aa8b',
     'calcium': '#0081a7',
-    'calcium_moving_avg': '#f4a261'
+    'isosbestic_control': '#0081a7',
+    'photobleach': '#0081a7',
+    'moving_avg': '#f4a261'
 }
 
 # -------------------------------------------------------------------------------------------------
 # Photometry variables
 # -------------------------------------------------------------------------------------------------
 DEFAULT_ROI = 0
-DEFAULT_PREPROCESS = 'window_250'
-PREPROCESS = {
-    'window_10': 10,
-    'window_100': 100,
-    'window_250': 250,
-    'window_500': 500
-}
+DEFAULT_PREPROCESS = 'calcium'
+PREPROCESS = [
+    'calcium',
+    'isosbestic_control',
+    'photobleach'
+]
 
+PSTH_EVENTS = {
+    'feedback_times': 'T from Feedback (s)',
+    'stimOnTrigger_times': 'T from Stim on (s)',
+    'firstMovement_times': 'T from First move (s)'
+}
 # -------------------------------------------------------------------------------------------------
 # Loading functions
 # -------------------------------------------------------------------------------------------------
@@ -207,7 +205,6 @@ def interpolate_along_track(xyz_track, depths):
     return xyz_channels
 
 
-
 # -------------------------------------------------------------------------------------------------
 # Styling functions
 # -------------------------------------------------------------------------------------------------
@@ -293,7 +290,7 @@ class DataLoader:
         self.n_rois = len(self.sessions)
 
         # Load photometry data for default roi and preprocessing
-        self.photometry = load_photometry(eid, roi=DEFAULT_ROI, preprocess=DEFAULT_PREPROCESS, data_path=self.data_path)
+        self.photometry = load_photometry(eid, roi=DEFAULT_ROI, data_path=self.data_path)
 
         # Load trials data
         self.trials = load_trials(eid, data_path=self.data_path)
@@ -312,22 +309,40 @@ class DataLoader:
         if self.licks is None:
             self.lick_flag = None
 
-    def load_photometry_data(self, roi, preprocess):
+    def load_photometry_data(self, roi):
 
         self.session = next(s for s in self.sessions if s['roi'] == roi)
 
-        self.photometry = load_photometry(self.eid, roi=roi, preprocess=preprocess, data_path=self.data_path)
-        window_size = PREPROCESS[preprocess]
-        self.photometry['calcium_moving_avg'] = self.photometry['calcium'].rolling(window=window_size).mean()
-
-        # Load precomputed psth data
-        self.align_times = ['feedback_times', 'stimOnTrigger_times']
-        self.psth = Bunch()
-        for times in self.align_times:
-            self.psth[times] = load_psth(self.eid, times, data_path=self.data_path)
+        self.photometry = load_photometry(self.eid, roi=roi, data_path=self.data_path)
+        self.preprocess_photometry_data()
+        self.psth = self.compute_photometry_psth()
 
         self.photometry_lim = [self.photometry.times[int(self.photometry.times.size/2)],
                                self.photometry.times[int(self.photometry.times.size/2) + 250]]
+
+    def preprocess_photometry_data(self):
+
+        self.photometry = iblphot.isosbestic_correction_dataframe(self.photometry)
+        self.photometry['photobleach'] = iblphot.photobleaching_lowpass(self.photometry['raw_calcium'].values)
+
+    def compute_photometry_psth(self):
+        psth_preprocess = Bunch()
+        event_window = [-1, 2]
+        fs = 30
+        for preprocess in PREPROCESS:
+            psth = Bunch()
+            for event in PSTH_EVENTS.keys():
+                psth[event] = iblphot.psth(self.photometry[preprocess].values, self.photometry['times'].values,
+                                           self.trials[event], fs, peri_event_window=event_window).T
+            psth_preprocess[preprocess] = psth
+
+        psth_preprocess['times'] = np.arange(event_window[0] * fs, event_window[1] * fs + 1)
+
+        return psth_preprocess
+
+
+
+
 
     def get_session_details(self):
         """
@@ -431,8 +446,8 @@ class DataLoader:
 
         return fig, ax_r
 
-    def plot_photometry_signal(self, signal, trial_idx=None, ax=None, xlim=None, ylim=None, xlabel='Time', ylabel=None,
-                               title=None):
+    def plot_photometry_signal(self, signal, mvg_avg=False, trial_idx=None, ax=None, xlim=None, ylim=None,
+                               xlabel='Time', ylabel=None, title=None):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1)
@@ -441,7 +456,15 @@ class DataLoader:
 
         linewidth = 0.1 if xlim is None else 1
 
-        ax.plot(self.photometry['times'], self.photometry[signal], linewidth=linewidth, c=LINE_COLOURS[signal])
+        if mvg_avg:
+            window_size = 250
+            phot_signal = self.photometry[signal].rolling(window=window_size).mean()
+            col = LINE_COLOURS['moving_avg']
+        else:
+            phot_signal = self.photometry[signal]
+            col = LINE_COLOURS[signal]
+
+        ax.plot(self.photometry['times'], phot_signal, linewidth=linewidth, c=col)
 
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
         ax.set_xlim(xlim)
@@ -458,6 +481,26 @@ class DataLoader:
             else:
                 trials = filter_trials_by_trial_idx(self.trials, trial_idx)
                 self.add_trial_events_to_raster(ax, trials)
+
+        return fig
+
+    def plot_photometry_correlation(self, ax=None, ax_cbar=None, title=None):
+
+        if ax is None:
+            fig, axs = plt.subplots(2, 1, figsize=(9, 6), gridspec_kw={'height_ratios': [1, 10]})
+            ax = axs[1]
+            ax_cbar = axs[0]
+        else:
+            fig = ax.get_figure()
+
+        sos = scipy.signal.butter(**{'N': 3, 'Wn': 0.01, 'btype': 'lowpass'}, output='sos')
+        calcium_lp = scipy.signal.sosfiltfilt(sos, self.photometry['raw_calcium'])
+        isosbestic_lp = scipy.signal.sosfiltfilt(sos, self.photometry['raw_isosbestic'])
+
+        scat = ax.scatter(isosbestic_lp, calcium_lp, s=1, c=self.photometry['times'],
+                          cmap='magma', alpha=.8)
+        set_axis_style(ax, xlabel='raw isobestic', ylabel='raw calcium', title=title)
+        fig.colorbar(scat, ax=ax_cbar, orientation='horizontal', label='Time in session (s)')
 
         return fig
 
@@ -545,7 +588,7 @@ class DataLoader:
                            Line2D([0], [0], color='w', marker='o', markeredgecolor='b', label='correct', markersize=10),
                            Line2D([0], [0], color='w', marker='x', markeredgecolor='r', label='incorrect', markersize=10)]
 
-        ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
+        ax_legend.legend(handles=legend_elements, loc=3, frameon=False)
         remove_frame(ax_legend)
 
         return fig
@@ -830,33 +873,49 @@ class DataLoader:
 
         return fig
 
-    def plot_left_right_raster(self, event, axs=None, xlabel='T from Feedback (s)',
+    def plot_left_right_raster(self, signal, event, axs=None, xlabel='T from Feedback (s)',
                                ylabel0='Signal', ylabel1='Sorted Trial Number',
                                order='trial num'):
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='side', order=order)
-        fig, axs = self.processed_raster(
-            self.psth[event].T, trial_idx, dividers, ['g', 'y'], ['left', 'right'], axs=axs)
+        colours = ['g', 'y']
+        labels = ['left', 'right']
 
-        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
-        set_axis_style(axs[0], ylabel=ylabel0)
+        if len(axs) == 1:
+            fig, ax = self.processed_psth(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                           ax=axs[0])
+            set_axis_style(ax,  xlabel=xlabel, ylabel=ylabel0)
+        else:
+            fig, axs = self.processed_raster(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                             axs=axs)
+
+            set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+            set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
 
-    def plot_correct_incorrect_raster(self, event, axs=None, xlabel='T from Feedback (s)',
+    def plot_correct_incorrect_raster(self, signal, event, axs=None, xlabel='T from Feedback (s)',
                                       ylabel0='Signal', ylabel1='Sorted Trial Number',
                                       order='trial num'):
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice', order=order)
-        fig, axs = self.processed_raster(self.psth[event].T, trial_idx, dividers, ['b', 'r'],
-                                         ['correct', 'incorrect'], axs=axs)
+        colours = ['b', 'r']
+        labels = ['correct', 'incorrect']
 
-        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
-        set_axis_style(axs[0], ylabel=ylabel0)
+        if len(axs) == 1:
+            fig, ax = self.processed_psth(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                           ax=axs[0])
+            set_axis_style(ax,  xlabel=xlabel, ylabel=ylabel0)
+        else:
+            fig, axs = self.processed_raster(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                             axs=axs)
+
+            set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+            set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
 
-    def plot_block_raster(self, event, axs=None, xlabel='T from Feedback (s)',
+    def plot_block_raster(self, signal, event, axs=None, xlabel='T from Feedback (s)',
                                          ylabel0='Signal', ylabel1='Sorted Trial Number'):
 
         trial_idx = np.arange(len(self.trials['probabilityLeft']))
@@ -867,34 +926,80 @@ class DataLoader:
         colours = np.full((blocks.shape[0], 3), np.array([*cmap[0]]))
         colours[np.where(blocks == 0.5)] = np.array([*cmap[1]])
         colours[np.where(blocks == 0.8)] = np.array([*cmap[2]])
+        dividers = list(dividers)
+        labels = blocks
 
-        fig, axs = self.processed_raster(self.psth[event].T, trial_idx, list(dividers), colours,
-                                         blocks, axs=axs)
+        if len(axs) == 1:
+            fig, ax = self.processed_psth(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                           ax=axs[0])
+            set_axis_style(ax,  xlabel=xlabel, ylabel=ylabel0)
+        else:
+            fig, axs = self.processed_raster(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                             axs=axs)
 
-        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
-        set_axis_style(axs[0], ylabel=ylabel0)
+            set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+            set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
 
-    def plot_contrast_raster(self, event, axs=None, xlabel='T from Feedback (s)',
+    def plot_contrast_raster(self, signal, event, axs=None, xlabel='T from Feedback (s)',
                                             ylabel0='Signal', ylabel1='Sorted Trial Number'):
 
         contrasts = np.nanmean(np.c_[self.trials.contrastLeft, self.trials.contrastRight], axis=1)
         trial_idx = np.argsort(contrasts)
         dividers = list(np.where(np.diff(np.sort(contrasts)) != 0)[0])
         labels = [str(_ * 100) for _ in np.unique(contrasts)]
-        colors = ['0.9', '0.7', '0.5', '0.3', '0.0']
-        fig, axs = self.processed_raster(self.psth[event].T, trial_idx, dividers, colors, labels, axs=axs)
+        colours = ['0.9', '0.7', '0.5', '0.3', '0.0']
 
-        set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
-        set_axis_style(axs[0], ylabel=ylabel0)
+        if len(axs) == 1:
+            fig, ax = self.processed_psth(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                           ax=axs[0])
+            set_axis_style(ax,  xlabel=xlabel, ylabel=ylabel0)
+        else:
+            fig, axs = self.processed_raster(self.psth[signal][event], trial_idx, dividers, colours, labels,
+                                             axs=axs)
+
+            set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
+            set_axis_style(axs[0], ylabel=ylabel0)
 
         return fig
 
-    def processed_raster(self, raster, trial_idx, dividers, colors, labels, axs=None):
+    def processed_psth(self, psth, trial_idx, dividers, colors, labels, ax=None):
+
+        t_psth = self.psth['times']
 
         dividers = [0] + dividers + [len(trial_idx)]
-        t_raster = np.arange(raster.shape[1]) - 30.5
+
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=(4, 6))
+        else:
+            fig = ax.get_figure()
+
+        label, lidx = np.unique(labels, return_index=True)
+        for lab, lid in zip(label, lidx):
+            idx = np.where(np.array(labels) == lab)[0]
+            for iD in range(len(idx)):
+                if iD == 0:
+                    t_ids = trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]
+                    t_ints = dividers[idx[iD] + 1] - dividers[idx[iD]]
+                else:
+                    t_ids = np.r_[t_ids, trial_idx[dividers[idx[iD]] + 1:dividers[idx[iD] + 1] + 1]]
+                    t_ints = np.r_[t_ints, dividers[idx[iD] + 1] - dividers[idx[iD]]]
+
+            psth_div = np.nanmean(psth[t_ids], axis=0)
+
+            ax.plot(t_psth, psth[t_ids].T, alpha=0.01, color=colors[lid])
+            ax.plot(t_psth, psth_div, alpha=1, color=colors[lid], zorder=t_ids.size + 10)
+
+        remove_spines(ax, spines=['right', 'top'])
+
+        return fig, ax
+
+    def processed_raster(self, raster, trial_idx, dividers, colors, labels, axs=None):
+
+        t_raster = self.psth['times']
+        dividers = [0] + dividers + [len(trial_idx)]
+        # t_raster = np.arange(raster.shape[1]) - 30.5
         post_time = np.max(t_raster)
         pre_time = np.abs(np.min(t_raster))
         raster_bin = 0.5
@@ -950,8 +1055,6 @@ class DataLoader:
         axs[1].vlines(0, *axs[1].get_ylim(), color='k', ls='--', zorder=axs[1].get_zorder() + 1)
 
         return fig, axs
-
-
 
     def single_cluster_raster(self, spike_times, events, trial_idx, dividers, colors, labels, weights=None, fr=True, norm=False,
                               axs=None):

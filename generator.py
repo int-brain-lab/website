@@ -193,8 +193,12 @@ def behaviour_overview_path(eid, cache_path=None):
     return session_cache_path(eid, cache_path=cache_path) / 'behaviour_overview.png'
 
 
-def trial_event_overview_path(eid, roi, preprocess, cache_path=None):
-    return session_cache_path(eid, cache_path=cache_path) / f'trial_overview_roi{roi}_pre_{preprocess}.png'
+def trial_raster_overview_path(eid, roi, preprocess, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial_overview_raster_roi{roi}_pre_{preprocess}.png'
+
+
+def trial_psth_overview_path(eid, roi, preprocess, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'trial_overview_psth_roi{roi}_pre_{preprocess}.png'
 
 
 def trial_overview_path(eid, trial_idx, cache_path=None):
@@ -243,6 +247,7 @@ class Generator:
         self.cache_path = cache_path or CACHE_DIR
         self.dl = DataLoader(data_path=data_path)
         self.dl.session_init(eid)
+        self.dl.load_photometry_data(DEFAULT_ROI)
         self.eid = eid
 
         # Ensure the session cache folder exists.
@@ -295,109 +300,67 @@ class Generator:
         logger.debug(f"making session overview plot for session: {self.eid}, roi: {roi}, "
                      f"preprocessing: {preprocess}")
 
-        self.dl.load_photometry_data(roi, preprocess)
-
         try:
             fig = plt.figure(figsize=(15, 8))
-            gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[9, 4], wspace=0.3, hspace=0.3)
 
-            # First row
-            gs0 = gridspec.GridSpecFromSubplotSpec(3, 4, subplot_spec=gs[0], width_ratios=[6, 2, 1, 1],
-                                                   wspace=0.2, hspace=0.3)
-            gs0_ax1 = fig.add_subplot(gs0[0, 0])
-            gs0_ax2 = fig.add_subplot(gs0[1, 0])
-            gs0_ax3 = fig.add_subplot(gs0[2, 0])
-            gs0_ax4 = fig.add_subplot(gs0[0, 1])
-            gs0_ax5 = fig.add_subplot(gs0[1, 1])
-            gs0_ax6 = fig.add_subplot(gs0[2, 1])
-            gs0_ax7 = fig.add_subplot(gs0[1:, 3])
+            gs = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[6, 4], wspace=0.1, hspace=0.3)
+
+            # First column
+            gs0 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[0], hspace=0.8, height_ratios=[1, 1, 1, 2])
+
+            gs01 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0:3], hspace=0.3)
+            gs0_ax1 = fig.add_subplot(gs01[0, 0])
+            gs0_ax2 = fig.add_subplot(gs01[1, 0])
+            gs0_ax3 = fig.add_subplot(gs01[2, 0])
 
             # Full session photometry signal
             _, gs0_ax1_r = self.dl.plot_raw_photometry_signal(ax=gs0_ax1, xlabel=None, ylabel='Raw isobestic')
-            self.dl.plot_photometry_signal('calcium', ax=gs0_ax2, xlabel=None, ylabel='Calcium')
-            self.dl.plot_photometry_signal('calcium_moving_avg', ax=gs0_ax3, xlabel='Time in session (s)',
-                                           ylabel='Mov avg calcium')
+            self.dl.plot_photometry_signal(preprocess, ax=gs0_ax2, xlabel=None, ylabel=preprocess.capitalize())
+            self.dl.plot_photometry_signal(preprocess, mvg_avg=True, ax=gs0_ax3, xlabel='Time in session (s)',
+                                           ylabel=f'Mov avg {preprocess}')
 
             gs0_ax1_r.yaxis.set_ticklabels([])
 
-            # Zoomed in photometry signal
-            self.dl.plot_raw_photometry_signal(ax=gs0_ax4, xlim=self.dl.photometry_lim, xlabel=None,
-                                               ylabel2='Raw calcium')
-            self.dl.plot_photometry_signal('calcium', xlim=self.dl.photometry_lim, ax=gs0_ax5)
-            self.dl.plot_photometry_signal('calcium_moving_avg', xlim=self.dl.photometry_lim, xlabel='Time in session (s)',
-                                           ax=gs0_ax6)
-
-            gs0_ax4.yaxis.set_ticklabels([])
-            gs0_ax5.yaxis.set_ticklabels([])
-            gs0_ax6.yaxis.set_ticklabels([])
-
-            # Zoomed in slice (placeholder for now)
-            self.dl.plot_brain_slice(ax=gs0_ax7)
-
-            gs0_ax1.get_xaxis().set_visible(False)
-            gs0_ax2.get_xaxis().set_visible(False)
-            gs0_ax4.get_xaxis().set_visible(False)
-            gs0_ax5.get_xaxis().set_visible(False)
-            remove_frame(gs0_ax7)
-
-            # Second row
-            gs1 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[1], width_ratios=[6, 2, 1, 1],
-                                                   wspace=0.2)
-            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs1[0, 0], height_ratios=[2, 3, 1, 3])
+            # Session behavior plots
+            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs0[3, 0], height_ratios=[2, 3, 1, 3])
             ax_a = fig.add_subplot(gs11[0, 0])
             ax_b = fig.add_subplot(gs11[1, 0])
             ax_c = fig.add_subplot(gs11[2, 0])
             ax_d = fig.add_subplot(gs11[3, 0])
 
-            gs13 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 1])
-            ax_leg = fig.add_subplot(gs13[0])
+            # Second column
+            gs1 = gridspec.GridSpecFromSubplotSpec(4, 2, subplot_spec=gs[1], hspace=0.3, wspace=0.7,
+                                                   height_ratios=[1, 1, 1, 2])
+            ax_leg = fig.add_subplot(gs1[3, 0])
+            ax_cor = fig.add_subplot(gs1[3, 1])
+
             self.dl.plot_session_reaction_time(ax=ax_a)
             self.dl.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
-
-            ax_a.sharex(gs0_ax2)
-            ax_b.sharex(gs0_ax2)
-            ax_c.sharex(gs0_ax2)
-            ax_d.sharex(gs0_ax2)
-
-            plt.setp(ax_a.get_xticklabels(), visible=False)
-            plt.setp(ax_b.get_xticklabels(), visible=False)
-
-            gs14 = gridspec.GridSpecFromSubplotSpec(1, 1, subplot_spec=gs1[0, 2:])
-            ax_cor = fig.add_subplot(gs14[0])
             self.dl.plot_coronal_slice(ax_cor)
 
-            set_figure_style_all(fig, margin_inches=0.8, top=0.95)
+            gs0_ax4 = fig.add_subplot(gs1[0, 0])
+            gs0_ax5 = fig.add_subplot(gs1[1, 0])
+            gs0_ax6 = fig.add_subplot(gs1[2, 0])
 
-            if captions:
-                subplots = []
-                # fig_pos = get_subplot_position(gs0_ax1, gs0_ax2)
-                # subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax3, gs0_ax4)
-                # subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax5, gs0_ax6)
-                # subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax7, gs0_ax8)
-                # subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax9, gs0_ax10)
-                # subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax11, gs0_ax12)
-                # subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(gs0_ax13, gs0_ax14)
-                # subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1] - 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(ax_a, ax_d)
-                # subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(ax_cor, ax_cor)
-                # subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(ax13, ax15)
-                # subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-                # fig_pos = get_subplot_position(ax16, ax16)
-                # subplots.append({'panel': 'K', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
+            self.dl.plot_raw_photometry_signal(ax=gs0_ax4, xlim=self.dl.photometry_lim, xlabel=None,
+                                               ylabel2='Raw calcium')
+            self.dl.plot_photometry_signal(preprocess, xlim=self.dl.photometry_lim,  xlabel=None, ax=gs0_ax5)
+            self.dl.plot_photometry_signal(preprocess, mvg_avg=True, xlim=self.dl.photometry_lim,
+                                           xlabel='Time in session (s)', ax=gs0_ax6)
 
-                df = pd.DataFrame.from_dict(subplots)
-                df.to_parquet(caption_path('figure1', cache_path=self.cache_path))
-            else:
+            gs0_ax4.yaxis.set_ticklabels([])
+            gs0_ax5.yaxis.set_ticklabels([])
+            gs0_ax6.yaxis.set_ticklabels([])
 
-                fig.savefig(path)
+            gs0_ax7 = fig.add_subplot(gs1[1:3, 1])
+            gs0_ax8 = fig.add_subplot(gs1[0, 1])
+
+            self.dl.plot_photometry_correlation(ax=gs0_ax7, ax_cbar=gs0_ax8)
+            remove_frame(gs0_ax8)
+
+            fig.subplots_adjust(left=0.08, right=1-0.08, bottom=0.08, top=1-0.08)
+
+            fig.savefig(path)
 
             plt.close(fig)
             gc.collect()
@@ -480,160 +443,113 @@ class Generator:
 
         set_figure_style_all(fig, top=0.95)
 
-        if captions:
-            subplots = []
-            fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax5, ax6)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax7, ax8)
-            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax9, ax10)
-            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax11, ax12)
-            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax13, ax14)
-            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax15, ax16)
-            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-
-            df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure2', cache_path=self.cache_path))
-        else:
-            fig.savefig(path)
+        fig.savefig(path)
 
         plt.close(fig)
         gc.collect()
 
     # FIGURE 3
 
-    def make_trial_event_plot(self, roi, preprocess, force=False, captions=False):
+    def make_trial_raster_plot(self, roi, preprocess, force=False, captions=False):
 
-        path = trial_event_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
+        path = trial_raster_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
         if not force and path.exists():
             return
-        logger.debug(f"making trial event plot for session: {self.eid}, roi: {roi}, "
+        logger.debug(f"making trial raster plot for session: {self.eid}, roi: {roi}, "
                      f"preprocessing: {preprocess}")
-        self.dl.load_photometry_data(roi, preprocess)
 
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(15, len(PSTH_EVENTS.keys()) * 5))
 
-        gs = gridspec.GridSpec(2, 1, figure=fig, height_ratios=[1, 1])
+        gs = gridspec.GridSpec(len(PSTH_EVENTS.keys()), 1, figure=fig)
 
-        gs0 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[0, 0], height_ratios=[1, 3], hspace=0, wspace=0.5)
-        ax1 = fig.add_subplot(gs0[0, 0])
-        ax2 = fig.add_subplot(gs0[1, 0])
-        ax3 = fig.add_subplot(gs0[0, 1])
-        ax4 = fig.add_subplot(gs0[1, 1])
-        ax5 = fig.add_subplot(gs0[0, 2])
-        ax6 = fig.add_subplot(gs0[1, 2])
-        ax7 = fig.add_subplot(gs0[0, 3])
-        ax8 = fig.add_subplot(gs0[1, 3])
+        for i, event in enumerate(PSTH_EVENTS.keys()):
 
-        event = 'feedback_times'
-        xlabel = 'T from Feedback (s)'
-        self.dl.plot_block_raster(event, axs=[ax1, ax2], xlabel=xlabel)
-        self.dl.plot_contrast_raster(event, axs=[ax3, ax4], xlabel=xlabel, ylabel0=None, ylabel1=None)
-        self.dl.plot_left_right_raster(event, axs=[ax5, ax6], xlabel=xlabel, ylabel0=None, ylabel1=None)
-        self.dl.plot_correct_incorrect_raster(event, axs=[ax7, ax8], xlabel=xlabel, ylabel0=None, ylabel1=None)
+            gs0 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[i, 0], height_ratios=[1, 3], hspace=0,
+                                                   wspace=0.5)
+            ax1 = fig.add_subplot(gs0[0, 0])
+            ax2 = fig.add_subplot(gs0[1, 0])
+            ax3 = fig.add_subplot(gs0[0, 1])
+            ax4 = fig.add_subplot(gs0[1, 1])
+            ax5 = fig.add_subplot(gs0[0, 2])
+            ax6 = fig.add_subplot(gs0[1, 2])
+            ax7 = fig.add_subplot(gs0[0, 3])
+            ax8 = fig.add_subplot(gs0[1, 3])
 
-        ax1.get_xaxis().set_visible(False)
-        ax3.get_xaxis().set_visible(False)
-        ax5.get_xaxis().set_visible(False)
-        ax7.get_xaxis().set_visible(False)
+            xlabel = PSTH_EVENTS[event]
+            self.dl.plot_block_raster(preprocess, event, axs=[ax1, ax2], xlabel=xlabel)
+            self.dl.plot_contrast_raster(preprocess, event, axs=[ax3, ax4], xlabel=xlabel, ylabel0=None, ylabel1=None)
+            self.dl.plot_left_right_raster(preprocess, event, axs=[ax5, ax6], xlabel=xlabel, ylabel0=None, ylabel1=None)
+            self.dl.plot_correct_incorrect_raster(preprocess, event, axs=[ax7, ax8], xlabel=xlabel, ylabel0=None,
+                                                  ylabel1=None)
 
-        ax1.sharex(ax2)
-        ax3.sharex(ax4)
-        ax5.sharex(ax6)
-        ax7.sharex(ax8)
+            ax1.get_xaxis().set_visible(False)
+            ax3.get_xaxis().set_visible(False)
+            ax5.get_xaxis().set_visible(False)
+            ax7.get_xaxis().set_visible(False)
 
-        yax_to_lim = [ax1, ax3, ax5, ax7]
-        max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
-        min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
-        for ax in yax_to_lim:
-            ax.set_ylim(min_ax, max_ax)
-            ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
+            ax1.sharex(ax2)
+            ax3.sharex(ax4)
+            ax5.sharex(ax6)
+            ax7.sharex(ax8)
 
-        gs1 = gridspec.GridSpecFromSubplotSpec(2, 4, subplot_spec=gs[1, 0], height_ratios=[1, 3], hspace=0, wspace=0.5)
-        ax9 = fig.add_subplot(gs1[0, 0])
-        ax10 = fig.add_subplot(gs1[1, 0])
-        ax11 = fig.add_subplot(gs1[0, 1])
-        ax12 = fig.add_subplot(gs1[1, 1])
-        ax13 = fig.add_subplot(gs1[0, 2])
-        ax14 = fig.add_subplot(gs1[1, 2])
-        ax15 = fig.add_subplot(gs1[0, 3])
-        ax16 = fig.add_subplot(gs1[1, 3])
+            yax_to_lim = [ax1, ax3, ax5, ax7]
+            max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
+            min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+            for ax in yax_to_lim:
+                ax.set_ylim(min_ax, max_ax)
+                ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
 
-        event = 'stimOnTrigger_times'
-        xlabel = 'T from Stim on (s)'
-        self.dl.plot_block_raster(event, axs=[ax9, ax10], xlabel=xlabel)
-        self.dl.plot_contrast_raster(event, axs=[ax11, ax12], xlabel=xlabel, ylabel0=None, ylabel1=None)
-        self.dl.plot_left_right_raster(event, axs=[ax13, ax14], xlabel=xlabel, ylabel0=None, ylabel1=None)
-        self.dl.plot_correct_incorrect_raster(event, axs=[ax15, ax16], xlabel=xlabel, ylabel0=None, ylabel1=None)
-
-        ax9.get_xaxis().set_visible(False)
-        ax11.get_xaxis().set_visible(False)
-        ax13.get_xaxis().set_visible(False)
-        ax15.get_xaxis().set_visible(False)
-
-        ax9.sharex(ax10)
-        ax11.sharex(ax12)
-        ax13.sharex(ax14)
-        ax15.sharex(ax16)
-
-        yax_to_lim = [ax9, ax11, ax13, ax15]
-        max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
-        min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
-        for ax in yax_to_lim:
-            ax.set_ylim(min_ax, max_ax)
-            ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
-
-        set_figure_style_all(fig, margin_inches=0.8, top=0.95)
 
         fig.savefig(path)
-
-        if captions:
-
-            subplots = []
-            fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax2, ax3)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax4, ax5)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax6, ax7)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax8, ax9)
-            subplots.append({'panel': 'E', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax10, ax11)
-            subplots.append({'panel': 'F', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax15, ax17)
-            subplots.append({'panel': 'G', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax12, ax12)
-            subplots.append({'panel': 'H', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax13, ax13)
-            subplots.append({'panel': 'I', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            fig_pos = get_subplot_position(ax14, ax14)
-            subplots.append({'panel': 'J', 'xmin': fig_pos[0], 'ymax': fig_pos[1], 'xmax': fig_pos[2], 'ymin': fig_pos[3]})
-            df = pd.DataFrame.from_dict(subplots)
-
-            df.to_parquet(caption_path('figure5', cache_path=self.cache_path))
-            fig.savefig(path)
-        else:
-            fig.savefig(path)
 
         plt.close(fig)
         gc.collect()
 
+
+    # FIGURE 4
+    def make_trial_psth_plot(self, roi, preprocess, force=False, captions=False):
+
+        path = trial_psth_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
+        if not force and path.exists():
+            return
+        logger.debug(f"making trial psth plot for session: {self.eid}, roi: {roi}, "
+                     f"preprocessing: {preprocess}")
+
+        fig = plt.figure(figsize=(15, len(PSTH_EVENTS.keys()) * 5))
+
+        gs = gridspec.GridSpec(len(PSTH_EVENTS.keys()), 1, figure=fig)
+
+        for i, event in enumerate(PSTH_EVENTS.keys()):
+
+            gs0 = gridspec.GridSpecFromSubplotSpec(1, 4, subplot_spec=gs[i, 0], wspace=0.5)
+            ax1 = fig.add_subplot(gs0[0, 0])
+            ax2 = fig.add_subplot(gs0[0, 1])
+            ax3 = fig.add_subplot(gs0[0, 2])
+            ax4 = fig.add_subplot(gs0[0, 3])
+
+            xlabel = PSTH_EVENTS[event]
+            self.dl.plot_block_raster(preprocess, event, axs=[ax1], xlabel=xlabel, ylabel0='Signal')
+            self.dl.plot_contrast_raster(preprocess, event, axs=[ax2], xlabel=xlabel, ylabel0=None, ylabel1=None)
+            self.dl.plot_left_right_raster(preprocess, event, axs=[ax3], xlabel=xlabel, ylabel0=None, ylabel1=None)
+            self.dl.plot_correct_incorrect_raster(preprocess, event, axs=[ax4], xlabel=xlabel, ylabel0=None, ylabel1=None)
+
+            yax_to_lim = [ax1, ax2, ax3, ax4]
+            max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
+            min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+            for ax in yax_to_lim:
+                ax.set_ylim(min_ax, max_ax)
+                ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
+
+
+        fig.savefig(path)
+
+        plt.close(fig)
+        gc.collect()
     # -------------------------------------------------------------------------------------------------
     # SINGLE TRIAL OVERVIEW
     # -------------------------------------------------------------------------------------------------
 
-    # FIGURE 4
+    # FIGURE 5
 
     def make_trial_plot(self, trial_idx, force=False, captions=False):
         path = trial_overview_path(self.eid, trial_idx, cache_path=self.cache_path)
@@ -675,22 +591,7 @@ class Generator:
 
         set_figure_style(fig)
 
-        if captions:
-            subplots = []
-            fig_pos = get_subplot_position(ax1, ax1)
-            subplots.append({'panel': 'A', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax2, ax2)
-            subplots.append({'panel': 'B', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax3, ax3)
-            subplots.append({'panel': 'C', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-            fig_pos = get_subplot_position(ax4, ax4)
-            subplots.append({'panel': 'D', 'xmin': fig_pos[0], 'ymax': fig_pos[1] + 0.03, 'xmax': fig_pos[2], 'ymin': fig_pos[3] + 0.03})
-
-            df = pd.DataFrame.from_dict(subplots)
-            df.to_parquet(caption_path('figure3', cache_path=self.cache_path))
-            fig.savefig(path)
-        else:
-            fig.savefig(path)
+        fig.savefig(path)
 
         plt.close(fig)
         gc.collect()
@@ -720,47 +621,21 @@ class Generator:
 
         logger.info(f"Making all session plots for session {self.eid} {nums}")
 
-        # Figure 1
-        for roi in range(self.n_rois):
-            for preprocess in PREPROCESS.keys():
-                self.make_session_plot(roi, preprocess, force=1 in nums)
-
         # Figure 2
         try:
             self.make_behavior_plot(force=2 in nums)
         except Exception as e:
             logger.error(f"error with session {self.eid} behavior plot: {str(e)}")
 
-        # Figure 3
         for roi in range(self.n_rois):
-            for preprocess in PREPROCESS.keys():
-                self.make_trial_event_plot(roi, preprocess, force=3 in nums)
-
-        # Figure 4 (one plot per trial)
-        #self.make_all_trial_plots(force=4 in nums)
-
-    def make_captions(self):
-        self.make_session_plot(DEFAULT_ROI, DEFAULT_PREPROCESS, force=True, captions=True)
-        self.make_behavior_plot(force=True, captions=True)
-        self.make_trial_event_plot(DEFAULT_ROI, DEFAULT_PREPROCESS, force=True, captions=True)
-        self.make_trial_plot(self.trial_idxs[0], force=True, captions=True)
-
-        caption_json = {}
-        for fig in CAPTIONS.keys():
-            df = pd.read_parquet(caption_path(fig, cache_path=self.cache_path))
-            fig_panels = {}
-            for _, row in df.iterrows():
-                fig_panels[row['panel']] = {'coords': (row['xmin'], 1 - row['ymax'], row['xmax'], 1 - row['ymin']),
-                                            'legend': CAPTIONS[fig][row['panel']]}
-
-            caption_json[fig] = fig_panels
-
-        save_json(figure_details_path(cache_path=self.cache_path), caption_json, indent=2)
-
-
-def make_captions(cache_path=None, data_path=None):
-    eid = get_eids(data_path=data_path)[0]
-    Generator(eid, cache_path=cache_path, data_path=data_path).make_captions()
+            self.dl.load_photometry_data(roi)
+            for preprocess in PREPROCESS:
+                # Figure 1
+                self.make_session_plot(roi, preprocess, force=1 in nums)
+                # Figure 3
+                self.make_trial_raster_plot(roi, preprocess, force=3 in nums)
+                # Figure 4
+                self.make_trial_psth_plot(roi, preprocess, force=4 in nums)
 
 
 def make_all_plots(eid, nums=(), cache_path=None, data_path=None):
@@ -833,7 +708,7 @@ if __name__ == '__main__':
         which = sys.argv[1]
 
         if which == 'captions':
-            make_captions()
+            pass
         else:
             # which figure numbers to regenerate
             nums = list(map(int, which.split(',')))

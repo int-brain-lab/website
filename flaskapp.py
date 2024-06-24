@@ -133,9 +133,13 @@ def make_app():
     def behaviour_overview_plot(pid):
         return send(behaviour_overview_path(pid))
 
-    @app.route('/api/session/<pid>/trial_event_plot/<rid>/<preprocess>')
-    def trial_event_overview_plot(pid, rid, preprocess):
-        return send(trial_event_overview_path(pid, rid, preprocess))
+    @app.route('/api/session/<pid>/trial_raster_plot/<rid>/<preprocess>')
+    def trial_raster_overview_plot(pid, rid, preprocess):
+        return send(trial_raster_overview_path(pid, rid, preprocess))
+
+    @app.route('/api/session/<pid>/trial_psth_plot/<rid>/<preprocess>')
+    def trial_psth_overview_plot(pid, rid, preprocess):
+        return send(trial_psth_overview_path(pid, rid, preprocess))
 
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     def trial_overview_plot(pid, trial_idx):

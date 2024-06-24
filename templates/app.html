@@ -189,10 +189,25 @@
 <div class="row">
     <div class="twelve columns">
         <figure>
-            <div class="imgWrapper"><img id="trialEventPlot"></div>
-            <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <div class="imgWrapper"><img id="trialRasterPlot"></div>
+            <img id="trialRasterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
             <details>
-                <summary id="trialEventPlotLegend">Please hover your mouse over a subplot panel of interest above to
+                <summary id="trialRasterPlotLegend">Please hover your mouse over a subplot panel of interest above to
+                    obtain its figure legend here.</summary>
+            </details>
+        </figure>
+    </div>
+</div>
+
+<!--                                          FIGURE 3                                          -->
+<!-- Trial event plot -->
+<div class="row">
+    <div class="twelve columns">
+        <figure>
+            <div class="imgWrapper"><img id="trialPsthPlot"></div>
+            <img id="trialPsthPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <details>
+                <summary id="trialPsthPlotLegend">Please hover your mouse over a subplot panel of interest above to
                     obtain its figure legend here.</summary>
             </details>
         </figure>
@@ -202,61 +217,62 @@
 
 
 
+
 <!------------------------------------------------------------------------------------------------>
 <!--                                    SINGLE TRIAL OVERVIEW                                   -->
 <!------------------------------------------------------------------------------------------------>
 
 <!-- TRIAL -->
-<div class="row">
-    <div class="twelve columns">
-        <h2>Single trial overview</h2>
-    </div>
-</div>
+<!--<div class="row">-->
+<!--    <div class="twelve columns">-->
+<!--        <h2>Single trial overview</h2>-->
+<!--    </div>-->
+<!--</div>-->
 
-<!-- TRIAL TEXT -->
-<div class="row">
-    <div class="twelve columns">
-        <p></p>
-    </div>
-</div>
+<!--&lt;!&ndash; TRIAL TEXT &ndash;&gt;-->
+<!--<div class="row">-->
+<!--    <div class="twelve columns">-->
+<!--        <p></p>-->
+<!--    </div>-->
+<!--</div>-->
 
-<!-- TRIAL SELECTOR -->
-<div class="row">
-    <div class="three columns">
+<!--&lt;!&ndash; TRIAL SELECTOR &ndash;&gt;-->
+<!--<div class="row">-->
+<!--    <div class="three columns">-->
 
-        <!-- Select -->
-        <select size="15" id="trialSelector" class="u-full-width multiple">
-        </select>
+<!--        &lt;!&ndash; Select &ndash;&gt;-->
+<!--        <select size="15" id="trialSelector" class="u-full-width multiple">-->
+<!--        </select>-->
 
-        <!-- Arrow button for navigation -->
-        <div class="buttonNav">
-            <div>
-                <button class="trialLeft" onclick="arrowButton('trialSelector', -1);">&lt;</button>
-                <button class="trialRight" onclick="arrowButton('trialSelector', +1);">&gt;</button>
-            </div>
-        </div>
-    </div>
+<!--        &lt;!&ndash; Arrow button for navigation &ndash;&gt;-->
+<!--        <div class="buttonNav">-->
+<!--            <div>-->
+<!--                <button class="trialLeft" onclick="arrowButton('trialSelector', -1);">&lt;</button>-->
+<!--                <button class="trialRight" onclick="arrowButton('trialSelector', +1);">&gt;</button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
 
-    <!-- Trial details -->
-    <div class="nine columns" id="trialDetails">
-    </div>
-</div>
+<!--    &lt;!&ndash; Trial details &ndash;&gt;-->
+<!--    <div class="nine columns" id="trialDetails">-->
+<!--    </div>-->
+<!--</div>-->
 
-<!--                                          FIGURE 4                                          -->
-<!-- TRIAL PLOTS -->
-<div class="row">
-    <div class="twelve columns">
-        <figure id="trialWrapper">
-            <div class="imgWrapper"><img id="trialPlot"></div>
-            <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
-            <div id="trialTime"></div>
-            <details>
-                <summary id="trialPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
-                    its figure legend here.</summary>
-            </details>
-        </figure>
-    </div>
-</div>
+<!--&lt;!&ndash;                                          FIGURE 5                                          &ndash;&gt;-->
+<!--&lt;!&ndash; TRIAL PLOTS &ndash;&gt;-->
+<!--<div class="row">-->
+<!--    <div class="twelve columns">-->
+<!--        <figure id="trialWrapper">-->
+<!--            <div class="imgWrapper"><img id="trialPlot"></div>-->
+<!--            <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">-->
+<!--            <div id="trialTime"></div>-->
+<!--            <details>-->
+<!--                <summary id="trialPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain-->
+<!--                    its figure legend here.</summary>-->
+<!--            </details>-->
+<!--        </figure>-->
+<!--    </div>-->
+<!--</div>-->
 
 
 {% endblock %}
