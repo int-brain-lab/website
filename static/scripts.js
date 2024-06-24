@@ -969,6 +969,14 @@ async function selectRoi(pid, rid, preprocess) {
 
     updateTrialPlot(pid, rid, preprocess)
 
+    // Show information about trials in table
+    var url = `/api/session/${pid}/roi_details/${rid}`;
+    var r = await fetch(url).then();
+    var details = await r.json();
+
+    // Fill the trial details table.
+    fillHorizontalTable(details, 'roiDetails')
+
 };
 
 

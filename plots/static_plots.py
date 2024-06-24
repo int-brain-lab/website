@@ -27,37 +27,7 @@ import one.alf.io as alfio
 from one.alf.exceptions import ALFObjectNotFound
 
 from one.api import ONE
-one = ONE()
-
-
-
-
-def get_session_table(eids, one, save_path):
-    session_df = pd.DataFrame()
-    rois_sess = [[0, 1], [0, 1, 2]]
-    for i, (eid, roi) in enumerate(zip(eids, rois_sess)):
-        session = one.get_details(eid)
-        subject = one.alyx.rest('subjects', 'list', nickname=session['subject'])[0]
-        for r in roi:
-            data = {
-                'eid': eid,
-                'lab': session['lab'],
-                'subject': session['subject'],
-                'date': session['start_time'][0:10],
-                'dob': subject['birth_date'],
-                'roi': r,  # needs this roi to match the roi in data
-                'x': -2400 + (r * 200) + (i * 500),
-                'y': 1000 + (r * 1000) + (i * 200),
-                'z': 0,
-                'depth': 4000,
-                'theta': 20,
-                'phi': 180,
-                'roll': 0,
-            }
-
-            session_df = pd.concat([session_df, pd.DataFrame.from_dict([data])])
-
-    session_df.to_parquet(save_path.joinpath('session.table.pqt'))
+one = ONE(cache_dir="/mnt/h0/kb/data/one")
 
 
 # -------------------------------------------------------------------------------------------------
@@ -100,33 +70,52 @@ PSTH_EVENTS = {
     'stimOnTrigger_times': 'T from Stim on (s)',
     'firstMovement_times': 'T from First move (s)'
 }
+
+SUBJECT_ROI = {
+    "ZFM-04022": 'VTA, SNc', # Ask Kcenia about these ones
+    "ZFM-04026": 'VTA',
+    "ZFM-03447": 'VTA',
+    "ZFM-04019": 'SNc',
+    "ZFM-03448": 'SNc, SI',
+    "ZFM-05245": 'DR',
+    "ZFM-05248": 'DR',
+    "ZFM-05235": 'DR',
+    "ZFM-05236": 'DR',
+    "ZFM-04392": 'DR',
+    "ZFM-03059": 'DR',
+    "ZFM-03061": 'DR',
+    "ZFM-03065": 'DR',
+    "ZFM-06271": 'LC',
+    "ZFM-06272": 'LC',
+    "ZFM-04533": 'LC',
+    "ZFM-04534": 'LC',
+    "ZFM-06275": 'LC',
+    "ZFM-06268": 'LC',
+    "ZFM-06171": 'LC',
+    "ZFM-06305": 'SI',
+    "ZFM-06948": 'SI',
+}
+
 # -------------------------------------------------------------------------------------------------
 # Loading functions
 # -------------------------------------------------------------------------------------------------
 
 def load_trials(eid, data_path=None):
     data_path = data_path or DATA_DIR
-    trials = pd.read_parquet(next(data_path.joinpath(eid).glob(f'trialstable_*_{eid}.pqt')))
+    trials = one.load_object(eid, 'trials')
     return trials
 
 
-def load_psth(eid, times, roi=None, preprocess=None, data_path=None):
+def load_photometry(eid, roi=None, data_path=None):
     data_path = data_path or DATA_DIR
-    psth = np.load(next(data_path.joinpath(eid).glob(f'psthidx_{times}_*_{eid}.npy')))
-    return psth
-
-
-def load_photometry(eid, roi=None, preprocess=None, data_path=None):
-    data_path = data_path or DATA_DIR
-    photometry = pd.read_parquet(next(data_path.joinpath(eid).glob(f'demux_nph_*_{eid}.pqt')))
+    photometry = pd.read_parquet(data_path.joinpath('alf', roi, 'raw_photometry.pqt'))
     return photometry
 
 
 def load_camera(eid, camera, data_path=None):
     data_path = data_path or DATA_DIR
-    # camera = alfio.load_object(data_path.joinpath(eid), object=f'{camera}Camera')
     try:
-        camera = one.load_object(eid, 'camera')
+        camera = one.load_object(eid, f'{camera}Camera', collection='alf')
     except ALFObjectNotFound:
         camera = None
     return camera
@@ -134,7 +123,6 @@ def load_camera(eid, camera, data_path=None):
 
 def load_licks(eid, data_path=None):
     data_path = data_path or DATA_DIR
-    # licks = np.load(data_path.joinpath(eid, 'licks.times.npy'))
     try:
         licks = one.load_object(eid, 'licks')
     except ALFObjectNotFound:
@@ -144,8 +132,10 @@ def load_licks(eid, data_path=None):
 
 def load_wheel(eid, data_path=None):
     data_path = data_path or DATA_DIR
-    # wheel = alfio.load_object(data_path.joinpath(eid), object='wheel')
-    wheel = one.load_object(eid, 'wheel')
+    try:
+        wheel = one.load_object(eid, 'wheel')
+    except ALFObjectNotFound:
+        wheel = None
     return wheel
 
 
@@ -260,17 +250,12 @@ class DataLoader:
 
     def __init__(self, data_path=None):
         self.data_path = data_path or DATA_DIR
-        self.session_df = pd.read_parquet(self.data_path.joinpath('session.table.pqt'))
-        self.session_df = self.session_df.set_index('eid')
 
-        self.BRAIN_ATLAS = AllenAtlas()
-        self.BRAIN_ATLAS.compute_surface()
-        self.BRAIN_REGIONS = self.BRAIN_ATLAS.regions
+        # self.BRAIN_ATLAS = AllenAtlas()
+        # self.BRAIN_ATLAS.compute_surface()
+        # self.BRAIN_REGIONS = self.BRAIN_ATLAS.regions
 
     def session_init(self, eid):
-        assert self.session_df is not None
-        if eid not in self.session_df.index:
-            raise ValueError(f"session {eid} is not in session.table.pqt")
 
         self.eid = eid
         self.load_session_data(eid)
@@ -282,15 +267,26 @@ class DataLoader:
         :return:
         """
 
-        self.sessions = self.session_df[self.session_df.index == eid].to_dict(orient='records')
-        # For general session info can just get the first row
-        self.session_info = self.sessions[0]
+        session_path = one.eid2path(eid)
+        session_info = one.path2record(session_path).to_dict()
+        subject = one.alyx.rest('subjects', 'list', nickname=session_info['subject'])[0]
 
-        # Get the number of rois from the number of rows that have the same index, i.e the same eid
-        self.n_rois = len(self.sessions)
+        self.regions = [reg.name for reg in session_path.joinpath('alf').glob('Region*')]
+
+        self.n_rois = len(self.regions)
+
+        self.session_info = {
+                'eid': eid,
+                'lab': session_info['lab'],
+                'subject': session_info['subject'],
+                'date': str(session_info['date']),
+                'dob': subject['birth_date'],
+                'roi': self.n_rois,
+                'protocol': session_info['task_protocol']
+            }
 
         # Load photometry data for default roi and preprocessing
-        self.photometry = load_photometry(eid, roi=DEFAULT_ROI, data_path=self.data_path)
+        self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
 
         # Load trials data
         self.trials = load_trials(eid, data_path=self.data_path)
@@ -298,22 +294,28 @@ class DataLoader:
 
         # Load wheel data
         self.wheel = load_wheel(eid, data_path=self.data_path)
+        if self.wheel is None:
+            self.wheel_flag = False
+        else:
+            self.wheel_flag = True
 
         # Load camera data
         self.camera = load_camera(eid, 'left', data_path=self.data_path)
         if self.camera is None or 'computedFeatures' not in self.camera.keys():
             self.camera_flag = False
+        else:
+            self.camera = True
 
         # Load lick data
         self.licks = load_licks(eid, data_path=self.data_path)
         if self.licks is None:
-            self.lick_flag = None
+            self.lick_flag = False
+        else:
+            self.lick_flag = True
 
     def load_photometry_data(self, roi):
 
-        self.session = next(s for s in self.sessions if s['roi'] == roi)
-
-        self.photometry = load_photometry(self.eid, roi=roi, data_path=self.data_path)
+        self.photometry = load_photometry(self.eid, roi=self.regions[roi], data_path=self.data_path)
         self.preprocess_photometry_data()
         self.psth = self.compute_photometry_psth()
 
@@ -340,10 +342,6 @@ class DataLoader:
 
         return psth_preprocess
 
-
-
-
-
     def get_session_details(self):
         """
         Get dict of metadata for session
@@ -359,6 +357,7 @@ class DataLoader:
         details['Recording length'] = f'{int(np.max(self.photometry["times"]) / 60)} minutes'
         details['N trials'] = f'{self.trials.stimOn_times.size}'
         details['N rois'] = self.n_rois
+        details['Protocol'] = self.session_info['protocol']
         details['eid'] = self.eid
 
         # Internal fields used by the frontend.
@@ -372,6 +371,18 @@ class DataLoader:
 
         # Session duration
         details['_duration'] = np.max(self.photometry["times"])
+
+        return details
+
+    def get_roi_details(self, roi_idx):
+        """
+        Get dict of metadata for rois
+        :return:
+        """
+
+        details = OrderedDict()
+        details['name'] = self.regions[roi_idx]
+        details['acronym'] = SUBJECT_ROI[self.session_info['subject']]
 
         return details
 
@@ -402,8 +413,8 @@ class DataLoader:
         nan_idx = np.bitwise_or(np.isnan(self.trials['stimOn_times']), np.isnan(self.trials['feedback_times']))
         trial_no = np.arange(len(self.trials['stimOn_times']))
 
-        t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals_0']], axis=1)
-        t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals_1']], axis=1)
+        t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
+        t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
 
         # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
         t0[0] = self.trials['stimOn_times'][0] - 0.18
@@ -475,8 +486,8 @@ class DataLoader:
         if trial_idx is not None:
             if xlim is None:
                 trials = filter_trials_by_trial_idx(self.trials, trial_idx)
-                ax.vlines(trials['intervals_0'], *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
-                ax.text(trials['intervals_0'], 1.01, f'Trial {trial_idx}', c='k', rotation=45,
+                ax.vlines(trials['intervals'][:, 0], *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
+                ax.text(trials['intervals'][:, 0], 1.01, f'Trial {trial_idx}', c='k', rotation=45,
                         rotation_mode='anchor', ha='left', transform=ax.get_xaxis_transform())
             else:
                 trials = filter_trials_by_trial_idx(self.trials, trial_idx)

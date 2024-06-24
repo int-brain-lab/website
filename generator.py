@@ -185,6 +185,10 @@ def trial_details_path(eid, trial_idx, cache_path=None):
     return session_cache_path(eid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
 
 
+def roi_details_path(eid, roi_idx, cache_path=None):
+    return session_cache_path(eid, cache_path=cache_path) / f'roi-{roi_idx}.json'
+
+
 def session_overview_path(eid, roi, preprocess, cache_path=None):
     return session_cache_path(eid, cache_path=cache_path) / f'session_overview_roi{roi}_pre_{preprocess}.png'
 
@@ -286,12 +290,17 @@ class Generator:
         path = trial_details_path(self.eid, trial_idx, cache_path=self.cache_path)
         save_json(path, details)
 
+    def save_roi_details(self, roi_idx):
+        logger.debug(f"saving roi #{roi_idx} details for session {self.eid}")
+        details = self.dl.get_roi_details(roi_idx)
+        path = roi_details_path(self.eid, roi_idx, cache_path=self.cache_path)
+        save_json(path, details)
+
     # -------------------------------------------------------------------------------------------------
     # SESSION OVERVIEW
     # -------------------------------------------------------------------------------------------------
 
     # FIGURE 1
-
     def make_session_plot(self, roi, preprocess, force=False, captions=False):
 
         path = session_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
@@ -336,7 +345,9 @@ class Generator:
 
             self.dl.plot_session_reaction_time(ax=ax_a)
             self.dl.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
-            self.dl.plot_coronal_slice(ax_cor)
+
+            remove_frame(ax_cor)
+            # self.dl.plot_coronal_slice(ax_cor)
 
             gs0_ax4 = fig.add_subplot(gs1[0, 0])
             gs0_ax5 = fig.add_subplot(gs1[1, 0])
@@ -368,7 +379,6 @@ class Generator:
             logger.error(f"error with session overview plot {self.eid}: {str(e)}")
 
     # FIGURE 2
-
     def make_behavior_plot(self, force=False, captions=False):
 
         path = behaviour_overview_path(self.eid, cache_path=self.cache_path)
@@ -403,6 +413,7 @@ class Generator:
         ax15 = fig.add_subplot(gs1[0, 5])
         ax16 = fig.add_subplot(gs1[1, 5])
 
+        # Attempt to plot DLC
         if self.dl.camera_flag:
             self.dl.plot_dlc_feature_raster('left', 'paw_r_speed', axs=[ax5, ax6], ylabel0='Speed (px/s)', title='Left paw')
             self.dl.plot_dlc_feature_raster('left', 'nose_tip_speed', axs=[ax7, ax8], ylabel0='Speed (px/s)', ylabel1=None,
@@ -414,7 +425,15 @@ class Generator:
         else:
             for ax in [ax5, ax6, ax7, ax8, ax9, ax10, ax11, ax12]:
                 remove_frame(ax)
-        self.dl.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
+
+        # Attempt to plot wheel
+        if self.dl.wheel_flag:
+            self.dl.plot_wheel_raster(axs=[ax13, ax14], ylabel0='Velocity (rad/s)', ylabel1=None, title='Wheel velocity')
+        else:
+            for ax in [ax13, ax14]:
+                remove_frame(ax)
+
+        # Attempt to plot licks
         if self.dl.lick_flag:
             self.dl.plot_lick_raster(axs=[ax15, ax16], ylabel1=None, title='Licks')
         else:
@@ -449,7 +468,6 @@ class Generator:
         gc.collect()
 
     # FIGURE 3
-
     def make_trial_raster_plot(self, roi, preprocess, force=False, captions=False):
 
         path = trial_raster_overview_path(self.eid, roi, preprocess, cache_path=self.cache_path)
@@ -504,7 +522,6 @@ class Generator:
 
         plt.close(fig)
         gc.collect()
-
 
     # FIGURE 4
     def make_trial_psth_plot(self, roi, preprocess, force=False, captions=False):
@@ -575,12 +592,15 @@ class Generator:
         ax3 = fig.add_subplot(gs1[0, 0])
         ax4 = fig.add_subplot(gs1[1, 0])
 
-        if self.dl.camera_flag:
+        if self.dl.camera_flag and self.dl.wheel_flag:
             self.dl.plot_wheel_trace(trial_idx=trial_idx, ax=ax3, ylabel='Wheel pos (rad)', xlabel=None)
             self.dl.plot_dlc_feature_trace('left', 'paw_r_speed', trial_idx, ax=ax4, xlabel='T in trial (s)',
                                            ylabel='Paw speed (px/s)')
-        else:
+        elif self.dl.wheel_flag:
             self.dl.plot_wheel_trace(trial_idx=trial_idx, ax=ax3, ylabel='Wheel pos (rad)', xlabel='T in trial (s)')
+            remove_frame(ax4)
+        else:
+            remove_frame(ax3)
             remove_frame(ax4)
 
         ax3.sharex(ax2)
@@ -629,6 +649,7 @@ class Generator:
 
         for roi in range(self.n_rois):
             self.dl.load_photometry_data(roi)
+            self.save_roi_details(roi)
             for preprocess in PREPROCESS:
                 # Figure 1
                 self.make_session_plot(roi, preprocess, force=1 in nums)

@@ -122,6 +122,10 @@ def make_app():
     def trial_details(pid, trial_idx):
         return load_json(trial_details_path(pid, trial_idx))
 
+    @app.route('/api/session/<pid>/roi_details/<int:roi_idx>')
+    def roi_details(pid, roi_idx):
+        return load_json(roi_details_path(pid, roi_idx))
+
     # Figures
     # ---------------------------------------------------------------------------------------------
 
