@@ -247,9 +247,9 @@ def get_subplot_position(ax1, ax2):
 # -------------------------------------------------------------------------------------------------
 
 class Generator:
-    def __init__(self, eid, cache_path=None, data_path=None):
+    def __init__(self, eid, one=None, cache_path=None, data_path=None):
         self.cache_path = cache_path or CACHE_DIR
-        self.dl = DataLoader(data_path=data_path)
+        self.dl = DataLoader(one=one, data_path=data_path)
         self.dl.session_init(eid)
         self.dl.load_photometry_data(DEFAULT_ROI)
         self.eid = eid

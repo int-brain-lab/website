@@ -27,7 +27,6 @@ import one.alf.io as alfio
 from one.alf.exceptions import ALFObjectNotFound
 
 from one.api import ONE
-one = ONE(cache_dir="/mnt/h0/kb/data/one")
 
 
 # -------------------------------------------------------------------------------------------------
@@ -100,7 +99,7 @@ SUBJECT_ROI = {
 # Loading functions
 # -------------------------------------------------------------------------------------------------
 
-def load_trials(eid, data_path=None):
+def load_trials(eid, one, data_path=None):
     data_path = data_path or DATA_DIR
     trials = one.load_object(eid, 'trials')
     return trials
@@ -112,7 +111,7 @@ def load_photometry(eid, roi=None, data_path=None):
     return photometry
 
 
-def load_camera(eid, camera, data_path=None):
+def load_camera(eid, one, camera, data_path=None):
     data_path = data_path or DATA_DIR
     try:
         camera = one.load_object(eid, f'{camera}Camera', collection='alf')
@@ -121,7 +120,7 @@ def load_camera(eid, camera, data_path=None):
     return camera
 
 
-def load_licks(eid, data_path=None):
+def load_licks(eid, one, data_path=None):
     data_path = data_path or DATA_DIR
     try:
         licks = one.load_object(eid, 'licks')
@@ -130,7 +129,7 @@ def load_licks(eid, data_path=None):
     return licks
 
 
-def load_wheel(eid, data_path=None):
+def load_wheel(eid, one, data_path=None):
     data_path = data_path or DATA_DIR
     try:
         wheel = one.load_object(eid, 'wheel')
@@ -248,8 +247,9 @@ class DataLoader:
     # Loading functions
     # ---------------------------------------------------------------------------------------------
 
-    def __init__(self, data_path=None):
+    def __init__(self, one=None, data_path=None):
         self.data_path = data_path or DATA_DIR
+        self.one = one or ONE()
 
         # self.BRAIN_ATLAS = AllenAtlas()
         # self.BRAIN_ATLAS.compute_surface()
@@ -267,9 +267,9 @@ class DataLoader:
         :return:
         """
 
-        session_path = one.eid2path(eid)
-        session_info = one.path2record(session_path).to_dict()
-        subject = one.alyx.rest('subjects', 'list', nickname=session_info['subject'])[0]
+        session_path = self.one.eid2path(eid)
+        session_info = self.one.path2record(session_path).to_dict()
+        subject = self.one.alyx.rest('subjects', 'list', nickname=session_info['subject'])[0]
 
         self.regions = [reg.name for reg in session_path.joinpath('alf').glob('Region*')]
 
@@ -289,25 +289,25 @@ class DataLoader:
         self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
 
         # Load trials data
-        self.trials = load_trials(eid, data_path=self.data_path)
+        self.trials = load_trials(eid, self.one, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
 
         # Load wheel data
-        self.wheel = load_wheel(eid, data_path=self.data_path)
+        self.wheel = load_wheel(eid, self.one, data_path=self.data_path)
         if self.wheel is None:
             self.wheel_flag = False
         else:
             self.wheel_flag = True
 
         # Load camera data
-        self.camera = load_camera(eid, 'left', data_path=self.data_path)
+        self.camera = load_camera(eid, self.one, 'left', data_path=self.data_path)
         if self.camera is None or 'computedFeatures' not in self.camera.keys():
             self.camera_flag = False
         else:
             self.camera = True
 
         # Load lick data
-        self.licks = load_licks(eid, data_path=self.data_path)
+        self.licks = load_licks(eid, self.one, data_path=self.data_path)
         if self.licks is None:
             self.lick_flag = False
         else:
