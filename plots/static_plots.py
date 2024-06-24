@@ -18,7 +18,8 @@ import scipy.signal
 
 from brainbox.task.trials import find_trial_ids
 from brainbox.behavior.wheel import velocity_filtered, interpolate_position
-from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials
+from brainbox.behavior.training import (plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast,
+compute_reaction_time)
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
 import iblphotometry.preprocessing as iblphot
@@ -194,6 +195,32 @@ def interpolate_along_track(xyz_track, depths):
     return xyz_channels
 
 
+def compute_psth(signal, times, events, fs, peri_event_window=None):
+
+    peri_event_window = [-1, 2] if peri_event_window is None else peri_event_window
+    # compute a vector of indices corresponding to the perievent window at the given sampling rate
+    sample_window = np.arange(peri_event_window[0] * fs, peri_event_window[1] * fs + 1)
+    # we inflate this vector to a 2d array where each column corresponds to an event
+    idx_psth = np.tile(sample_window[:, np.newaxis], (1, events.size))
+    # we add the index of each event too their respective column
+    idx_event = np.searchsorted(times, events)
+    idx_psth += idx_event
+    
+    nan_idx = np.where(idx_psth >= signal.size)
+    if nan_idx[1].size > 0:
+        nan_idx = np.unique(nan_idx[1])
+        nan_append = idx_psth[:, nan_idx[0]:]
+        idx_psth = idx_psth[:, 0:nan_idx[0]]
+        psth = signal[idx_psth]  # psth is a 2d array (ntimes, nevents)
+        psth = np.c_[psth, nan_append]
+    else:
+        psth = signal[idx_psth]
+
+    psth[idx_psth > (signal.size - 1)] = np.nan
+    # remove events that are out of bounds
+    return psth
+
+
 # -------------------------------------------------------------------------------------------------
 # Styling functions
 # -------------------------------------------------------------------------------------------------
@@ -334,7 +361,7 @@ class DataLoader:
         for preprocess in PREPROCESS:
             psth = Bunch()
             for event in PSTH_EVENTS.keys():
-                psth[event] = iblphot.psth(self.photometry[preprocess].values, self.photometry['times'].values,
+                psth[event] = compute_psth(self.photometry[preprocess].values, self.photometry['times'].values,
                                            self.trials[event], fs, peri_event_window=event_window).T
             psth_preprocess[preprocess] = psth
 
@@ -755,7 +782,10 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        plot_reaction_time(self.trials, ax=ax)
+        if np.all(self.trials['probabilityLeft'] == 0.5):
+            plot_reaction_time_50(self.trials, ax=ax)
+        else:
+            plot_reaction_time(self.trials, ax=ax)
         set_axis_style(ax, xlabel='Contrasts', ylabel='Reaction time (s)')
         leg = ax.get_legend()
         h = leg.legend_handles
@@ -778,6 +808,71 @@ class DataLoader:
         set_axis_style(ax, xlabel='Trial number', ylabel='Reaction time (s)')
 
         return fig
+
+    @staticmethod
+    def plot_reaction_time_50(trials, ax=None, title=None, plot_ci=False, ci_alpha=0.32, **kwargs):
+        """
+        Function to plot reaction time against contrast a la datajoint webpage.
+
+        The reaction times are plotted individually for the following three blocks: {0.5, 0.2, 0.8}.
+
+        Parameters
+        ----------
+        trials : one.alf.io.AlfBunch
+            An ALF trials object containing the keys {'probabilityLeft', 'contrastLeft',
+            'contrastRight', 'feedbackType', 'choice', 'response_times', 'stimOn_times'}.
+        ax : matplotlib.pyplot.Axes
+            An axis object to plot onto.
+        title : str
+            An optional plot title.
+        plot_ci : bool
+            If true, computes and plots the confidence intervals for response at each contrast.
+        ci_alpha : float, default=0.32
+            Significance level for confidence interval. Must be in (0, 1). If `plot_ci` is false,
+            this value is ignored.
+        **kwargs
+            If `ax` is None, these arguments are passed to matplotlib.pyplot.subplots.
+
+        Returns
+        -------
+        matplotlib.pyplot.Figure
+            The figure handle containing the plot.
+        matplotlib.pyplot.Axes
+            The plotted axes.
+
+        See Also
+        --------
+        scipy.stats.bootstrap - the function used to compute the confidence interval.
+        """
+
+        signed_contrast = get_signed_contrast(trials)
+        out_50 = compute_reaction_time(trials, signed_contrast=signed_contrast, block=0.5, compute_ci=plot_ci,
+                                       alpha=ci_alpha)
+
+        cmap = sns.diverging_palette(20, 220, n=3, center='dark')
+
+        if not ax:
+            fig, ax = plt.subplots(**kwargs)
+        else:
+            fig = plt.gcf()
+
+        data_50 = ax.plot(out_50[1], out_50[0], '-o', color=cmap[1])
+
+        if plot_ci:
+            errbar_50 = np.c_[out_50[0] - out_50[3][:, 0], out_50[3][:, 1] - out_50[0]].T
+
+            ax.errorbar(out_50[1], out_50[0], yerr=errbar_50, ecolor=cmap[1], fmt='none', capsize=5, alpha=0.4)
+
+        ax.legend([data_50[0]],
+                  ['p_left=0.5 data'],
+                  loc='upper left')
+        ax.set_ylabel('Reaction time (s)')
+        ax.set_xlabel('Contrasts')
+
+        if title:
+            ax.set_title(title)
+
+        return fig, ax
 
     def add_trial_events_to_raster(self, ax, trials, text=True):
 
