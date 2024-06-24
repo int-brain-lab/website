@@ -783,7 +783,7 @@ class DataLoader:
             fig = ax.get_figure()
 
         if np.all(self.trials['probabilityLeft'] == 0.5):
-            plot_reaction_time_50(self.trials, ax=ax)
+            self.plot_reaction_time_50(self.trials, ax=ax)
         else:
             plot_reaction_time(self.trials, ax=ax)
         set_axis_style(ax, xlabel='Contrasts', ylabel='Reaction time (s)')
@@ -809,8 +809,8 @@ class DataLoader:
 
         return fig
 
-    @staticmethod
-    def plot_reaction_time_50(trials, ax=None, title=None, plot_ci=False, ci_alpha=0.32, **kwargs):
+
+    def plot_reaction_time_50(self, trials, ax=None, title=None, plot_ci=False, ci_alpha=0.32, **kwargs):
         """
         Function to plot reaction time against contrast a la datajoint webpage.
 
