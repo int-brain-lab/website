@@ -1155,7 +1155,10 @@ class DataLoader:
         trial_idx = np.argsort(contrasts)
         dividers = list(np.where(np.diff(np.sort(contrasts)) != 0)[0])
         labels = [str(_ * 100) for _ in np.unique(contrasts)]
-        colours = ['0.9', '0.7', '0.5', '0.3', '0.0']
+        if len(labels) == 5:
+            colours = ['0.9', '0.7', '0.5', '0.3', '0.0']
+        else:
+            colours = [str(c) for c in np.linspace(0, 0.9, len(labels))[::-1]]
 
         if len(axs) == 1:
             fig, ax = self.processed_psth(self.psth[signal][event], trial_idx, dividers, colours, labels,
