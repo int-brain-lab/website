@@ -73,7 +73,7 @@ PSTH_EVENTS = {
 }
 
 SUBJECT_ROI = {
-    "ZFM-04022": 'VTA, SNc', # Ask Kcenia about these ones
+    "ZFM-04022": 'VTA, SNc',  # Ask Kcenia about these ones
     "ZFM-04026": 'VTA',
     "ZFM-03447": 'VTA',
     "ZFM-04019": 'SNc',
@@ -393,7 +393,7 @@ class DataLoader:
         details['DOB'] = self.session_info['dob']
         details['Recording date'] = self.session_info['date']
         details['Recording length'] = f'{int(np.max(self.photometry["times"]) / 60)} minutes'
-        details['N trials'] = f'{self.trials.stimOn_times.size}'
+        details['N trials'] = f'{self.trials.stimOnTrigger_times.size}'
         details['N rois'] = self.n_rois
         details['Protocol'] = self.session_info['protocol']
         details['eid'] = self.eid
@@ -411,7 +411,7 @@ class DataLoader:
         details['_duration'] = np.max(self.photometry["times"])
 
         # Acronyms
-        details['_acronyms'] = SUBJECT_ROI[self.session_info['subject']]
+        details['_acronyms'] = [*SUBJECT_ROI[self.session_info['subject']].split(', ')]
 
         return details
 
@@ -444,21 +444,21 @@ class DataLoader:
         details['Stim side'] = 'left' if np.isnan(trials.contrastRight) else 'right'
         details['Block proba'] = _get_block_probability(trials.probabilityLeft)
         details['Resp type'] = 'correct' if trials.feedbackType == 1 else 'incorrect'
-        details['Resp time'] = f'{np.round((trials.feedback_times - trials.stimOn_times) * 1e3, 0)} ms'
-        details['Mov time'] = f'{np.round((trials.firstMovement_times - trials.stimOn_times) * 1e3, 0)} ms'
+        details['Resp time'] = f'{np.round((trials.feedback_times - trials.stimOnTrigger_times) * 1e3, 0)} ms'
+        details['Mov time'] = f'{np.round((trials.firstMovement_times - trials.stimOnTrigger_times) * 1e3, 0)} ms'
 
         return details
 
     def compute_trial_intervals(self):
         # Find the nan trials and remove these
-        nan_idx = np.bitwise_or(np.isnan(self.trials['stimOn_times']), np.isnan(self.trials['feedback_times']))
-        trial_no = np.arange(len(self.trials['stimOn_times']))
+        nan_idx = np.bitwise_or(np.isnan(self.trials['stimOnTrigger_times']), np.isnan(self.trials['feedback_times']))
+        trial_no = np.arange(len(self.trials['stimOnTrigger_times']))
 
-        t0 = np.nanmax(np.c_[self.trials['stimOn_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
+        t0 = np.nanmax(np.c_[self.trials['stimOnTrigger_times'] - 1, self.trials['intervals'][:, 0]], axis=1)
         t1 = np.nanmin(np.c_[self.trials['feedback_times'] + 1.5, self.trials['intervals'][:, 1]], axis=1)
 
         # For the first trial limit t0 to be 0.18s before stimOn, to be consistent with the videos
-        t0[0] = self.trials['stimOn_times'][0] - 0.18
+        t0[0] = self.trials['stimOnTrigger_times'][0] - 0.18
 
         t0[nan_idx] = None
         t1[nan_idx] = None
@@ -572,19 +572,21 @@ class DataLoader:
         zero_correct_trials = np.bitwise_and(contrasts == 0, self.trials.feedbackType == 1)
         zero_incorrect_trials = np.bitwise_and(contrasts == 0, self.trials.feedbackType == -1)
 
-        axs[0].scatter(self.trials['stimOn_times'][right_correct_trials], contrasts[right_correct_trials] * 100,
+        stim_times = self.trials['stimOnTrigger_times']
+
+        axs[0].scatter(stim_times[right_correct_trials], contrasts[right_correct_trials] * 100,
                        facecolors='none', edgecolors='b', s=9)
-        axs[0].scatter(self.trials['stimOn_times'][right_incorrect_trials], contrasts[right_incorrect_trials] * 100,
+        axs[0].scatter(stim_times[right_incorrect_trials], contrasts[right_incorrect_trials] * 100,
                        marker='x', c='r', s=9)
 
-        axs[1].scatter(self.trials['stimOn_times'][zero_correct_trials], contrasts[zero_correct_trials] * 100,
+        axs[1].scatter(stim_times[zero_correct_trials], contrasts[zero_correct_trials] * 100,
                        facecolors='none', edgecolors='b', s=9)
-        axs[1].scatter(self.trials['stimOn_times'][zero_incorrect_trials], contrasts[zero_incorrect_trials] * 100,
+        axs[1].scatter(stim_times[zero_incorrect_trials], contrasts[zero_incorrect_trials] * 100,
                        marker='x', c='r', s=9)
 
-        axs[2].scatter(self.trials['stimOn_times'][left_correct_trials], np.abs(contrasts[left_correct_trials]) * 100,
+        axs[2].scatter(stim_times[left_correct_trials], np.abs(contrasts[left_correct_trials]) * 100,
                        facecolors='none', edgecolors='b', s=9)
-        axs[2].scatter(self.trials['stimOn_times'][left_incorrect_trials], np.abs(contrasts[left_incorrect_trials]) * 100,
+        axs[2].scatter(stim_times[left_incorrect_trials], np.abs(contrasts[left_incorrect_trials]) * 100,
                        marker='x', c='r', s=9)
 
         dividers = np.where(np.diff(self.trials['probabilityLeft']) != 0)[0]
@@ -594,12 +596,12 @@ class DataLoader:
         colours[np.where(blocks == 0.5)] = np.array([*CMAP[1]])
         colours[np.where(blocks == 0.8)] = np.array([*CMAP[2]])
 
-        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]]  # sometimes last trial is nan
+        dividers = [0] + list(dividers) + [np.where(~np.isnan(stim_times))[0][-1]]  # sometimes last trial is nan
         for ax in axs:
             for iD in range(len(dividers) - 1):
                 ax.fill_betweenx([-100, 100],
-                                 [self.trials.stimOn_times[dividers[iD + 1]], self.trials.stimOn_times[dividers[iD + 1]]],
-                                 [self.trials.stimOn_times[dividers[iD]], self.trials.stimOn_times[dividers[iD]]], color=colours[iD],
+                                 [stim_times[dividers[iD + 1]], stim_times[dividers[iD + 1]]],
+                                 [stim_times[dividers[iD]], stim_times[dividers[iD]]], color=colours[iD],
                                  alpha=0.2)
 
         axs[0].set_yscale('log')
@@ -652,14 +654,16 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        reaction_time = self.trials['response_times'] - self.trials['stimOn_times']
+        stim_times = self.trials['stimOnTrigger_times']
+
+        reaction_time = self.trials['response_times'] - stim_times
         correct_idx = np.where(self.trials.feedbackType == 1)[0]
         incorrect_idx = np.where(self.trials.feedbackType == -1)[0]
 
-        ax.scatter(self.trials['stimOn_times'][correct_idx], reaction_time[correct_idx], facecolors='none', edgecolors='b',
-                   s=7)
-        ax.scatter(self.trials['stimOn_times'][incorrect_idx], reaction_time[incorrect_idx], facecolors='none', marker='x',
-                   c='r', s=7)
+        ax.scatter(stim_times[correct_idx], reaction_time[correct_idx], facecolors='none',
+                   edgecolors='b', s=7)
+        ax.scatter(stim_times[incorrect_idx], reaction_time[incorrect_idx], facecolors='none',
+                   marker='x', c='r', s=7)
         ax.set_yscale('log')
         ax.set_yticks([1, 10])
         ax.yaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -673,11 +677,11 @@ class DataLoader:
         colours[np.where(blocks == 0.5)] = np.array([*CMAP[1]])
         colours[np.where(blocks == 0.8)] = np.array([*CMAP[2]])
 
-        dividers = [0] + list(dividers) + [np.where(~np.isnan(self.trials.stimOn_times))[0][-1]]  # sometimes last trial is nan
+        dividers = [0] + list(dividers) + [np.where(~np.isnan(stim_times))[0][-1]]  # sometimes last trial is nan
         for iD in range(len(dividers) - 1):
             ax.fill_betweenx([-100, 100],
-                             [self.trials.stimOn_times[dividers[iD + 1]], self.trials.stimOn_times[dividers[iD + 1]]],
-                             [self.trials.stimOn_times[dividers[iD]], self.trials.stimOn_times[dividers[iD]]], color=colours[iD],
+                             [stim_times[dividers[iD + 1]], stim_times[dividers[iD + 1]]],
+                             [stim_times[dividers[iD]], stim_times[dividers[iD]]], color=colours[iD],
                              alpha=0.2)
 
         ax.xaxis.tick_top()
@@ -972,7 +976,7 @@ class DataLoader:
 
     def add_trial_events_to_raster(self, ax, trials, text=True):
 
-        events = ['stimOn_times', 'firstMovement_times', 'feedback_times']
+        events = ['stimOnTrigger_times', 'firstMovement_times', 'feedback_times']
         colors = ['b', 'g', 'r']
         labels = ['Stim On', 'First Move', 'Feedback']
         trans = ax.get_xaxis_transform()
@@ -995,7 +999,7 @@ class DataLoader:
             feature = zscore(feature, nan_policy='omit')
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
-        fig, axs = self.single_cluster_raster(camera.times, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
+        fig, axs = self.single_cluster_raster(camera.times, self.trials['stimOnTrigger_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], weights=feature, axs=axs, fr=False, norm=norm)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)
@@ -1028,7 +1032,7 @@ class DataLoader:
                          ylabel1='Sorted Trial Number', title=None):
 
         trial_idx, dividers = find_trial_ids(self.trials, sort='choice')
-        fig, axs = self.single_cluster_raster(self.licks, self.trials['stimOn_times'], trial_idx, dividers, ['b', 'r'],
+        fig, axs = self.single_cluster_raster(self.licks, self.trials['stimOnTrigger_times'], trial_idx, dividers, ['b', 'r'],
                                               ['correct', 'incorrect'], axs=axs, fr=False)
 
         set_axis_style(axs[1], xlabel=xlabel, ylabel=ylabel1)

@@ -483,13 +483,9 @@ function contains(query_, arr, exact = false) {
 
 //function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_ids) {
 function filterQuery(query_, Lab, Subject, eid, acronyms) {
-    console.log('yogi')
     Lab = Lab.toLowerCase();
     Subject = Subject.toLowerCase();
     eid = eid.toLowerCase();
-
-    console.log(eid)
-    console.log(Subject)
 
     // For a valid UUID: return yes if the query matches the current session's pid or eid.
     if (isValidUUID(query_)) {
@@ -594,8 +590,7 @@ function loadAutoComplete() {
             selectSession(eid);
         },
         getSources({ query }) {
-            console.log('here')
-            console.log(query)
+
             query_ = query.toLowerCase();
             return [
                 {
