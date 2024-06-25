@@ -492,16 +492,18 @@ function filterQuery(query_, Lab, Subject, eid, acronyms) {
         return eid.includes(query_);
     }
 
-    // By default (no colon ":"), search the region names.
-//    if (!query_.includes(":")) {
-//        return regions.some(name => name.includes(query_));
-//    }
+    // By default (no colon ":"), return all options.
+    if (!query_.includes(":")) {
+        return true
+    }
 
     // Otherwise, we assume the query is of the form:
     [field, value] = query_.split(":");
 
+    let _acronyms = Array.from(new Set(acronyms.map(a => a.toLowerCase())));
+
     // if (field == "region") return contains(query_, regions);
-    if (field == "region") return contains(value, acronyms, exact = true);
+    if (field == "region") return contains(value, _acronyms, exact = true);
     if (field == "eid") return eid.includes(value);
     if (field == "lab") return Lab.includes(value);
     if (field == "subject") return Subject.includes(value);
@@ -549,12 +551,6 @@ function getSessionList() {
             res &= filterQuery(q, Lab, Subject, eid, acronyms);
         }
 
-//        // Dataset selection
-//        if (CTX.dset == 'bwm')
-//            res &= dset_bwm;
-//        if (CTX.dset == 'rs')
-//            res &= dset_rs;
-
         return res;
     });
 
@@ -585,12 +581,11 @@ function loadAutoComplete() {
             if (!eid) return;
             if (eid == CTX.eid) return;
             if (!isValidUUID(eid)) return;
-            // CTX.eid = eid;
+            //CTX.eid = eid;
 
-            selectSession(eid);
+            //selectSession(eid);
         },
         getSources({ query }) {
-
             query_ = query.toLowerCase();
             return [
                 {
