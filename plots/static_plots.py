@@ -19,10 +19,11 @@ import scipy.signal
 from brainbox.task.trials import find_trial_ids
 from brainbox.behavior.wheel import velocity_filtered, interpolate_position
 from brainbox.behavior.training import (plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast,
-compute_reaction_time)
+                                        compute_reaction_time, compute_performance, compute_psychometric)
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
 import iblphotometry.preprocessing as iblphot
+import psychofit as psy
 
 import one.alf.io as alfio
 from one.alf.exceptions import ALFObjectNotFound
@@ -200,25 +201,35 @@ def compute_psth(signal, times, events, fs, peri_event_window=None):
     peri_event_window = [-1, 2] if peri_event_window is None else peri_event_window
     # compute a vector of indices corresponding to the perievent window at the given sampling rate
     sample_window = np.arange(peri_event_window[0] * fs, peri_event_window[1] * fs + 1)
+    # find nan trials
+    non_nan_events = events[~np.isnan(events)]
+    non_nan_idx = np.where(~np.isnan(events))[0]
+
     # we inflate this vector to a 2d array where each column corresponds to an event
-    idx_psth = np.tile(sample_window[:, np.newaxis], (1, events.size))
+    idx_psth = np.tile(sample_window[:, np.newaxis], (1, non_nan_events.size))
     # we add the index of each event too their respective column
-    idx_event = np.searchsorted(times, events)
+    idx_event = np.searchsorted(times, non_nan_events)
     idx_psth += idx_event
-    
+
+    # If any of the trials are after the last photometry signal account for this
     nan_idx = np.where(idx_psth >= signal.size)
     if nan_idx[1].size > 0:
         nan_idx = np.unique(nan_idx[1])
-        nan_append = idx_psth[:, nan_idx[0]:]
+        nan_append = idx_psth[:, nan_idx[0]:] * np.nan
         idx_psth = idx_psth[:, 0:nan_idx[0]]
         psth = signal[idx_psth]  # psth is a 2d array (ntimes, nevents)
         psth = np.c_[psth, nan_append]
+
+        # Reindex if we have removed any nan values
+        full_psth = np.full((psth.shape[0], events.size), np.nan)
+        full_psth[:, non_nan_idx] = psth
+
     else:
         psth = signal[idx_psth]
+        full_psth = np.full((psth.shape[0], events.size), np.nan)
+        full_psth[:, non_nan_idx] = psth
 
-    psth[idx_psth > (signal.size - 1)] = np.nan
-    # remove events that are out of bounds
-    return psth
+    return full_psth
 
 
 # -------------------------------------------------------------------------------------------------
@@ -744,16 +755,24 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        plot_psychometric(self.trials, ax=ax)
+        if np.all(self.trials['probabilityLeft'] == 0.5) or 'training' in self.session_info['protocol']:
+            self.plot_psychometric_50(self.trials, ax=ax)
+            legend_elements = [Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
+                               Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data',
+                                      markersize=10),
+                               Line2D([0], [0], color='k', lw=2, label='model fit')]
+        else:
+            plot_psychometric(self.trials, ax=ax)
+            legend_elements = [Line2D([0], [0], color='w', lw=0, label='20 % of trials on left side'),
+                               Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
+                               Line2D([0], [0], color='w', lw=0, label='80 % of trials on left side'),
+                               Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data',
+                                      markersize=10),
+                               Line2D([0], [0], color='k', lw=2, label='model fit')]
+
         set_axis_style(ax, xlabel='Contrasts', ylabel='Probability Choosing Right')
 
         ax.get_legend().remove()
-
-        legend_elements = [Line2D([0], [0], color='w', lw=0, label='20 % of trials on left side'),
-                           Line2D([0], [0], color='w', lw=0, label='equal % of trials on both sides'),
-                           Line2D([0], [0], color='w', lw=0, label='80 % of trials on left side'),
-                           Line2D([0], [0], color='w', marker='o', markerfacecolor='k', label='data', markersize=10),
-                           Line2D([0], [0], color='k', lw=2, label='model fit')]
 
         leg = ax_legend.legend(handles=legend_elements, loc=4, frameon=False)
         remove_frame(ax_legend)
@@ -782,7 +801,7 @@ class DataLoader:
         else:
             fig = ax.get_figure()
 
-        if np.all(self.trials['probabilityLeft'] == 0.5):
+        if np.all(self.trials['probabilityLeft'] == 0.5) or 'training' in self.session_info['protocol']:
             self.plot_reaction_time_50(self.trials, ax=ax)
         else:
             plot_reaction_time(self.trials, ax=ax)
@@ -869,6 +888,80 @@ class DataLoader:
         ax.set_ylabel('Reaction time (s)')
         ax.set_xlabel('Contrasts')
 
+        if title:
+            ax.set_title(title)
+
+        return fig, ax
+
+    def plot_psychometric_50(self, trials, ax=None, title=None, plot_ci=False, ci_alpha=0.032, **kwargs):
+        """
+        Function to plot psychometric curve plots a la datajoint webpage.
+
+        Parameters
+        ----------
+        trials : one.alf.io.AlfBunch
+            An ALF trials object containing the keys {'probabilityLeft', 'contrastLeft',
+            'contrastRight', 'feedbackType', 'choice', 'response_times', 'stimOn_times'}.
+        ax : matplotlib.pyplot.Axes
+            An axis object to plot onto.
+        title : str
+            An optional plot title.
+        plot_ci : bool
+            If true, computes and plots the confidence intervals for response at each contrast.
+        ci_alpha : float, default=0.032
+            Significance level for confidence interval. Must be in (0, 1). If `plot_ci` is false,
+            this value is ignored.
+        **kwargs
+            If `ax` is None, these arguments are passed to matplotlib.pyplot.subplots.
+
+        Returns
+        -------
+        matplotlib.pyplot.Figure
+            The figure handle containing the plot.
+        matplotlib.pyplot.Axes
+            The plotted axes.
+
+        See Also
+        --------
+        statsmodels.stats.proportion.proportion_confint - The function used to compute confidence
+          interval.
+        psychofit.mle_fit_psycho - The function used to fit the psychometric parameters.
+        psychofit.erf_psycho_2gammas - The function used to transform contrast to response probability
+          using the fit parameters.
+        """
+
+        signed_contrast = get_signed_contrast(trials)
+        contrasts_fit = np.arange(-100, 100)
+
+        prob_right_50, contrasts_50, _ = compute_performance(trials, signed_contrast=signed_contrast, block=0.5,
+                                                             prob_right=True)
+        out_50 = compute_psychometric(trials, signed_contrast=signed_contrast, block=0.5, plotting=True,
+                                      compute_ci=plot_ci, alpha=ci_alpha)
+        pars_50 = out_50[0] if plot_ci else out_50
+        prob_right_fit_50 = psy.erf_psycho_2gammas(pars_50, contrasts_fit)
+
+        cmap = sns.diverging_palette(20, 220, n=3, center='dark')
+
+        if not ax:
+            fig, ax = plt.subplots(**kwargs)
+        else:
+            fig = plt.gcf()
+
+        fit_50 = ax.plot(contrasts_fit, prob_right_fit_50, color=cmap[1])
+        data_50 = ax.scatter(contrasts_50, prob_right_50, color=cmap[1])
+
+        if plot_ci:
+            errbar_50 = np.c_[np.abs(out_50[1][0]), np.abs(out_50[1][1])].T
+
+            ax.errorbar(contrasts_50, prob_right_50, yerr=errbar_50, ecolor=cmap[1], fmt='none', capsize=5, alpha=0.4)
+
+
+        ax.legend([fit_50[0], data_50],
+                  ['p_left=0.5 fit', 'p_left=0.5 data'],
+                  loc='upper left')
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_ylabel('Probability choosing right')
+        ax.set_xlabel('Contrasts')
         if title:
             ax.set_title(title)
 
