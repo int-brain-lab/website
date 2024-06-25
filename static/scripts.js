@@ -8,7 +8,7 @@
 const ENABLE_UNITY = false;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
-const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
+const SESSION_SEARCH_PLACEHOLDER = `examples: region:VISa6a ; eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
 var unitySession = null; // unity instance for the session selector
 var unityTrial = null; // unity instance for the trial viewer
 var autoCompleteJS = null;
@@ -70,8 +70,8 @@ function isEmpty(obj) {
 
 
 
-function isValidUUID(pid) {
-    return regexExp.test(pid);
+function isValidUUID(eid) {
+    return regexExp.test(eid);
 };
 
 
@@ -271,7 +271,7 @@ function getUrl() {
     let params = url.searchParams;
 
     params.set("dset", CTX.dset);
-    params.set("pid", CTX.pid);
+    params.set("eid", CTX.eid);
     params.set("tid", CTX.tid);
     params.set("rid", CTX.rid);
     params.set("preprocess", CTX.preprocess);
@@ -312,15 +312,15 @@ function setupQC() {
 /// UNITY loaded callback event, update the current highlighted probe
 function unityLoaded() {
     if (unitySession)
-        unitySession.SendMessage("main", "HighlightProbe", CTX.pid);
+        unitySession.SendMessage("main", "HighlightProbe", CTX.eid);
 }
 
 
 
 // UNITY callback
-function selectPID(pid) {
-    selectSession(pid);
-    autoCompleteJS.setQuery(pid);
+function selectEID(eid) {
+    selectSession(eid);
+    autoCompleteJS.setQuery(eid);
 };
 
 function unityUpdateQC() {
@@ -376,7 +376,7 @@ function setupUnityTrial() {
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
     }).then((unityInstance) => {
         window.unityTrial = unityInstance;
-        window.unityTrial.SendMessage("main", "SetSession", CTX.pid);
+        window.unityTrial.SendMessage("main", "SetSession", CTX.eid);
         window.unityTrial.SendMessage("main", "SetTrial", Number(CTX.tid));
         window.unityTrial.SendMessage("FullPanels", "SwitchLayout", Number(CTX.qc));
         unityUpdateQC();
@@ -406,7 +406,7 @@ function setupTrialCallback() {
     document.getElementById('trialSelector').onchange = function (e) {
         var tid = e.target.value;
         if (!tid) return;
-        selectTrial(CTX.pid, tid);
+        selectTrial(CTX.eid, tid);
     }
 
     document.getElementById('trialPlot').onclick = clickTrial;
@@ -437,7 +437,7 @@ function setupRoiCallback() {
     document.getElementById('roiSelector').onchange = function (e) {
         var rid = e.target.value;
         if (!rid) return;
-        selectRoi(CTX.pid, rid, CTX.preprocess);
+        selectRoi(CTX.eid, rid, CTX.preprocess);
     }
 };
 
@@ -464,7 +464,7 @@ function setupPreprocessCallback() {
     document.getElementById('preprocessSelector').onchange = function (e) {
         var preprocess = e.target.value;
         if (!preprocess) return;
-        selectPreprocess(CTX.pid, CTX.rid, preprocess);
+        selectPreprocess(CTX.eid, CTX.rid, preprocess);
     }
 };
 
@@ -481,28 +481,31 @@ function contains(query_, arr, exact = false) {
         return arr.some(x => x == query_);
 }
 
-function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_ids) {
+//function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_ids) {
+function filterQuery(query_, Lab, Subject, eid, acronyms) {
+    console.log('yogi')
     Lab = Lab.toLowerCase();
     Subject = Subject.toLowerCase();
-    pid = pid.toLowerCase();
     eid = eid.toLowerCase();
+
+    console.log(eid)
+    console.log(Subject)
 
     // For a valid UUID: return yes if the query matches the current session's pid or eid.
     if (isValidUUID(query_)) {
-        return pid.includes(query_) || eid.includes(query_);
+        return eid.includes(query_);
     }
 
     // By default (no colon ":"), search the region names.
-    if (!query_.includes(":")) {
-        return regions.some(name => name.includes(query_));
-    }
+//    if (!query_.includes(":")) {
+//        return regions.some(name => name.includes(query_));
+//    }
 
     // Otherwise, we assume the query is of the form:
     [field, value] = query_.split(":");
 
     // if (field == "region") return contains(query_, regions);
     if (field == "region") return contains(value, acronyms, exact = true);
-    if (field == "pid") return pid.includes(value);
     if (field == "eid") return eid.includes(value);
     if (field == "lab") return Lab.includes(value);
     if (field == "subject") return Subject.includes(value);
@@ -531,24 +534,23 @@ function getSessionList() {
     let sessions = FLASK_CTX.SESSIONS;
 
     let out = sessions.filter(function (
-        { Lab, Subject, pid, eid, _acronyms, _good_ids, dset_bwm, dset_rs }) {
+        { Lab, Subject, eid, _acronyms}) {
 
         // Is the query a UUID?
         if (isValidUUID(query_)) {
             // If 1 session is already selected, show all of them.
-            if (query_ == CTX.pid) return true;
+            if (query_ == CTX.eid) return true;
             // Otherwise, show the corresponding session.
-            return query_ == pid;
+            return query_ == eid;
         }
 
         // Region acronyms and names.
-        let acronyms = getUniqueAcronyms(_acronyms, _good_ids);
-        let regions = acronymsToNames(acronyms);
+        let acronyms = getUnique(_acronyms);
 
         // Filter on each term (space-separated).
         var res = true;
         for (let q of query_.split(/(\s+)/)) {
-            res &= filterQuery(q, Lab, Subject, pid, eid, acronyms, regions, _good_ids);
+            res &= filterQuery(q, Lab, Subject, eid, acronyms);
         }
 
 //        // Dataset selection
@@ -561,8 +563,8 @@ function getSessionList() {
     });
 
     // Update the mini brain viewer with the kept sessions.
-    let pids = out.map(({ pid }) => pid);
-    miniBrainActivatePIDs(pids);
+    let eids = out.map(({ eid }) => eid);
+    miniBrainActivateEIDs(eids);
 
     return out;
 }
@@ -578,39 +580,35 @@ function loadAutoComplete() {
         container: '#sessionSelector',
         placeholder: SESSION_SEARCH_PLACEHOLDER,
         openOnFocus: true,
-        initialState: { query: CTX.pid },
+        initialState: { query: CTX.eid },
         onStateChange({ state }) {
-            var pid = state.query;
+            var eid = state.query;
 
             // We only proceed if a new valid UUID has been selected.
             if (state.isOpen) return;
-            if (!pid) return;
-            if (pid == CTX.pid) return;
-            if (!isValidUUID(pid)) return;
-            // CTX.pid = pid;
+            if (!eid) return;
+            if (eid == CTX.eid) return;
+            if (!isValidUUID(eid)) return;
+            // CTX.eid = eid;
 
-            selectSession(pid);
+            selectSession(eid);
         },
         getSources({ query }) {
+            console.log('here')
+            console.log(query)
             query_ = query.toLowerCase();
             return [
                 {
                     sourceId: 'sessions',
-                    getItemInputValue: ({ item }) => item.pid,
+                    getItemInputValue: ({ item }) => item.eid,
                     getItems() {
                         return getSessionList();
                     },
                     templates: {
                         item({ item, html }) {
-                            var good_idx = item['_good_ids'];
-                            if (CTX.qc) {
-                                var acronyms = item['_acronyms'];
-                            } else {
-                                var acronyms = item["_acronyms"].filter(filter_by_good, good_idx);
-                            }
+                            var acronyms = item['_acronyms']
 
                             acronyms = getUnique(acronyms);
-                            acronyms = acronyms.filter(item => item !== "void");
 
                             var n = acronyms.length;
                             var M = 5;
@@ -622,9 +620,9 @@ function loadAutoComplete() {
                             <div class="item-container">
                             <div class="item item-lab">${item.Lab}</div>
                             <div class="item item-subject">${item.Subject}</div>
-                            <div class="item item-date">${item['Recording date']}</div>
                             <div class="item item-acronyms">${acronyms}</div>
-                            <div class="item item-ID">${item.pid}</div>
+                            <div class="item item-date">${item['Recording date']}</div>
+                            <div class="item item-ID">${item.eid}</div>
                             </div>`
                                 ;
                         },
@@ -640,32 +638,32 @@ function loadAutoComplete() {
 
 
 
-function updateSessionPlot(pid, rid, preprocess) {
-    showImage('sessionPlot', `/api/session/${pid}/session_plot/${rid}/${preprocess}`);
+function updateSessionPlot(eid, rid, preprocess) {
+    showImage('sessionPlot', `/api/session/${eid}/session_plot/${rid}/${preprocess}`);
 };
 
 
 
-function updateBehaviourPlot(pid) {
-    showImage('behaviourPlot', `/api/session/${pid}/behaviour_plot`);
+function updateBehaviourPlot(eid) {
+    showImage('behaviourPlot', `/api/session/${eid}/behaviour_plot`);
 };
 
 
 
-async function selectSession(pid) {
+async function selectSession(eid) {
     if (isLoading) return;
-    if (!pid) return;
+    if (!eid) return;
     isLoading = true;
-    console.log("select session " + pid);
+    console.log("select session " + eid);
 
     if (unitySession)
-        unitySession.SendMessage("main", "HighlightProbe", pid);
+        unitySession.SendMessage("main", "HighlightProbe", eid);
 
     if (unityTrial)
-        unityTrial.SendMessage("main", "SetSession", pid);
+        unityTrial.SendMessage("main", "SetSession", eid);
 
     // Show the session details.
-    var url = `/api/session/${pid}/details`;
+    var url = `/api/session/${eid}/details`;
     var r = await fetch(url);
     var details = await r.json();
 
@@ -688,35 +686,35 @@ async function selectSession(pid) {
 
     // Setup the trial selector.
 //    var trial_id = 0;
-//    if (CTX.pid == pid && CTX.tid)
+//    if (CTX.eid == eid && CTX.tid)
 //        trial_id = CTX.tid;
 //    setupTrialDropdown(trial_ids, trial_id);
 
     // Setup the roi selector.
     var roi_id = 0;
-    if (CTX.pid == pid && CTX.rid)
+    if (CTX.eid == eid && CTX.rid)
         roi_id = CTX.rid;
     setupRoiDropdown(roi_ids, roi_id);
 
     // Setup the preprocess selector
     var preprocess_id = 'calcium';
-    if (CTX.pid == pid && CTX.preprocess)
+    if (CTX.eid == eid && CTX.preprocess)
         preprocess_id = CTX.preprocess;
     setupPreprocessDropdown(preprocess_ids, preprocess_id);
 
     // Set the Roi and update plots
-    selectRoi(pid, roi_id, preprocess_id)
+    selectRoi(eid, roi_id, preprocess_id)
 
     // Set the preprocess and update plots
-    selectPreprocess(pid, roi_id, preprocess_id)
+    selectPreprocess(eid, roi_id, preprocess_id)
 
     // Show the behaviour overview plot.
-    updateBehaviourPlot(pid);
+    updateBehaviourPlot(eid);
 
     // Set the trial and update plots
-    // selectTrial(pid, CTX.tid);
+    // selectTrial(eid, CTX.tid);
 
-    CTX.pid = pid;
+    CTX.eid = eid;
     isLoading = false;
 };
 
@@ -726,12 +724,12 @@ async function selectSession(pid) {
 /*  Unity mini brain                                                                             */
 /*************************************************************************************************/
 
-function miniBrainActivatePIDs(pidList) {
+function miniBrainActivateEIDs(eidList) {
     // takes as input a list of PIDs and activates these
     if (unitySession) {
         unitySession.SendMessage("main", "DeactivateAllProbes");
-        for (pid of pidList) {
-            unitySession.SendMessage("main", "ActivateProbe", pid);
+        for (eid of eidList) {
+            unitySession.SendMessage("main", "ActivateProbe", eid);
         }
     }
 }
@@ -744,7 +742,7 @@ function miniBrainActivatePIDs(pidList) {
 
 function trialViewerLoaded() {
     if (unityTrial) {
-        unityTrial.SendMessage("main", "SetSession", CTX.pid);
+        unityTrial.SendMessage("main", "SetSession", CTX.eid);
     }
 }
 
@@ -800,14 +798,14 @@ function changeTrial(trialNum) {
     // s.options[trialNum].selected = true;
 
     // trialNum will be the trial to jump to
-    selectTrial(CTX.pid, trialNum, true);
+    selectTrial(CTX.eid, trialNum, true);
 };
 
 
 
-function updateTrialPlot(pid, rid, preprocess) {
-    showImage('trialRasterPlot', `/api/session/${pid}/trial_raster_plot/${rid}/${preprocess}`);
-    showImage('trialPsthPlot', `/api/session/${pid}/trial_psth_plot/${rid}/${preprocess}`);
+function updateTrialPlot(eid, rid, preprocess) {
+    showImage('trialRasterPlot', `/api/session/${eid}/trial_raster_plot/${rid}/${preprocess}`);
+    showImage('trialPsthPlot', `/api/session/${eid}/trial_psth_plot/${rid}/${preprocess}`);
 };
 
 
@@ -847,23 +845,23 @@ function clickTrial(event) {
     tidx = clamp(tidx, 0, CTX.trial_ids.length - 1);
     var tid = CTX.trial_ids[tidx];
     $('#trialSelector').val(tid);
-    selectTrial(CTX.pid, tid);
+    selectTrial(CTX.eid, tid);
 };
 
 
 
-async function selectTrial(pid, tid, unityCalled = false) {
+async function selectTrial(eid, tid, unityCalled = false) {
     CTX.tid = tid;
 
     if (unityTrial && !unityCalled)
         unityTrial.SendMessage("main", "SetTrial", Number(tid));
 
     // Show the trial raster plot.
-    var url = `/api/session/${pid}/trial_plot/${tid}`;
+    var url = `/api/session/${eid}/trial_plot/${tid}`;
     showImage('trialPlot', url, unityCalled);
 
     // Show information about trials in table
-    var url = `/api/session/${pid}/trial_details/${tid}`;
+    var url = `/api/session/${eid}/trial_details/${tid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
@@ -959,18 +957,18 @@ function setupAllLegends() {
 /*  Roi selection                                                                            */
 /*************************************************************************************************/
 
-async function selectRoi(pid, rid, preprocess) {
+async function selectRoi(eid, rid, preprocess) {
     console.log(`select roi #${rid}`);
     CTX.rid = rid;
 
     // TODO eventually use updateSessionPlot
-    var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
+    var url = `/api/session/${eid}/session_plot/${rid}/${preprocess}`;
     showImage('sessionPlot', url);
 
-    updateTrialPlot(pid, rid, preprocess)
+    updateTrialPlot(eid, rid, preprocess)
 
     // Show information about trials in table
-    var url = `/api/session/${pid}/roi_details/${rid}`;
+    var url = `/api/session/${eid}/roi_details/${rid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
@@ -984,14 +982,14 @@ async function selectRoi(pid, rid, preprocess) {
 /*  Preprocessing selection                                                                            */
 /*************************************************************************************************/
 
-async function selectPreprocess(pid, rid, preprocess) {
+async function selectPreprocess(eid, rid, preprocess) {
     console.log(`select preprocess ${preprocess}`);
     CTX.preprocess = preprocess;
 
-    var url = `/api/session/${pid}/session_plot/${rid}/${preprocess}`;
+    var url = `/api/session/${eid}/session_plot/${rid}/${preprocess}`;
     showImage('sessionPlot', url);
 
-    updateTrialPlot(pid, rid, preprocess);
+    updateTrialPlot(eid, rid, preprocess);
 
 
 };
@@ -1017,7 +1015,7 @@ function load() {
     // setupTrialCallback();
 
     // Initial selection.
-    selectSession(CTX.pid);
+    selectSession(CTX.eid);
 };
 
 

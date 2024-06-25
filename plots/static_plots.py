@@ -410,6 +410,9 @@ class DataLoader:
         # Session duration
         details['_duration'] = np.max(self.photometry["times"])
 
+        # Acronyms
+        details['_acronyms'] = SUBJECT_ROI[self.session_info['subject']]
+
         return details
 
     def get_roi_details(self, roi_idx):

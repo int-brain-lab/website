@@ -79,7 +79,7 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
-DEFAULT_eid = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+DEFAULT_EID = '65f90bf6-5124-430a-ab73-134ac6fb374f'
 DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
@@ -695,8 +695,8 @@ def legends():
 def generate_data_js():
     FLASK_CTX = {
         "SESSIONS": sessions(),
-        "LEGENDS": legends(),
-        "DEFAULT_eid": DEFAULT_eid,
+        "LEGENDS": {},
+        "DEFAULT_EID": DEFAULT_EID,
         "DEFAULT_DSET": DEFAULT_DSET,
     }
     ctx_json = json.dumps(FLASK_CTX)
