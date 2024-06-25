@@ -583,7 +583,7 @@ function loadAutoComplete() {
             if (!isValidUUID(eid)) return;
             //CTX.eid = eid;
 
-            //selectSession(eid);
+            selectSession(eid);
         },
         getSources({ query }) {
             query_ = query.toLowerCase();
