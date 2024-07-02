@@ -15,6 +15,7 @@ from neurodsp.voltage import destripe
 from one.alf.files import add_uuid_string
 import one.alf.io as alfio
 from one.api import ONE
+from one.util import filter_datasets
 import spikeglx
 import neuropixel
 
@@ -34,6 +35,24 @@ TEMP_PATH = Path("/mnt/home/mfaulkner/ceph/viz_data")
 SAVE_PATH = Path("/mnt/home/mfaulkner/ceph/viz_cache")
 SAVE_PATH.mkdir(parents=True, exist_ok=True)
 
+
+def getData(eid, signature, revision=None):
+
+    session_datasets = one.list_datasets(eid, details=True)
+    dfs = []
+    for file in signature:
+        dfs.append(filter_datasets(session_datasets, filename=file[0], collection=file[1], revision=revision,
+                                   wildcards=True, assert_unique=False))
+    if len(dfs) == 0:
+        return pd.DataFrame()
+    df = pd.concat(dfs)
+
+    # Some cases the eid is stored in the index. If so we drop this level
+    if 'eid' in df.index.names:
+        df = df.droplevel(level='eid')
+
+    return df
+
 signature_eid = [
     ('_ibl_trials.table.pqt', 'alf'),
     ('_ibl_wheel.position.npy', 'alf'),
@@ -50,7 +69,8 @@ eid_path = TEMP_PATH.joinpath(eid)
 eid_path.mkdir(exist_ok=True, parents=True)
 
 # Transfer over the relevant session data
-df = DataHandler(one.eid2path(eid), {'input_files': signature_eid}, one).getData()
+df = getData(eid, signature_eid)
+# df = DataHandler(one.eid2path(eid), {'input_files': signature_eid}, one).getData()
 for uuid, d in df.iterrows():
     file_path = Path(d['session_path']).joinpath(d['rel_path'])
     file_uuid = add_uuid_string(file_path, uuid)
@@ -130,7 +150,7 @@ else:
 
 
 # Now for the probe insertion
-signature_pid = [
+signature_pid_revision = [
     ('channels.mlapdv.npy', f'alf/{pname}/pykilosort'),
     ('channels.localCoordinates.npy', f'alf/{pname}/pykilosort'),
     ('channels.brainLocationIds_ccf_2017.npy', f'alf/{pname}/pykilosort'),
@@ -143,7 +163,9 @@ signature_pid = [
     ('clusters.waveforms.npy', f'alf/{pname}/pykilosort'),
     ('clusters.waveformsChannels.npy', f'alf/{pname}/pykilosort'),
     ('clusters.channels.npy', f'alf/{pname}/pykilosort'),
-    ('clusters.metrics.pqt', f'alf/{pname}/pykilosort'),
+    ('clusters.metrics.pqt', f'alf/{pname}/pykilosort'),]
+
+signature_pid = [
     ('_iblqc_ephysChannels.apRMS.npy', f'raw_ephys_data/{pname}'),
     ('_iblqc_ephysSpectralDensityLF.freqs.npy', f'raw_ephys_data/{pname}'),
     ('_iblqc_ephysSpectralDensityLF.power.npy', f'raw_ephys_data/{pname}'),
@@ -154,7 +176,21 @@ signature_pid = [
 
 pid_path = TEMP_PATH.joinpath(pid)
 
-df = DataHandler(one.eid2path(eid), {'input_files': signature_pid}, one).getData()
+# df = DataHandler(one.eid2path(eid), {'input_files': signature_pid}, one).getData()
+# The spikesorting revision
+df = getData(eid, signature_pid_revision, revision='2024-05-06')
+for uuid, d in df.iterrows():
+    file_path = Path(d['session_path']).joinpath(d['rel_path'])
+    file_uuid = add_uuid_string(file_path, uuid)
+    file_link = pid_path.joinpath(file_path.name)
+    if file_link.exists():
+        continue
+    file_link.parent.mkdir(exist_ok=True, parents=True)
+    file_link.symlink_to(
+        Path(SDSC_ROOT_PATH.joinpath(file_uuid)))
+
+# The raw data without revision
+df = getData(eid, signature_pid)
 for uuid, d in df.iterrows():
     file_path = Path(d['session_path']).joinpath(d['rel_path'])
     file_uuid = add_uuid_string(file_path, uuid)

@@ -6,8 +6,6 @@
 #SBATCH --time=02:00:00   # Allow it to run for max 2 hours
 #SBATCH -o /mnt/home/mfaulkner/Documents/viz_logs/viz_data_zzPIDzz.log
 #SBATCH -e /mnt/home/mfaulkner/Documents/viz_logs/err_zzPIDzz.log
-#SBATCH --mail-type=begin   # send email when job begins
-#SBATCH --mail-type=end     # send email when job ends
 #SBATCH --mail-type=fail
 #SBATCH --mail-user=mayo.faulkner@internationalbrainlab.org
 
