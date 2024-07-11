@@ -47,11 +47,13 @@ CACHE_DIR = ROOT_DIR / 'static/cache'
 CMAP = sns.diverging_palette(20, 220, n=3, center="dark")
 
 LINE_COLOURS = {
-    'raw_isosbestic': '#9d4edd',
-    'raw_calcium': '#43aa8b',
-    'calcium': '#0081a7',
-    'isosbestic_control': '#0081a7',
-    'photobleach': '#0081a7',
+    'raw_isosbestic': '#9d4edd', #purple
+    'raw_calcium': '#43aa8b', #teal
+    'calcium_photobleach': '#0081a7',
+    'isosbestic_photobleach': '#0081a7',
+    'calcium_jove2019': '#0081a7',
+    'calcium_mad': '#0081a7',
+    'isosbestic_mad': '#0081a7',
     'moving_avg': '#f4a261'
 }
 
@@ -59,11 +61,14 @@ LINE_COLOURS = {
 # Photometry variables
 # -------------------------------------------------------------------------------------------------
 DEFAULT_ROI = 0
-DEFAULT_PREPROCESS = 'calcium'
+DEFAULT_PREPROCESS = 'calcium_photobleach'
 PREPROCESS = [
-    'calcium',
-    'isosbestic_control',
-    'photobleach'
+    'calcium_photobleach',
+    'isosbestic_photobleach',
+    'calcium_jove2019', 
+    'calcium_mad',
+    'isosbestic_mad',
+
 ]
 
 PSTH_EVENTS = {
@@ -361,9 +366,15 @@ class DataLoader:
                                self.photometry.times[int(self.photometry.times.size/2) + 250]]
 
     def preprocess_photometry_data(self):
-
-        self.photometry = iblphot.isosbestic_correction_dataframe(self.photometry)
-        self.photometry['photobleach'] = iblphot.photobleaching_lowpass(self.photometry['raw_calcium'].values)
+        raw_calcium = self.photometry['raw_calcium'].values
+        raw_isosbestic = self.photometry['raw_isosbestic'].values
+        times = self.photometry['times'].values
+        fs = 1 / np.median(np.diff(times))
+        self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(raw_calcium, fs=fs)
+        self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=fs)
+        self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=fs)
+        self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(raw_calcium, times, fs=fs)
+        self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=fs)
 
     def compute_photometry_psth(self):
         psth_preprocess = Bunch()
@@ -468,35 +479,29 @@ class DataLoader:
     # Plotting functions
     # ---------------------------------------------------------------------------------------------
 
-    def plot_raw_photometry_signal(self, ax=None, xlim=None, ylim=None, ylim2=None, xlabel='Time', ylabel=None,
-                                   ylabel2=None, title=None):
+    def plot_raw_photometry_signal(self, ax=None, xlim=None, ylim=None, xlabel='Time', ylabel=None,
+                                   title=None):
 
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
             fig = ax.get_figure()
 
-        ax_r = ax.twinx()
-
         linewidth = 0.1 if xlim is None else 1
 
         ax.plot(self.photometry['times'], self.photometry['raw_isosbestic'], linewidth=linewidth,
                 c=LINE_COLOURS['raw_isosbestic'])
-        ax_r.plot(self.photometry['times'], self.photometry['raw_calcium'], linewidth=linewidth,
+        ax.plot(self.photometry['times'], self.photometry['raw_calcium'], linewidth=linewidth,
                   c=LINE_COLOURS['raw_calcium'])
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
-        ax_r.set_ylim(ylim2)
 
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
-        set_axis_style(ax_r, xlabel=xlabel, ylabel=ylabel2, title=title)
-        ax_r.spines['right'].set_visible(True)
 
         ax.tick_params(axis='both', which='major')
-        ax_r.tick_params(axis='both', which='major')
 
-        return fig, ax_r
+        return fig, ax
 
     def plot_photometry_signal(self, signal, mvg_avg=False, trial_idx=None, ax=None, xlim=None, ylim=None,
                                xlabel='Time', ylabel=None, title=None):
@@ -508,13 +513,8 @@ class DataLoader:
 
         linewidth = 0.1 if xlim is None else 1
 
-        if mvg_avg:
-            window_size = 250
-            phot_signal = self.photometry[signal].rolling(window=window_size).mean()
-            col = LINE_COLOURS['moving_avg']
-        else:
-            phot_signal = self.photometry[signal]
-            col = LINE_COLOURS[signal]
+        phot_signal = self.photometry[signal]
+        col = LINE_COLOURS[signal]
 
         ax.plot(self.photometry['times'], phot_signal, linewidth=linewidth, c=col)
 
@@ -1239,8 +1239,10 @@ class DataLoader:
             lab_max = idx[np.argmax(t_ints)]
             label_pos.append((dividers[lab_max + 1] - dividers[lab_max]) / 2 + dividers[lab_max])
 
-        axs[1].imshow(raster[trial_idx], cmap='binary', origin='lower',
-                      extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto')
+        # axs[1].imshow(raster[trial_idx], cmap=cmap_2, origin='lower',
+        #               extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto') #Mayo original 
+        axs[1].imshow(raster[trial_idx], cmap='PuOr', vmin=-0.01, vmax=0.01, origin='lower',
+                       extent=[np.min(t_raster), np.max(t_raster), 0, len(trial_idx)], aspect='auto') 
 
         width = raster_bin * 4
         for iD in range(len(dividers) - 1):

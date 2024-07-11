@@ -312,36 +312,34 @@ class Generator:
         try:
             fig = plt.figure(figsize=(15, 8))
 
-            gs = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[6, 4], wspace=0.1, hspace=0.3)
+            gs = gridspec.GridSpec(1, 2, figure=fig, width_ratios=[6, 3], wspace=0.1, hspace=0.3)
 
             # First column
-            gs0 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[0], hspace=0.8, height_ratios=[1, 1, 1, 2])
+            gs0 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs[0], hspace=0.8, height_ratios=[2, 1, 2])
 
-            gs01 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0:3], hspace=0.3)
+            gs01 = gridspec.GridSpecFromSubplotSpec(3, 1, subplot_spec=gs0[0:3], hspace=0.3, height_ratios=[2, 1, 2])
             gs0_ax1 = fig.add_subplot(gs01[0, 0])
             gs0_ax2 = fig.add_subplot(gs01[1, 0])
-            gs0_ax3 = fig.add_subplot(gs01[2, 0])
 
             # Full session photometry signal
             _, gs0_ax1_r = self.dl.plot_raw_photometry_signal(ax=gs0_ax1, xlabel=None, ylabel='Raw isobestic')
             self.dl.plot_photometry_signal(preprocess, ax=gs0_ax2, xlabel=None, ylabel=preprocess.capitalize())
-            self.dl.plot_photometry_signal(preprocess, mvg_avg=True, ax=gs0_ax3, xlabel='Time in session (s)',
-                                           ylabel=f'Mov avg {preprocess}')
+       
 
             gs0_ax1_r.yaxis.set_ticklabels([])
 
             # Session behavior plots
-            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs0[3, 0], height_ratios=[2, 3, 1, 3])
+            gs11 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs0[-1, 0], height_ratios=[2, 3, 1, 3])
             ax_a = fig.add_subplot(gs11[0, 0])
             ax_b = fig.add_subplot(gs11[1, 0])
             ax_c = fig.add_subplot(gs11[2, 0])
             ax_d = fig.add_subplot(gs11[3, 0])
 
             # Second column
-            gs1 = gridspec.GridSpecFromSubplotSpec(4, 2, subplot_spec=gs[1], hspace=0.3, wspace=0.7,
+            gs1 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[1], hspace=0.3, wspace=0.7,
                                                    height_ratios=[1, 1, 1, 2])
-            ax_leg = fig.add_subplot(gs1[3, 0])
-            ax_cor = fig.add_subplot(gs1[3, 1])
+            ax_leg = fig.add_subplot(gs1[3])
+            ax_cor = fig.add_subplot(gs1[3])
 
             self.dl.plot_session_reaction_time(ax=ax_a)
             self.dl.plot_session_contrasts(axs=[ax_b, ax_c, ax_d], ax_legend=ax_leg)
@@ -349,22 +347,8 @@ class Generator:
             remove_frame(ax_cor)
             # self.dl.plot_coronal_slice(ax_cor)
 
-            gs0_ax4 = fig.add_subplot(gs1[0, 0])
-            gs0_ax5 = fig.add_subplot(gs1[1, 0])
-            gs0_ax6 = fig.add_subplot(gs1[2, 0])
-
-            self.dl.plot_raw_photometry_signal(ax=gs0_ax4, xlim=self.dl.photometry_lim, xlabel=None,
-                                               ylabel2='Raw calcium')
-            self.dl.plot_photometry_signal(preprocess, xlim=self.dl.photometry_lim,  xlabel=None, ax=gs0_ax5)
-            self.dl.plot_photometry_signal(preprocess, mvg_avg=True, xlim=self.dl.photometry_lim,
-                                           xlabel='Time in session (s)', ax=gs0_ax6)
-
-            gs0_ax4.yaxis.set_ticklabels([])
-            gs0_ax5.yaxis.set_ticklabels([])
-            gs0_ax6.yaxis.set_ticklabels([])
-
-            gs0_ax7 = fig.add_subplot(gs1[1:3, 1])
-            gs0_ax8 = fig.add_subplot(gs1[0, 1])
+            gs0_ax7 = fig.add_subplot(gs1[1:3])
+            gs0_ax8 = fig.add_subplot(gs1[0])
 
             self.dl.plot_photometry_correlation(ax=gs0_ax7, ax_cbar=gs0_ax8)
             remove_frame(gs0_ax8)
@@ -511,10 +495,11 @@ class Generator:
             ax7.sharex(ax8)
 
             yax_to_lim = [ax1, ax3, ax5, ax7]
-            max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
-            min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+            # max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim]) #KB commented 250062024
+            # min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim]) #KB commented 250062024
             for ax in yax_to_lim:
-                ax.set_ylim(min_ax, max_ax)
+                # ax.set_ylim(min_ax, max_ax) #KB commented 250062024
+                ax.set_ylim(-0.01, 0.03) #KB added
                 ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
 
 
@@ -533,7 +518,6 @@ class Generator:
                      f"preprocessing: {preprocess}")
 
         fig = plt.figure(figsize=(15, len(PSTH_EVENTS.keys()) * 5))
-
         gs = gridspec.GridSpec(len(PSTH_EVENTS.keys()), 1, figure=fig)
 
         for i, event in enumerate(PSTH_EVENTS.keys()):
@@ -551,8 +535,10 @@ class Generator:
             self.dl.plot_correct_incorrect_raster(preprocess, event, axs=[ax4], xlabel=xlabel, ylabel0=None, ylabel1=None)
 
             yax_to_lim = [ax1, ax2, ax3, ax4]
-            max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
-            min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim])
+            # max_ax = np.max([ax.get_ylim()[1] for ax in yax_to_lim])
+            # min_ax = np.min([ax.get_ylim()[0] for ax in yax_to_lim]) 
+            max_ax = 0.05
+            min_ax = -0.01
             for ax in yax_to_lim:
                 ax.set_ylim(min_ax, max_ax)
                 ax.vlines(0, *ax.get_ylim(), color='k', ls='--', zorder=ax.get_zorder() + 1)
@@ -634,7 +620,8 @@ class Generator:
             except Exception as e:
                 logger.error(f"error with session {self.eid} trial #{trial_idx}: {str(e)}")
 
-    def make_all_plots(self, nums=()):
+    def make_all_plots(self, nums=None):
+        nums = [] if nums is None else nums
         if 0 in nums:  # used to regenerate the session.json only
             return
         # nums is a list of numbers 1-5 (figure numbers)

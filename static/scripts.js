@@ -663,7 +663,7 @@ async function selectSession(eid) {
     // which controls which fields are displayed in the session details box.
     var trial_ids = details['_trial_ids']
     var roi_ids = details['_roi_ids']
-    var preprocess_ids = ['calcium', 'isosbestic_control', 'photobleach']
+    var preprocess_ids = ['calcium_photobleach', 'isosbestic_photobleach', 'calcium_jove2019', 'calcium_mad', 'isosbestic_mad']
 
     CTX.dur = details["_duration"];
     CTX.trial_ids = trial_ids;
@@ -687,7 +687,7 @@ async function selectSession(eid) {
     setupRoiDropdown(roi_ids, roi_id);
 
     // Setup the preprocess selector
-    var preprocess_id = 'calcium';
+    var preprocess_id = 'calcium_photobleach';
     if (CTX.eid == eid && CTX.preprocess)
         preprocess_id = CTX.preprocess;
     setupPreprocessDropdown(preprocess_ids, preprocess_id);
