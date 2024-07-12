@@ -947,7 +947,7 @@ class Generator:
 
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
-            path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
+            path = trial_overview_path(self.pid, trial_idx, cache_path=self.cache_path)
             if not force and path.exists():
                 logger.debug(f"Skipping trial plot generation for {trial_idx} as they seem to already exist")
                 continue
@@ -988,7 +988,7 @@ class Generator:
         desc = "Making all cluster qc plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
 
-            path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
+            path = cluster_qc_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
             if not force and path.exists():
                 logger.debug(f"Skipping cluster qc plot generation for {cluster_idx} as they seem to already exist")
                 continue
