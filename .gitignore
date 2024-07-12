@@ -221,6 +221,7 @@ TrialViewer/pipelines/data/*
 
 static/*Build
 static/data
+static/data.js
 TrialViewer/pipelines/final/*
 TrialViewer/Assets/AddressableAssetsData/link.xml
 TrialViewer/Assets/AddressableAssetsData/link.xml.meta
