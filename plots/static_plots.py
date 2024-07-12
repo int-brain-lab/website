@@ -115,6 +115,8 @@ def load_trials(eid, one, data_path=None):
 def load_photometry(eid, roi=None, data_path=None):
     data_path = data_path or DATA_DIR
     photometry = pd.read_parquet(data_path.joinpath('alf', roi, 'raw_photometry.pqt'))
+    t_sel = photometry.times > -60  # we take one minute before the start of the task
+    photometry = photometry.loc[t_sel].reset_index()
     return photometry
 
 

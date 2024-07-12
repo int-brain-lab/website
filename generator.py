@@ -16,6 +16,7 @@ import png
 import re
 import sys
 import gc
+import shutil
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -665,11 +666,12 @@ def load_json_c(path):
     return data
 
 
-def sessions():
-    CACHE_DIR.mkdir(exist_ok=True, parents=True)
-    eids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
+def sessions(cache_dir=None):
+    cache_dir = Path(cache_dir) or CACHE_DIR
+    cache_dir.mkdir(exist_ok=True, parents=True)
+    eids = sorted([str(p.name) for p in cache_dir.iterdir()])
     eids = [eid for eid in eids if is_valid_uuid(eid)]
-    sessions = [load_json_c(session_details_path(eid)) for eid in eids]
+    sessions = [load_json_c(session_details_path(eid, cache_path=cache_dir)) for eid in eids]
     sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
@@ -679,9 +681,9 @@ def legends():
     return load_json(figure_details_path())
 
 
-def generate_data_js():
+def generate_data_js(cache_dir=None):
     FLASK_CTX = {
-        "SESSIONS": sessions(),
+        "SESSIONS": sessions(cache_dir=cache_dir),
         "LEGENDS": {},
         "DEFAULT_EID": DEFAULT_EID,
         "DEFAULT_DSET": DEFAULT_DSET,
@@ -691,13 +693,15 @@ def generate_data_js():
     return ctx_compressed
 
 
-def make_data_js():
-    ctx_json = generate_data_js()
-    path = 'static/data.js'
-    with open(path, 'r') as f:
+def make_data_js(file_data_js=None, cache_dir=None):
+    file_data_js = Path(__file__).parent.joinpath('static/data.js') if file_data_js is None else file_data_js
+    file_template_data_js = Path(__file__).parent.joinpath('static/data_template.js')
+    ctx_json = generate_data_js(cache_dir=cache_dir)
+    shutil.copy(file_template_data_js, file_data_js)
+    with open(file_data_js, 'r') as f:
         contents = f.read()
     contents = re.sub('const FLASK_CTX_COMPRESSED = .+', f'const FLASK_CTX_COMPRESSED = "{ctx_json}";', contents)
-    with open(path, 'w') as f:
+    with open(file_data_js, 'w') as f:
         f.write(contents)
 
 

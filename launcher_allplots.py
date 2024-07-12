@@ -2,11 +2,16 @@
 # %%
 from one.api import ONE
 from pathlib import Path
-from generator import Generator, make_data_js
+from generator import Generator
+import traceback
 import joblib
+from iblutil.util import setup_logger
 
-one = one = ONE(cache_dir="/mnt/h0/kb/data/one")
-SAVE_PATH = Path("/mnt/h0/kb/viz_figures")
+logger = setup_logger()
+
+
+one = ONE(base_url='https://alyx.internationalbrainlab.org', cache_dir="/mnt/h0/kb/data/one")
+SAVE_PATH = Path("/mnt/h0/kb/viz_figures_new")
 SAVE_PATH.mkdir(exist_ok=True, parents=True)
 
 photometry_data = list(Path('/mnt/h0/kb/data/one/mainenlab/Subjects').rglob('raw_photometry.pqt'))
@@ -21,16 +26,13 @@ def make_session_plots(session):
         g = Generator(eid, one=one, data_path=session, cache_path=SAVE_PATH)
         g.make_all_plots(nums=(1, 2, 3, 4))
     except Exception as err:
+        # logger.error(f"Error in session {session} \n {traceback.format_exc()}")
+        # raise err
         errored.append({session: err})
 
-joblib.Parallel(n_jobs=10)(joblib.delayed(make_session_plots)(session) for session in photometry_sessions)
+for session in photometry_sessions:
+    make_session_plots(session)
+# joblib.Parallel(n_jobs=10)(joblib.delayed(make_session_plots)(session) for session in photometry_sessions)
+# make_session_plots(session='/mnt/h0/kb/data/one/mainenlab/Subjects/ZFM-05236/2023-06-27/001') # good example session
 
-
-#  update scipt.js line 666 with the new preprocessings
-# symlink the figures folder to the static/cache folder:
-# ln -s /mnt/h0/kb/viz_figures /mnt/h0/kb/code_kcenia/website/static/cache
-# then at last run the make data js 
-# Needed to update data.js to use the correct context data. So basically uncomment the top lines in this file https://github.com/int-brain-lab/website/blob/photometry/static/data.js and comment out line 22
-# also changed this line https://github.com/int-brain-lab/website/blob/photometry/static/scripts.js#L690 to reflect the new preprocessing names
-make_data_js() 
-#%%
+# cf. make_data_js.py for the next steps to put the website online
