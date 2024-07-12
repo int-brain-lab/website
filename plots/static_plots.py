@@ -512,7 +512,7 @@ class DataLoader:
         :param d_bin:
         :return:
         """
-        if np.sum(self.spikes_good) == 0:
+        if np.sum(self.spikes.good) == 0:
             self.session_raster = np.full((10, 10), np.nan)
             self.t_vals = [np.min(self.spikes.times), np.max(self.spikes.times)]
             self.d_vals = [0, self.max_chn]
