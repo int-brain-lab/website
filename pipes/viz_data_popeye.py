@@ -12,6 +12,7 @@ from brainbox.io.one import _channels_alf2bunch
 from iblatlas.regions import BrainRegions
 from ibllib.oneibl.data_handlers import DataHandler
 from neurodsp.voltage import destripe
+from one.alf.exceptions import ALFObjectNotFound
 from one.alf.files import add_uuid_string
 import one.alf.io as alfio
 from one.api import ONE
@@ -81,7 +82,6 @@ for uuid, d in df.iterrows():
     file_link.symlink_to(
         Path(SDSC_ROOT_PATH.joinpath(file_uuid)))
 
-camera = alfio.load_object(eid_path, 'leftCamera')
 wheel = alfio.load_object(eid_path, 'wheel')
 
 
@@ -106,7 +106,21 @@ def create_fake_licks(eid_path, nan_array, save=True):
         np.save(lick_file, nan_array)
 
 
-if 'times' not in camera.keys():
+try:
+    camera = alfio.load_object(eid_path, 'leftCamera')
+except ALFObjectNotFound:
+    camera = None
+
+if camera is None:
+    times = np.arange(wheel.timestamps[0], wheel.timestamps[-1], 1 / 60)
+    nan_array = np.full_like(times, np.nan)
+    # Save fake camera times
+    np.save(eid_path.joinpath('_ibl_leftCamera.times.npy'), nan_array)
+    # Create and save fake lick times file
+    create_fake_licks(eid_path, nan_array)
+    # Create and save fake features file
+    features = create_fake_features(nan_array)
+elif 'times' not in camera.keys():
     times = np.arange(wheel.timestamps[0], wheel.timestamps[-1], 1 / 60)
     nan_array = np.full_like(times, np.nan)
     # Save fake camera times

@@ -940,13 +940,18 @@ class Generator:
 
     def make_all_trial_plots(self, force=False):
 
-        path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
-        if not force and path.exists():
-            logger.debug("Skipping trial plot generation as they seem to already exist")
-            return
+        # path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
+        # if not force and path.exists():
+        #     logger.debug("Skipping trial plot generation as they seem to already exist")
+        #     return
 
         desc = "Making all trial plots  "
         for trial_idx in tqdm(self.iter_trial(), total=self.n_trials, desc=desc):
+            path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
+            if not force and path.exists():
+                logger.debug(f"Skipping trial plot generation for {trial_idx} as they seem to already exist")
+                continue
+
             self.save_trial_details(trial_idx)
             try:
                 self.make_trial_plot(trial_idx, force=force)
@@ -955,13 +960,18 @@ class Generator:
 
     def make_all_cluster_plots(self, force=False):
 
-        path = cluster_overview_path(self.pid, self.first_good_cluster(), cache_path=self.cache_path)
-        if not force and path.exists():
-            logger.debug("Skipping cluster plot generation as they seem to already exist")
-            return
+        # path = cluster_overview_path(self.pid, self.first_good_cluster(), cache_path=self.cache_path)
+        # if not force and path.exists():
+        #     logger.debug("Skipping cluster plot generation as they seem to already exist")
+        #     return
 
         desc = "Making all cluster plots"
         for cluster_idx in tqdm(self.iter_good_cluster(), total=self.n_good_clusters, desc=desc):
+            path = cluster_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
+            if not force and path.exists():
+                logger.debug(f"Skipping cluster plot generation for {cluster_idx} as they seem to already exist")
+                continue
+
             self.save_cluster_details(cluster_idx)
             try:
                 self.make_cluster_plot(cluster_idx, force=force)
@@ -970,13 +980,19 @@ class Generator:
 
     def make_all_cluster_qc_plots(self, force=False):
 
-        path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
-        if not force and path.exists():
-            logger.debug("Skipping cluster plot generation as they seem to already exist")
-            return
+        # path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
+        # if not force and path.exists():
+        #     logger.debug("Skipping cluster plot generation as they seem to already exist")
+        #     return
 
         desc = "Making all cluster qc plots"
         for cluster_idx in tqdm(self.iter_cluster(), total=self.n_clusters, desc=desc):
+
+            path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
+            if not force and path.exists():
+                logger.debug(f"Skipping cluster qc plot generation for {cluster_idx} as they seem to already exist")
+                continue
+
             self.save_cluster_details(cluster_idx)
             try:
                 self.make_cluster_qc_plot(cluster_idx, force=force)
