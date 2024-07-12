@@ -918,19 +918,26 @@ class DataLoader:
 
         spikes = filter_spikes_by_trial(self.spikes, t0, t1)
 
-        t_bin = 0.005
-        d_bin = 5
-        kp_idx = ~np.isnan(spikes.depths)
+        if len(spikes.depths) == 0:
+            raster = np.full((10, 10), np.nan)
+            t_vals = [t0, t1]
+            d_vals = [0, self.max_chn]
+            t_lim = t_vals
+        else:
+            t_bin = 0.005
+            d_bin = 5
+            kp_idx = ~np.isnan(spikes.depths)
+            t_lim = [np.min(spikes.times), np.max(spikes.times)]
 
-        raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin,
-                                            ylim=[0, self.max_chn])
-        raster = raster / t_bin
+            raster, t_vals, d_vals = bincount2D(spikes.times[kp_idx], spikes.depths[kp_idx], t_bin, d_bin,
+                                                ylim=[0, self.max_chn])
+            raster = raster / t_bin
 
         ax.imshow(raster, extent=np.r_[np.min(t_vals), np.max(t_vals), np.min(d_vals), np.max(d_vals)],
                   aspect='auto', origin='lower', vmax=50, cmap='binary')
 
         ax.set_ylim(*self.depth_lim)
-        ax.set_xlim(np.min(spikes.times), np.max(spikes.times))
+        ax.set_xlim(*t_lim)
 
         if cluster_idx is not None:
             spikes = filter_spikes_by_cluster_idx(spikes, self.clusters, cluster_idx)
