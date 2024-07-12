@@ -512,13 +512,18 @@ class DataLoader:
         :param d_bin:
         :return:
         """
-        kp_idx = ~np.isnan(self.spikes_good.depths)
+        if np.sum(self.spikes_good) == 0:
+            self.session_raster = np.full((10, 10), np.nan)
+            self.t_vals = [np.min(self.spikes.times), np.max(self.spikes.times)]
+            self.d_vals = [0, self.max_chn]
+        else:
+            kp_idx = ~np.isnan(self.spikes_good.depths)
 
-        self.session_raster, self.t_vals, self.d_vals = \
-            bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin,
-                       ylim=[0, self.max_chn])
+            self.session_raster, self.t_vals, self.d_vals = \
+                bincount2D(self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx], t_bin, d_bin,
+                           ylim=[0, self.max_chn])
 
-        self.session_raster = self.session_raster / t_bin
+            self.session_raster = self.session_raster / t_bin
 
     def get_brain_regions(self, restrict_labels=True, mapping='Beryl'):
         atlas_ids = self.BRAIN_REGIONS.id2id(self.channels['brainLocationIds_ccf_2017'], mapping=mapping)
