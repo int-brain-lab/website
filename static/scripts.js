@@ -266,6 +266,14 @@ function filter_by_good(_, index) {
 /*  Share button                                                                                 */
 /*************************************************************************************************/
 
+function isElementVisible(el) {
+    var rect = el.getBoundingClientRect();
+    var elemTop = rect.top;
+    var elemBottom = rect.bottom;
+    isVisible = elemTop < window.innerHeight && elemBottom >= 0;
+    return isVisible;
+}
+
 function getUrl() {
     let url = new URL(window.location);
     let params = url.searchParams;
@@ -275,6 +283,12 @@ function getUrl() {
     params.set("tid", CTX.tid);
     params.set("cid", CTX.cid);
     params.set("qc", CTX.qc);
+
+    // Detect whether the trial viewer is currently visible, if so,
+    // point to it in the shared URL.
+    const unityCanvas = document.getElementById('unity-canvas-trial');
+    if (isElementVisible(unityCanvas))
+        url.hash = "trialviewer";
 
     return url.toString();
 }
