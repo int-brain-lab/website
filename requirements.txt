@@ -11,3 +11,7 @@ arrow
 matplotlib
 psutil
 mpl_scatter_density
+lzstring
+joblib
+brainbox
+ibllib
