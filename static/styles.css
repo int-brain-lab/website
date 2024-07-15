@@ -191,6 +191,31 @@ h4 {
 
 
 
+#sessionPlot {
+    height: 639px;
+}
+
+#behaviourPlot {
+    height: 639px;
+}
+
+#trialPlot {
+    height: 400px;
+}
+
+#unity-canvas-trial {
+    height: 405px;
+}
+
+#trialEventPlot {
+    height: 400px;
+}
+
+#clusterPlot {
+    height: 639px;
+}
+
+
 /*************************************************************************************************/
 /*  Dataset tabs                                                                                 */
 /*************************************************************************************************/
