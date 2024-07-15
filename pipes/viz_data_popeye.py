@@ -32,8 +32,8 @@ br = BrainRegions()
 
 
 SDSC_ROOT_PATH = Path("/mnt/sdceph/users/ibl/data")
-TEMP_PATH = Path("/mnt/home/mfaulkner/ceph/viz_data")
-SAVE_PATH = Path("/mnt/home/mfaulkner/ceph/viz_cache")
+TEMP_PATH = Path("/mnt/home/mfaulkner/ceph/viz_data_repro")
+SAVE_PATH = Path("/mnt/home/mfaulkner/ceph/viz_cache_repro")
 SAVE_PATH.mkdir(parents=True, exist_ok=True)
 
 
@@ -192,7 +192,7 @@ pid_path = TEMP_PATH.joinpath(pid)
 
 # df = DataHandler(one.eid2path(eid), {'input_files': signature_pid}, one).getData()
 # The spikesorting revision
-df = getData(eid, signature_pid_revision, revision='2024-05-06')
+df = getData(eid, signature_pid_revision, revision='2024-03-22')
 for uuid, d in df.iterrows():
     file_path = Path(d['session_path']).joinpath(d['rel_path'])
     file_uuid = add_uuid_string(file_path, uuid)

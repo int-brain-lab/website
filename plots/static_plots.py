@@ -409,8 +409,8 @@ class DataLoader:
         details['eid'] = self.session_info['eid']
         details['pid'] = self.pid
 
-        details['dset_bwm'] = True # self.session_info['2022_Q4_IBL_et_al_BWM']
-        details['dset_rs'] = False # self.session_info['2022_Q2_IBL_et_al_RepeatedSite']
+        details['dset_bwm'] = False # self.session_info['2022_Q4_IBL_et_al_BWM']
+        details['dset_rs'] = True  # self.session_info['2022_Q2_IBL_et_al_RepeatedSite']
 
         # Sort by cluster depth.
         idx = np.argsort(self.clusters.depths)[::-1]
