@@ -1128,7 +1128,7 @@ class DataLoader:
         if np.sum(self.spikes_good.depths) == 0:
             data = {'Stim On': np.full((10, 10), np.nan),
                     'First Move': np.full((10, 10), np.nan),
-                    'Feedback': np.full((10, 10), np.nan)},
+                    'Feedback': np.full((10, 10), np.nan)}
         else:
             kp_idx = ~np.isnan(self.spikes_good.depths)
             pre_stim = 0.4
