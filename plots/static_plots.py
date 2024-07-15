@@ -1122,11 +1122,19 @@ class DataLoader:
         stim_events = {'Stim On': self.trials['stimOn_times'],
                        'First Move': self.trials['firstMovement_times'],
                        'Feedback': self.trials['feedback_times']}
-        kp_idx = ~np.isnan(self.spikes_good.depths)
         pre_stim = 0.4
         post_stim = 1
-        data = get_stim_aligned_activity(stim_events, self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx],
-                                         pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, self.max_chn])
+
+        if np.sum(self.spikes_good.depths) == 0:
+            data = {'Stim On': np.full((10, 10), np.nan),
+                    'First Move': np.full((10, 10), np.nan),
+                    'Feedback': np.full((10, 10), np.nan)},
+        else:
+            kp_idx = ~np.isnan(self.spikes_good.depths)
+            pre_stim = 0.4
+            post_stim = 1
+            data = get_stim_aligned_activity(stim_events, self.spikes_good.times[kp_idx], self.spikes_good.depths[kp_idx],
+                                             pre_stim=pre_stim, post_stim=post_stim, y_lim=[0, self.max_chn])
 
         for i, (key, d) in enumerate(data.items()):
             im = axs[i].imshow(d, aspect='auto', extent=np.r_[-1 * pre_stim, post_stim, 0, self.max_chn], cmap='bwr', vmax=10, vmin=-10,
