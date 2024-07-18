@@ -79,7 +79,8 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
-DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+#DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
+DEFAULT_PID = 'c4f6665f-8be5-476b-a6e8-d81eeae9279d'
 DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
@@ -156,11 +157,11 @@ def load_json(path):
         return json.load(f)
 
 
-def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc, cache_path=None):
+def get_cluster_idx_from_xy(spikesorting, pid, cluster_idx, x, y, qc, cache_path=None):
     if qc == 1:
-        df = pd.read_parquet(cluster_qc_pixels_path(pid, cache_path=cache_path))
+        df = pd.read_parquet(cluster_qc_pixels_path(spikesorting, pid, cache_path=cache_path))
     else:
-        df = pd.read_parquet(cluster_pixels_path(pid, cache_path=cache_path))
+        df = pd.read_parquet(cluster_pixels_path(spikesorting, pid, cache_path=cache_path))
     norm_dist = (df.x.values - x) ** 2 + (df.y.values - y) ** 2
     min_idx = np.nanargmin(norm_dist)
     if norm_dist[min_idx] < 0.005:  # TODO some limit of distance?
@@ -178,9 +179,12 @@ def get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc, cache_path=None):
 #     return DATA_DIR / pid
 
 
-def session_cache_path(pid, cache_path=None):
+def session_cache_path(spikesorting, pid, cache_path=None):
     cache_path = cache_path or CACHE_DIR
-    cp = cache_path / pid
+    if spikesorting is not None:
+        cp = cache_path / spikesorting / pid
+    else:
+        cp = cache_path / pid
     cp.mkdir(exist_ok=True, parents=True)
     assert cp.exists(), f"the path `{cp}` does not exist"
     return cp
@@ -191,52 +195,52 @@ def figure_details_path(cache_path=None):
     return cache_path / 'figures.json'
 
 
-def session_details_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'session.json'
+def session_details_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'session.json'
 
 
-def trial_details_path(pid, trial_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
+def trial_details_path(spikesorting, pid, trial_idx, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.json'
 
 
-def cluster_details_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.json'
+def cluster_details_path(spikesorting, pid, cluster_idx, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.json'
 
 
-def session_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'overview.png'
+def session_overview_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'overview.png'
 
 
-def behaviour_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'behaviour_overview.png'
+def behaviour_overview_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'behaviour_overview.png'
 
 
-def trial_event_overview_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'trial_overview.png'
+def trial_event_overview_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'trial_overview.png'
 
 
-def trial_overview_path(pid, trial_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.png'
+def trial_overview_path(spikesorting, pid, trial_idx, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'trial-{trial_idx:04d}.png'
 
 
-def cluster_overview_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.png'
+def cluster_overview_path(spikesorting, pid, cluster_idx, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}.png'
 
 
-def cluster_qc_overview_path(pid, cluster_idx, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}_qc.png'
+def cluster_qc_overview_path(spikesorting, pid, cluster_idx, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'cluster-{cluster_idx:04d}_qc.png'
 
 
-def cluster_pixels_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels.pqt'
+def cluster_pixels_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'cluster_pixels.pqt'
 
 
-def cluster_qc_pixels_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / 'cluster_pixels_qc.pqt'
+def cluster_qc_pixels_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / 'cluster_pixels_qc.pqt'
 
 
-def trial_intervals_path(pid, cache_path=None):
-    return session_cache_path(pid, cache_path=cache_path) / f'trial_intervals.pqt'
+def trial_intervals_path(spikesorting, pid, cache_path=None):
+    return session_cache_path(spikesorting, pid, cache_path=cache_path) / f'trial_intervals.pqt'
 
 
 def caption_path(figure, cache_path=None):
@@ -283,20 +287,21 @@ def get_subplot_position(ax1, ax2):
 # -------------------------------------------------------------------------------------------------
 
 class Generator:
-    def __init__(self, pid, cache_path=None, data_path=None):
+    def __init__(self, pid, spikesorting=None, cache_path=None, data_path=None):
         self.cache_path = cache_path or CACHE_DIR
         self.dl = DataLoader(data_path=data_path)
         self.dl.session_init(pid)
         self.pid = pid
+        self.spikesorting = spikesorting
 
         # Ensure the session cache folder exists.
-        session_cache_path(pid, cache_path=self.cache_path).mkdir(exist_ok=True, parents=True)
+        session_cache_path(self.spikesorting, pid, cache_path=self.cache_path).mkdir(exist_ok=True, parents=True)
 
         # Load the session details.
         self.session_details = self.dl.get_session_details()
 
         # Save the session details to a JSON file.
-        path = session_details_path(pid, cache_path=self.cache_path)
+        path = session_details_path(self.spikesorting, pid, cache_path=self.cache_path)
         logger.debug(f"Saving session details for session {pid}")
         save_json(path, self.session_details)
 
@@ -337,13 +342,13 @@ class Generator:
     def save_trial_details(self, trial_idx):
         logger.debug(f"saving trial #{trial_idx:04} details for session {self.pid}")
         details = self.dl.get_trial_details(trial_idx)
-        path = trial_details_path(self.pid, trial_idx, cache_path=self.cache_path)
+        path = trial_details_path(self.spikesorting, self.pid, trial_idx, cache_path=self.cache_path)
         save_json(path, details)
 
     def save_cluster_details(self, cluster_idx):
         logger.debug(f"saving cluster #{cluster_idx:04} details for session {self.pid}")
         details = self.dl.get_cluster_details(cluster_idx)
-        path = cluster_details_path(self.pid, cluster_idx, cache_path=self.cache_path)
+        path = cluster_details_path(self.spikesorting, self.pid, cluster_idx, cache_path=self.cache_path)
         save_json(path, details)
 
     # -------------------------------------------------------------------------------------------------
@@ -354,7 +359,7 @@ class Generator:
 
     def make_session_plot(self, force=False, captions=False):
 
-        path = session_overview_path(self.pid, cache_path=self.cache_path)
+        path = session_overview_path(self.spikesorting, self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making session overview plot for session {self.pid}")
@@ -477,7 +482,7 @@ class Generator:
 
     def make_behavior_plot(self, force=False, captions=False):
 
-        path = behaviour_overview_path(self.pid, cache_path=self.cache_path)
+        path = behaviour_overview_path(self.spikesorting, self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making behavior plot for session {self.pid}")
@@ -578,7 +583,7 @@ class Generator:
     # FIGURE 3
 
     def make_trial_plot(self, trial_idx, force=False, captions=False):
-        path = trial_overview_path(self.pid, trial_idx, cache_path=self.cache_path)
+        path = trial_overview_path(self.spikesorting, self.pid, trial_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making trial overview plot for session {self.pid}, trial #{trial_idx:04d}")
@@ -636,7 +641,7 @@ class Generator:
     # FIGURE 4
 
     def make_trial_event_plot(self, force=False, captions=False):
-        path = trial_event_overview_path(self.pid, cache_path=self.cache_path)
+        path = trial_event_overview_path(self.spikesorting, self.pid, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making trial event plot for session {self.pid}")
@@ -672,7 +677,7 @@ class Generator:
         else:
             fig.savefig(path)
 
-            path_interval = trial_intervals_path(self.pid, cache_path=self.cache_path)
+            path_interval = trial_intervals_path(self.spikesorting, self.pid, cache_path=self.cache_path)
             df = pd.DataFrame()
             df['t0'] = loader.trial_intervals[:, 0]
             df['t1'] = loader.trial_intervals[:, 1]
@@ -688,7 +693,7 @@ class Generator:
     # FIGURE 5
 
     def make_cluster_plot(self, cluster_idx, force=False, captions=False):
-        path = cluster_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
+        path = cluster_overview_path(self.spikesorting, self.pid, cluster_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making cluster overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
@@ -795,7 +800,7 @@ class Generator:
         else:
             fig.savefig(path)
 
-            path_scat = cluster_pixels_path(self.pid, cache_path=self.cache_path)
+            path_scat = cluster_pixels_path(self.spikesorting, self.pid, cache_path=self.cache_path)
             if not path_scat.exists():
                 idx = np.argsort(loader.clusters_good.depths)[::-1]
                 pixels = ax1.transData.transform(np.vstack([loader.clusters_good.amps[idx].astype(np.float64) * 1e6,
@@ -815,7 +820,7 @@ class Generator:
 
     def make_cluster_qc_plot(self, cluster_idx, force=False, captions=False):
 
-        path = cluster_qc_overview_path(self.pid, cluster_idx, cache_path=self.cache_path)
+        path = cluster_qc_overview_path(self.spikesorting, self.pid, cluster_idx, cache_path=self.cache_path)
         if not force and path.exists():
             return
         logger.debug(f"making cluster qc overview plot for session {self.pid}, cluster #{cluster_idx:04d}")
@@ -917,7 +922,7 @@ class Generator:
         else:
             fig.savefig(path)
 
-            path_scat = cluster_qc_pixels_path(self.pid, cache_path=self.cache_path)
+            path_scat = cluster_qc_pixels_path(self.spikesorting, self.pid, cache_path=self.cache_path)
             if not path_scat.exists() or force:
                 idx = np.argsort(loader.clusters.depths)[::-1]
                 pixels = ax1.transData.transform(np.vstack([loader.clusters.amps[idx].astype(np.float64) * 1e6,
@@ -940,7 +945,7 @@ class Generator:
 
     def make_all_trial_plots(self, force=False):
 
-        path = trial_overview_path(self.pid, self.first_trial(), cache_path=self.cache_path)
+        path = trial_overview_path(self.spikesorting, self.pid, self.first_trial(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping trial plot generation as they seem to already exist")
             return
@@ -955,7 +960,7 @@ class Generator:
 
     def make_all_cluster_plots(self, force=False):
 
-        path = cluster_overview_path(self.pid, self.first_good_cluster(), cache_path=self.cache_path)
+        path = cluster_overview_path(self.spikesorting, self.pid, self.first_good_cluster(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping cluster plot generation as they seem to already exist")
             return
@@ -970,7 +975,7 @@ class Generator:
 
     def make_all_cluster_qc_plots(self, force=False):
 
-        path = cluster_qc_overview_path(self.pid, self.first_cluster(), cache_path=self.cache_path)
+        path = cluster_qc_overview_path(self.spikesorting, self.pid, self.first_cluster(), cache_path=self.cache_path)
         if not force and path.exists():
             logger.debug("Skipping cluster plot generation as they seem to already exist")
             return
@@ -1057,11 +1062,12 @@ def load_json_c(path):
     return data
 
 
-def sessions():
+def sessions(spikesorting):
     CACHE_DIR.mkdir(exist_ok=True, parents=True)
-    pids = sorted([str(p.name) for p in CACHE_DIR.iterdir()])
+    cache_path = CACHE_DIR.joinpath(spikesorting)
+    pids = sorted([str(p.name) for p in cache_path.iterdir()])
     pids = [pid for pid in pids if is_valid_uuid(pid)]
-    sessions = [load_json_c(session_details_path(pid)) for pid in pids]
+    sessions = [load_json_c(session_details_path(spikesorting, pid)) for pid in pids]
     sessions = [_ for _ in sessions if _]
     sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
     return sessions
@@ -1071,9 +1077,9 @@ def legends():
     return load_json(figure_details_path())
 
 
-def generate_data_js():
+def generate_data_js(spikesorting):
     FLASK_CTX = {
-        "SESSIONS": sessions(),
+        "SESSIONS": sessions(spikesorting),
         "LEGENDS": legends(),
         "DEFAULT_PID": DEFAULT_PID,
         "DEFAULT_DSET": DEFAULT_DSET,
@@ -1083,10 +1089,10 @@ def generate_data_js():
     return ctx_compressed
 
 
-def make_data_js():
-    ctx_json = generate_data_js()
-    path = 'static/data.js'
-    with open(path, 'r') as f:
+def make_data_js(spikesorting, path=None):
+    ctx_json = generate_data_js(spikesorting)
+    path = path or 'static/data.js'
+    with open('static/data.js', 'r') as f:
         contents = f.read()
     contents = re.sub('const FLASK_CTX_COMPRESSED = .+', f'const FLASK_CTX_COMPRESSED = "{ctx_json}";', contents)
     with open(path, 'w') as f:

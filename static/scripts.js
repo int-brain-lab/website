@@ -5,7 +5,7 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = true;   // disable for debugging
+const ENABLE_UNITY = false;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
@@ -570,10 +570,34 @@ function getSessionList() {
     return out;
 }
 
+/*************************************************************************************************/
+/*  Spikesortin selection                                                                            */
+/*************************************************************************************************/
+
+
+function onSpikeSortingChanged(ev) {
+    let ss = null;
+    if (ev.target.id == "ss-1") ss = "ss_original";
+    else if (ev.target.id == "ss-2") ss = "ss_2024-03-22";
+    else if (ev.target.id == "ss-3") ss = "ss_2024-05-06";
+    else { console.log("unknown spikesorting " + ss); return; }
+    CTX.spikesorting = ss;
+    autoCompleteJS.refresh();
+}
+
+function setupSpikeSorting() {
+    document.getElementById('ss-1').onclick = onSpikeSortingChanged;
+    document.getElementById('ss-2').onclick = onSpikeSortingChanged;
+    document.getElementById('ss-3').onclick = onSpikeSortingChanged;
+
+    if (CTX.spikesorting == "ss_original") document.getElementById('ss-1').checked = true;
+    if (CTX.spikesorting == "ss_2024-03-22") document.getElementById('ss-2').checked = true;
+    if (CTX.spikesorting == "ss_2024-05-06") document.getElementById('ss-3').checked = true;
+}
 
 
 /*************************************************************************************************/
-/*  Session selection                                                                            */
+/*  Dataset selection                                                                            */
 /*************************************************************************************************/
 
 function onDatasetChanged(ev) {
@@ -592,6 +616,10 @@ function setupDataset() {
     if (CTX.dset == "bwm") document.getElementById('dset-1').checked = true;
     if (CTX.dset == "rs") document.getElementById('dset-2').checked = true;
 }
+
+/*************************************************************************************************/
+/*  Session selection                                                                            */
+/*************************************************************************************************/
 
 function loadAutoComplete() {
     autoCompleteJS = autocomplete({
@@ -661,13 +689,13 @@ function loadAutoComplete() {
 
 
 function updateSessionPlot(pid) {
-    showImage('sessionPlot', `/api/session/${pid}/session_plot`);
+    showImage('sessionPlot', `/api/${CTX.spikesorting}/session/${pid}/session_plot`);
 };
 
 
 
 function updateBehaviourPlot(pid) {
-    showImage('behaviourPlot', `/api/session/${pid}/behaviour_plot`);
+    showImage('behaviourPlot', `/api/${CTX.spikesorting}/session/${pid}/behaviour_plot`);
 };
 
 
@@ -685,7 +713,7 @@ async function selectSession(pid) {
         unityTrial.SendMessage("main", "SetSession", pid);
 
     // Show the session details.
-    var url = `/api/session/${pid}/details`;
+    var url = `/api/${CTX.spikesorting}/session/${pid}/details`;
     var r = await fetch(url);
     var details = await r.json();
 
@@ -836,7 +864,7 @@ function changeTrial(trialNum) {
 
 
 function updateTrialPlot(pid) {
-    showImage('trialEventPlot', `/api/session/${pid}/trial_event_plot`);
+    showImage('trialEventPlot', `/api/${CTX.spikesorting}/session/${pid}/trial_event_plot`);
 };
 
 
@@ -887,11 +915,11 @@ async function selectTrial(pid, tid, unityCalled = false) {
         unityTrial.SendMessage("main", "SetTrial", Number(tid));
 
     // Show the trial raster plot.
-    var url = `/api/session/${pid}/trial_plot/${tid}`;
+    var url = `/api/${CTX.spikesorting}/session/${pid}/trial_plot/${tid}`;
     showImage('trialPlot', url, unityCalled);
 
     // Show information about trials in table
-    var url = `/api/session/${pid}/trial_details/${tid}`;
+    var url = `/api/${CTX.spikesorting}/session/${pid}/trial_details/${tid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
@@ -961,7 +989,7 @@ function setupLegends(plot_id, legend_id, key) {
 
     let legends = FLASK_CTX.LEGENDS;
     // // Show information about trials in table
-    // var url = `/api/figures/details`;
+    // var url = `/api/${CTX.spikesorting}/figures/details`;
     // var r = await fetch(url).then();
     // var details = await r.json();
     for (let letter in legends[key]) {
@@ -998,7 +1026,7 @@ async function onClusterClick(canvas, event) {
     const rect = canvas.getBoundingClientRect()
     const x = (event.clientX - rect.left) / rect.width
     const y = Math.abs((event.clientY - rect.bottom)) / rect.height
-    var url = `/api/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}/${Number(CTX.qc)}`;
+    var url = `/api/${CTX.spikesorting}/session/${CTX.pid}/cluster_plot_from_xy/${CTX.cid}/${x}_${y}/${Number(CTX.qc)}`;
     var r = await fetch(url);
     var details = await r.json();
 
@@ -1017,14 +1045,14 @@ async function selectCluster(pid, cid) {
     CTX.cid = cid;
 
     if (CTX.qc) {
-        var url = `/api/session/${pid}/cluster_qc_plot/${cid}`;
+        var url = `/api/${CTX.spikesorting}/session/${pid}/cluster_qc_plot/${cid}`;
     } else {
-        var url = `/api/session/${pid}/cluster_plot/${cid}`;
+        var url = `/api/${CTX.spikesorting}/session/${pid}/cluster_plot/${cid}`;
     }
     showImage('clusterPlot', url);
 
     // Show information about cluster in table
-    var url = `/api/session/${pid}/cluster_details/${cid}`;
+    var url = `/api/${CTX.spikesorting}/session/${pid}/cluster_details/${cid}`;
     var r = await fetch(url).then();
     var details = await r.json();
 
@@ -1043,6 +1071,7 @@ function load() {
     setupQC();
 
     setupDataset();
+    setupSpikeSorting()
     loadAutoComplete();
 
     setupUnitySession();

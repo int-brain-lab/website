@@ -110,25 +110,25 @@ def make_app():
     # JSON details
     # ---------------------------------------------------------------------------------------------
 
-    # @app.route('/api/figures/details')
+    # @app.route('/api/<spikesorting>/figures/details')
     # def figure_details():
     #     return load_json(figure_details_path())
 
-    @app.route('/api/session/<pid>/details')
-    def session_details(pid):
-        return load_json(session_details_path(pid))
+    @app.route('/api/<spikesorting>/session/<pid>/details')
+    def session_details(spikesorting, pid):
+        return load_json(session_details_path(spikesorting, pid))
 
-    @app.route('/api/session/<pid>/trial_details/<int:trial_idx>')
-    def trial_details(pid, trial_idx):
-        return load_json(trial_details_path(pid, trial_idx))
+    @app.route('/api/<spikesorting>/session/<pid>/trial_details/<int:trial_idx>')
+    def trial_details(spikesorting, pid, trial_idx):
+        return load_json(trial_details_path(spikesorting, pid, trial_idx))
 
-    @app.route('/api/session/<pid>/cluster_details/<int:cluster_idx>')
-    def cluster_details(pid, cluster_idx):
-        return load_json(cluster_details_path(pid, cluster_idx))
+    @app.route('/api/<spikesorting>/session/<pid>/cluster_details/<int:cluster_idx>')
+    def cluster_details(spikesorting, pid, cluster_idx):
+        return load_json(cluster_details_path(spikesorting, pid, cluster_idx))
 
-    @app.route('/api/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float(signed=True):x>_<float(signed=True):y>/<int:qc>')
-    def cluster_from_xy(pid, cluster_idx, x, y, qc):
-        cluster_idx, idx = get_cluster_idx_from_xy(pid, cluster_idx, x, y, qc)
+    @app.route('/api/<spikesorting>/session/<pid>/cluster_plot_from_xy/<int:cluster_idx>/<float(signed=True):x>_<float(signed=True):y>/<int:qc>')
+    def cluster_from_xy(spikesorting, pid, cluster_idx, x, y, qc):
+        cluster_idx, idx = get_cluster_idx_from_xy(spikesorting, pid, cluster_idx, x, y, qc)
         return {
             "idx": int(idx),
             "cluster_idx": int(cluster_idx),
@@ -137,29 +137,29 @@ def make_app():
     # Figures
     # ---------------------------------------------------------------------------------------------
 
-    @app.route('/api/session/<pid>/session_plot')
-    def session_overview_plot(pid):
-        return send(session_overview_path(pid))
+    @app.route('/api/<spikesorting>/session/<pid>/session_plot')
+    def session_overview_plot(spikesorting, pid):
+        return send(session_overview_path(spikesorting, pid))
 
-    @app.route('/api/session/<pid>/behaviour_plot')
-    def behaviour_overview_plot(pid):
-        return send(behaviour_overview_path(pid))
+    @app.route('/api/<spikesorting>/session/<pid>/behaviour_plot')
+    def behaviour_overview_plot(spikesorting, pid):
+        return send(behaviour_overview_path(spikesorting, pid))
 
-    @app.route('/api/session/<pid>/trial_event_plot')
-    def trial_event_overview_plot(pid):
-        return send(trial_event_overview_path(pid))
+    @app.route('/api/<spikesorting>/session/<pid>/trial_event_plot')
+    def trial_event_overview_plot(spikesorting, pid):
+        return send(trial_event_overview_path(spikesorting, pid))
 
-    @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
-    def trial_overview_plot(pid, trial_idx):
-        return send(trial_overview_path(pid, trial_idx))
+    @app.route('/api/<spikesorting>/session/<pid>/trial_plot/<int:trial_idx>')
+    def trial_overview_plot(spikesorting, pid, trial_idx):
+        return send(trial_overview_path(spikesorting, pid, trial_idx))
 
-    @app.route('/api/session/<pid>/cluster_plot/<int:cluster_idx>')
-    def cluster_overview_plot(pid, cluster_idx):
-        return send(cluster_overview_path(pid, cluster_idx))
+    @app.route('/api/<spikesorting>/session/<pid>/cluster_plot/<int:cluster_idx>')
+    def cluster_overview_plot(spikesorting, pid, cluster_idx):
+        return send(cluster_overview_path(spikesorting, pid, cluster_idx))
 
-    @app.route('/api/session/<pid>/cluster_qc_plot/<int:cluster_idx>')
-    def cluster_qc_overview_plot(pid, cluster_idx):
-        return send(cluster_qc_overview_path(pid, cluster_idx))
+    @app.route('/api/<spikesorting>/session/<pid>/cluster_qc_plot/<int:cluster_idx>')
+    def cluster_qc_overview_plot(spikesorting, pid, cluster_idx):
+        return send(cluster_qc_overview_path(spikesorting, pid, cluster_idx))
 
     return app
 
@@ -176,3 +176,4 @@ if __name__ == '__main__':
     # to run with SSL, generate certificate with
     # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
     app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
+    

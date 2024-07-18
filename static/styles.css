@@ -260,6 +260,49 @@ h4 {
 }
 
 
+/*************************************************************************************************/
+/*  Spiksorting tabs                                                                                 */
+/*************************************************************************************************/
+
+/* https://codepen.io/CesarVMB/pen/kPOrQb */
+#ss-container {
+    margin-bottom: 0;
+    float: right
+}
+
+#ss-container input {
+    visibility: hidden;
+    margin-bottom: 0;
+}
+
+#ss-container label {
+    background-color: #fafafa;
+    border-radius: 1em 1em 0 0;
+    color: #aaa;
+    cursor: pointer;
+    display: block;
+    float: left;
+    font-size: 1em;
+    height: 2.5em;
+    line-height: 2.5em;
+    margin-right: .25em;
+    margin-bottom: 0;
+    padding: 0 1.5em;
+    text-align: center;
+}
+
+#ss-container input:hover+label {
+    background-color: #ddd;
+    color: #666;
+}
+
+#ss-container input:checked+label {
+    background-color: #eee;
+    color: #444;
+    position: relative;
+    z-index: 6;
+}
+
 
 
 /*************************************************************************************************/

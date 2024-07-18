@@ -412,6 +412,7 @@ class DataLoader:
         details['dset_bwm'] = self.session_info['2022_Q4_IBL_et_al_BWM']
         details['dset_rs'] = self.session_info['2022_Q2_IBL_et_al_RepeatedSite']
 
+
         # Sort by cluster depth.
         idx = np.argsort(self.clusters.depths)[::-1]
         idx_good = np.argsort(self.clusters_good.depths)[::-1]
