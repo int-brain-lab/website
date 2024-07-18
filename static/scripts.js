@@ -574,7 +574,6 @@ function getSessionList() {
 /*  Spikesortin selection                                                                            */
 /*************************************************************************************************/
 
-
 function onSpikeSortingChanged(ev) {
     let ss = null;
     if (ev.target.id == "ss-1") ss = "ss_original";
@@ -582,7 +581,9 @@ function onSpikeSortingChanged(ev) {
     else if (ev.target.id == "ss-3") ss = "ss_2024-05-06";
     else { console.log("unknown spikesorting " + ss); return; }
     CTX.spikesorting = ss;
-    autoCompleteJS.refresh();
+    var url = `/app/${CTX.spikesorting}`;
+    var r = fetch(url);
+
 }
 
 function setupSpikeSorting() {

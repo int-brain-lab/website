@@ -6,8 +6,7 @@
 <script src=" https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
 <!-- Generated script with all data per spikesorting-->
-<!--<script src="{{ url_for('static', filename='cache/{request.GET.spikesorting}/data.js') }}"></script>-->
-<script src="{{ url_for('static', filename='cache/ss_2024-03-22/data.js') }}"></script>
+<script src="{{ url_for('static', filename='cache/' + spikesorting + '/data.js') }}"></script>
 
 <!-- Common context data -->
 <script src="{{ url_for('static', filename='ctx.js') }}"></script>

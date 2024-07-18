@@ -9,7 +9,7 @@ from pathlib import Path
 
 import png
 from flask_cors import CORS
-from flask import Flask, render_template, send_file, Response, send_from_directory
+from flask import Flask, render_template, send_file, Response, send_from_directory, request
 
 from generator import *
 
@@ -97,7 +97,12 @@ def make_app():
 
     @app.route('/app')
     def the_app():
-        return _render('app.html')
+        spikesorting = request.args.get('spikesorting', 'ss_original')
+        return _render('app.html', spikesorting=spikesorting)
+
+    @app.route('/app/<spikesorting>')
+    def the_app_with_ss(spikesorting):
+        return _render('app.html', spikesorting=spikesorting)
 
     @app.route('/WebGL/<path:path>')
     def trial_viewer(path):
@@ -175,5 +180,5 @@ if __name__ == '__main__':
     app = make_app()
     # to run with SSL, generate certificate with
     # openssl req -x509 -newkey rsa:4096 -nodes -out cert.pem -keyout key.pem -days 365
-    app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
-    
+    #app.run(ssl_context=('cert.pem', 'key.pem'), port=port)
+    app.run()
