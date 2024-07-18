@@ -283,6 +283,7 @@ function getUrl() {
     params.set("tid", CTX.tid);
     params.set("cid", CTX.cid);
     params.set("qc", CTX.qc);
+    params.set("spikesorting", CTX.spikesorting);
 
     // Detect whether the trial viewer is currently visible, if so,
     // point to it in the shared URL.
@@ -581,9 +582,8 @@ function onSpikeSortingChanged(ev) {
     else if (ev.target.id == "ss-3") ss = "ss_2024-05-06";
     else { console.log("unknown spikesorting " + ss); return; }
     CTX.spikesorting = ss;
-    var url = `/app/${CTX.spikesorting}`;
-    var r = fetch(url);
-
+    let url = getUrl();
+    window.location.href = url;
 }
 
 function setupSpikeSorting() {

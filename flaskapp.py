@@ -100,10 +100,6 @@ def make_app():
         spikesorting = request.args.get('spikesorting', 'ss_original')
         return _render('app.html', spikesorting=spikesorting)
 
-    @app.route('/app/<spikesorting>')
-    def the_app_with_ss(spikesorting):
-        return _render('app.html', spikesorting=spikesorting)
-
     @app.route('/WebGL/<path:path>')
     def trial_viewer(path):
         return send_from_directory('static/WebGL', path)
