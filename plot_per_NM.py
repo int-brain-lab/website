@@ -49,15 +49,20 @@ df_trials_combined = pd.DataFrame()
 EXCLUDES = []  
 IMIN = 0
 
-test_04 = test_03[test_03["NM"]=="DA"].reset_index(drop=True)
-# test_04 = test_03[test_03["NM"]=="5HT"].reset_index(drop=True) 
-# test_04 = test_03[test_03["NM"]=="NE"].reset_index(drop=True)
-# test_04 = test_03[test_03["NM"]=="ACh"].reset_index(drop=True) 
+NM="ACh" #"DA", "5HT", "NE", "ACh"
+test_04 = test_03[test_03["NM"]==NM].reset_index(drop=True)
 
 ####################################
+#test_04 = test_04.drop(32).reset_index(drop=True)
 #for DA: 
-EXCLUDES = [5,6,8,12]  
-IMIN = 0
+# EXCLUDES = [5,6,8,12]  
+#for 5HT: 
+# EXCLUDES = [32] 
+#for NE: 
+# EXCLUDES = [43]  
+#for ACh: 
+# EXCLUDES = []  
+# IMIN = 0 
 
 
 #%%
@@ -156,7 +161,7 @@ for i in range(len(test_04)):
     ax4.set_ylabel('Average Value')
     ax4.set_xlabel('Time')
 
-    fig.suptitle(f'jove2019_{EVENT}_{mouse}_{date}_{region}_{eid}', y=1, fontsize=14)
+    fig.suptitle(f'jove2019_{EVENT}_{mouse}_{date}_{region}_{NM}_{eid}', y=1, fontsize=14)
     plt.tight_layout()
     plt.show()
     ##################################################################################################
@@ -166,8 +171,8 @@ for i in range(len(test_04)):
 """ SAVE THE PSTH AND DF_TRIALS """
 #save the psth npy and the df_trials pqt 
 # path_initial = '/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_feedback_times_etc/' 
-np.save(path_initial+f'RESULTS/jove2019_psth_combined_NE_{EVENT}.npy', psth_combined)
-df_trials_combined.to_parquet(path_initial+f'RESULTS/jove2019_df_trials_combined_NE_{EVENT}.pqt')
+np.save(path_initial+f'RESULTS/jove2019_psth_combined_{NM}_{EVENT}.npy', psth_combined)
+df_trials_combined.to_parquet(path_initial+f'RESULTS/jove2019_df_trials_combined_{NM}_{EVENT}.pqt')
 
 #%%
 #import the saved files 
@@ -263,7 +268,7 @@ ax4.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax4.set_ylabel('Average Value')
 ax4.set_xlabel('Time')
 
-fig.suptitle(f'calcium_mad_{EVENT}_{mouse}_{date}_{region}_{eid}', y=1, fontsize=14)
+fig.suptitle(f'calcium_mad_{EVENT}_{mouse}_{date}_{NM}_{region}_{eid}', y=1, fontsize=14)
 plt.tight_layout()
 plt.show()
 
@@ -291,7 +296,7 @@ plt.plot(avg06, color="black", alpha=0.2, label="6")
 plt.plot(avg0, color="black", alpha=0.05, label="0") 
 plt.axvline(x=30, linestyle='dashed', color='black')
 plt.legend()
-plt.title(f'All contrasts, aligned to {EVENT}') 
+plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
 plt.show()
 ##################################################################################################
 # %%
