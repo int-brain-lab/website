@@ -214,18 +214,18 @@ Load the psth and behav, combined
 and plot them 
 """
 #%%
-#import the saved files 
-NM = "DA"
-EVENT = EVENT
-path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
-what_to_load = f'combined_{NM}_{EVENT}'
-psth_combined = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
-df_trials_combined = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
+# #import the saved files 
+# NM = "DA"
+# EVENT = "feedback_times"
+# path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
+# what_to_load = f'combined_{NM}_{EVENT}'
+# psth_combined = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
+# df_trials_combined = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
 
 #%%
-""" IMPORTING ALL """
-NM = "DA"
+""" IMPORTING ALL """ 
 EVENT = "feedback_times"
+NM = "DA" 
 path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_DA = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
@@ -248,34 +248,23 @@ df_trials_combined_ACh = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_tria
 
 #%%
 EVENT = "stimOnTrigger_times"
-
-# DA
 NM = "DA"
 path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/'
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_DA_stim = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_DA_stim = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
-
-# 5HT
 NM = "5HT"
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_5HT_stim = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_5HT_stim = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
-
-# NE
 NM = "NE"
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_NE_stim = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_NE_stim = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
-
-# ACh
 NM = "ACh"
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_ACh_stim = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_ACh_stim = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
-
-
-
 
 
 # %%
@@ -288,43 +277,8 @@ def avg_sem(psth_array):
     psth_sem = psth_array.std(axis=1) / np.sqrt(psth_array.shape[1])
     return psth_avg, psth_sem
 
-# def filter_data(psth_array=psth_combined, df_trials=df_trials_combined, event1=None, event2=None, event3=None, 
-#                 mice=None): 
-#     if mouse!=None: 
-#         mask = df_trials["mouse"].isin(mice)
-#         test = psth_array[:, mask]
-#     return test 
-#     # test = filter_data(mice=["ZFM-04019","ZFM-04022"])
-
-#     if event1=="feedbackType": 
-#         psth_correct = psth_array[:,(df_trials[event1] == 1)]
-#         psth_incorrect = psth_array[:,(df_trials[event1] == -1)] 
-    
-#     if event2=="allContrasts": 
-#         psth_100 = psth_array[:,(df_trials[event2] == 1)]
-#         psth_25 = psth_array[:,(df_trials[event2] == 0.25)]
-#         psth_12 = psth_array[:,(df_trials[event2] == 0.125)]
-#         psth_06 = psth_array[:,(df_trials[event2] == 0.0625)]
-#         psth_0 = psth_array[:,(df_trials[event2] == 0)] 
-    
-#     if event3=="probabilityLeft": 
-#         psth_50 = psth_array[:,(df_trials[event3] == 0.5)]
-#         psth_20 = psth_array[:,(df_trials[event3] == 0.2)]
-#         psth_80 = psth_array[:,(df_trials[event3] == 0.8)] 
-    
-#     if event1=="feedbackType" and event2=="allContrasts": 
-
-    
-#     return psth_correct, psth_incorrect
-
-
-
-
-
-
-
-
 """ 1. feedbackType """
+def correct_incorrect()
 psth_good = psth_combined[:,(df_trials_combined.feedbackType == 1)] 
 psth_error = psth_combined[:,(df_trials_combined.feedbackType == -1)]
 # Calculate averages and SEM
@@ -366,7 +320,6 @@ ax4.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax4.set_ylabel('Average Value')
 ax4.set_xlabel('Time')
 
-fig.suptitle(f'calcium_mad_{EVENT}_{mouse}_{date}_{NM}_{region}_{eid}', y=1, fontsize=14)
 plt.tight_layout()
 plt.show() 
 
@@ -603,573 +556,21 @@ plt.axvline(x=30, linestyle='dashed', color='black')
 plt.legend()
 plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
 plt.show()
-################################################################################################## 
+
+
 #%%
-NM="DA"
-EVENT="feedback_outcome"
-psth_array=psth_combined_DA
-df_trials=df_trials_combined_DA
-event2="allContrasts"
-psth_100 = psth_array[:,(df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-plt.plot(avg100, color="black", label="100")
-plt.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-plt.plot(avg25, color="black", alpha=0.6, label="25")
-plt.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-plt.plot(avg12, color="black", alpha=0.4, label="12")
-plt.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-plt.plot(avg06, color="black", alpha=0.2, label="6")
-plt.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-plt.plot(avg0, color="black", alpha=0.05, label="0")
-plt.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-
-plt.axvline(x=30, linestyle='dashed', color='black')
-plt.legend()
-plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
-plt.show()
-
-NM="5HT"
-EVENT="feedback_outcome"
-psth_array=psth_combined_5HT
-df_trials=df_trials_combined_5HT
-event2="allContrasts"
-psth_100 = psth_array[:,(df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-plt.plot(avg100, color="black", label="100")
-plt.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-plt.plot(avg25, color="black", alpha=0.6, label="25")
-plt.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-plt.plot(avg12, color="black", alpha=0.4, label="12")
-plt.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-plt.plot(avg06, color="black", alpha=0.2, label="6")
-plt.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-plt.plot(avg0, color="black", alpha=0.05, label="0")
-plt.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-
-plt.axvline(x=30, linestyle='dashed', color='black')
-plt.legend()
-plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
-plt.show()
-
-NM="NE"
-EVENT="feedback_outcome"
-psth_array=psth_combined_NE
-df_trials=df_trials_combined_NE
-event2="allContrasts"
-psth_100 = psth_array[:,(df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-plt.plot(avg100, color="black", label="100")
-plt.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-plt.plot(avg25, color="black", alpha=0.6, label="25")
-plt.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-plt.plot(avg12, color="black", alpha=0.4, label="12")
-plt.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-plt.plot(avg06, color="black", alpha=0.2, label="6")
-plt.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-plt.plot(avg0, color="black", alpha=0.05, label="0")
-plt.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-
-plt.axvline(x=30, linestyle='dashed', color='black')
-plt.legend()
-plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
-plt.show()
-
-NM="ACh"
-EVENT="feedback_outcome"
-psth_array=psth_combined_ACh
-df_trials=df_trials_combined_ACh
-event2="allContrasts"
-psth_100 = psth_array[:,(df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-plt.plot(avg100, color="black", label="100")
-plt.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-plt.plot(avg25, color="black", alpha=0.6, label="25")
-plt.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-plt.plot(avg12, color="black", alpha=0.4, label="12")
-plt.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-plt.plot(avg06, color="black", alpha=0.2, label="6")
-plt.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-plt.plot(avg0, color="black", alpha=0.05, label="0")
-plt.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-
-plt.axvline(x=30, linestyle='dashed', color='black')
-plt.legend()
-plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
-plt.show() 
-
-
-
 ##################################################################################################
-# %% 
-""" from chat gpt from previous code but for the 4 NMs """ 
-
-# Helper function for calculating average and SEM
-def avg_sem(data):
-    avg = np.mean(data, axis=1)
-    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
-    return avg, sem
-
-# Create the figure and subplots
-fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
-
-# Plot for DA
-NM = "DA"
-EVENT = "stimOnTrigger_times"
-psth_array = psth_combined_DA_stim
-df_trials = df_trials_combined_DA_stim
-event2 = "allContrasts"
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 0]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for 5HT
-NM = "5HT"
-psth_array = psth_combined_5HT_stim
-df_trials = df_trials_combined_5HT_stim
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 1]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for NE
-NM = "NE"
-psth_array = psth_combined_NE_stim
-df_trials = df_trials_combined_NE_stim
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 0]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for ACh
-NM = "ACh"
-psth_array = psth_combined_ACh_stim
-df_trials = df_trials_combined_ACh_stim
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 1]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-fig.suptitle('Neuromodulator activity at Stim Onset', fontsize=16)
-plt.tight_layout(rect=[0, 0, 1, 0.96])
-plt.show()
-
-
-
-
-
-
-
-
 ##################################################################################################
-#%%
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Helper function for calculating average and SEM
-def avg_sem(data):
-    avg = np.mean(data, axis=1)
-    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
-    return avg, sem
-
-# Create the figure and subplots
-fig, axes = plt.subplots(2, 2, figsize=(16, 12), sharex=True, sharey=True)
-
-# Plot for DA
-NM = "DA"
-EVENT = "stimOnTrigger_times"
-psth_array = psth_combined_DA
-df_trials = df_trials_combined_DA
-event2 = "allContrasts"
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 0]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for 5HT
-NM = "5HT"
-psth_array = psth_combined_5HT
-df_trials = df_trials_combined_5HT
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 1]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for NE
-NM = "NE"
-psth_array = psth_combined_NE
-df_trials = df_trials_combined_NE
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 0]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for ACh
-NM = "ACh"
-psth_array = psth_combined_ACh
-df_trials = df_trials_combined_ACh
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 1]
-ax.plot(avg100, color="black", label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color="black", alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color="black", alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color="black", alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color="black", alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-fig.suptitle('Neuromodulator activity at Stim Onset', fontsize=16)
-plt.tight_layout(rect=[0, 0, 1, 0.96])
-plt.show()
-
-
-
-##################################################################################################
-#%%
-""" 4NMs plot by contrast, no diff between correct and incorrect """
-def avg_sem(data):
-    avg = np.mean(data, axis=1)
-    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
-    return avg, sem
-
-fig, axes = plt.subplots(2, 2, figsize=(16, 12), sharex=True, sharey=True) 
+############################## WORKS ############################################
+""" 2.0 a) Individual plots each NM allContrasts at stimOn and feedback """
+# colors and functions 
 colors_contrast = {
     'DA': '#d62828',  # Red
     '5HT': '#8e44ad',  # Purple
     'NE': '#3498db',  # Blue
     'ACh': '#3cb371'  # Green
-}
+} 
 
-# Plot for DA
-NM = "DA"
-EVENT = "feedback_times"
-psth_array = psth_combined_DA
-df_trials = df_trials_combined_DA
-event2 = "allContrasts"
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 0]
-ax.plot(avg100, color=colors_contrast["DA"], label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color=colors_contrast["DA"], alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color=colors_contrast["DA"], alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color=colors_contrast["DA"], alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color=colors_contrast["DA"], alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for 5HT
-NM = "5HT"
-psth_array = psth_combined_5HT
-df_trials = df_trials_combined_5HT
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[0, 1]
-ax.plot(avg100, color=colors_contrast["5HT"], label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color=colors_contrast["5HT"], alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color=colors_contrast["5HT"], alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color=colors_contrast["5HT"], alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color=colors_contrast["5HT"], alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for NE
-NM = "NE"
-psth_array = psth_combined_NE
-df_trials = df_trials_combined_NE
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 0]
-ax.plot(avg100, color=colors_contrast["NE"], label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color=colors_contrast["NE"], alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color=colors_contrast["NE"], alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color=colors_contrast["NE"], alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color=colors_contrast["NE"], alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-# Plot for ACh
-NM = "ACh"
-psth_array = psth_combined_ACh
-df_trials = df_trials_combined_ACh
-psth_100 = psth_array[:, (df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-ax = axes[1, 1]
-ax.plot(avg100, color=colors_contrast["ACh"], label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color=colors_contrast["ACh"], alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color=colors_contrast["ACh"], alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color=colors_contrast["ACh"], alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color=colors_contrast["ACh"], alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-
-fig.suptitle('Neuromodulator activity at Stim Onset', fontsize=16)
-plt.tight_layout(rect=[0, 0, 1, 0.96])
-plt.show() 
-
-
-
-##################################################################################################
-#%% 
-""" 2.1 a); 2.1 b) - WORKS """
 def avg_sem(data):
     avg = np.mean(data, axis=1)
     sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
@@ -1188,53 +589,6 @@ def split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContr
     avg0, sem0 = avg_sem(psth_0) 
     return avg100, sem100, avg25, sem25, avg12, sem12, avg06, sem06, avg0, sem0 
 
-# Create the figure and subplots
-fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True) 
-
-colors_contrast = {
-    'DA': '#d62828',  # Red
-    '5HT': '#8e44ad',  # Purple
-    'NE': '#3498db',  # Blue
-    'ACh': '#3cb371'  # Green
-} 
-
-""" 2.1 a) 4NMs; allContrasts; aligned to StimOn """ 
-
-# Plot for DA
-NM = "DA"
-EVENT = "stimOnTrigger_times"
-psth_array = psth_combined_DA_stim
-df_trials = df_trials_combined_DA_stim
-avg100, sem100, avg25, sem25, avg12, sem12, avg06, sem06, avg0, sem0 = split_contrasts() 
-
-ax = axes[0, 0]
-ax.plot(avg100, color=colors_contrast["DA"], label="100")
-ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-ax.plot(avg25, color=colors_contrast["DA"], alpha=0.6, label="25")
-ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-ax.plot(avg12, color=colors_contrast["DA"], alpha=0.4, label="12")
-ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-ax.plot(avg06, color=colors_contrast["DA"], alpha=0.2, label="6")
-ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-ax.plot(avg0, color=colors_contrast["DA"], alpha=0.05, label="0")
-ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
-ax.axvline(x=30, linestyle='dashed', color='black')
-ax.legend()
-ax.set_title(f'All contrasts {NM}, aligned to {EVENT}')
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-
-
-
-##########################################################################
-""" 2.1 a) 2x2 4NMs at stimOn"""
-colors_contrast = {
-    'DA': '#d62828',  # Red
-    '5HT': '#8e44ad',  # Purple
-    'NE': '#3498db',  # Blue
-    'ACh': '#3cb371'  # Green
-} 
-##########################################################################
 def plot_contrasts(ax, NM, colors, event, psth_array, df_trials): 
     event2 = "allContrasts"
     avg100, sem100, avg25, sem25, avg12, sem12, avg06, sem06, avg0, sem0 = split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContrasts") 
@@ -1256,6 +610,163 @@ def plot_contrasts(ax, NM, colors, event, psth_array, df_trials):
     ax.spines['top'].set_visible(False)
 
 ##########################################################################
+# Plot for DA 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="DA",
+    colors=colors_contrast["DA"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_DA_stim,
+    df_trials=df_trials_combined_DA_stim
+) 
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for 5HT 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="5HT",
+    colors=colors_contrast["5HT"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_5HT_stim,
+    df_trials=df_trials_combined_5HT_stim
+)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for NE
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="NE",
+    colors=colors_contrast["NE"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_NE_stim,
+    df_trials=df_trials_combined_NE_stim
+)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for ACh 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="ACh",
+    colors=colors_contrast["ACh"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_ACh_stim,
+    df_trials=df_trials_combined_ACh_stim
+) 
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+##########################################################################
+# Plot for DA 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="DA",
+    colors=colors_contrast["DA"],
+    event="feedback_times",
+    psth_array=psth_combined_DA,
+    df_trials=df_trials_combined_DA
+) 
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for 5HT 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="5HT",
+    colors=colors_contrast["5HT"],
+    event="feedback_times",
+    psth_array=psth_combined_5HT,
+    df_trials=df_trials_combined_5HT
+)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for NE
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="NE",
+    colors=colors_contrast["NE"],
+    event="feedback_times",
+    psth_array=psth_combined_NE,
+    df_trials=df_trials_combined_NE
+)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+# Plot for ACh 
+fig, axes = plt.subplots(1, figsize=(5, 5))
+plot_contrasts(
+    ax=axes,
+    NM="ACh",
+    colors=colors_contrast["ACh"],
+    event="feedback_times",
+    psth_array=psth_combined_ACh,
+    df_trials=df_trials_combined_ACh
+) 
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show()
+
+#%%
+##################################################################################################
+##################################################################################################
+############################## WORKS ############################################
+""" 2.1 2x2 4NMs allContrasts no diff between correct and incorrect """
+colors_contrast = {
+    'DA': '#d62828',  # Red
+    '5HT': '#8e44ad',  # Purple
+    'NE': '#3498db',  # Blue
+    'ACh': '#3cb371'  # Green
+} 
+
+def avg_sem(data):
+    avg = np.mean(data, axis=1)
+    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
+    return avg, sem
+
+def split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContrasts"): 
+    psth_100 = psth_array[:, (df_trials[event2] == 1)]
+    avg100, sem100 = avg_sem(psth_100)
+    psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
+    avg25, sem25 = avg_sem(psth_25)
+    psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
+    avg12, sem12 = avg_sem(psth_12)
+    psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
+    avg06, sem06 = avg_sem(psth_06)
+    psth_0 = psth_array[:, (df_trials[event2] == 0)]
+    avg0, sem0 = avg_sem(psth_0) 
+    return avg100, sem100, avg25, sem25, avg12, sem12, avg06, sem06, avg0, sem0 
+
+def plot_contrasts(ax, NM, colors, event, psth_array, df_trials): 
+    event2 = "allContrasts"
+    avg100, sem100, avg25, sem25, avg12, sem12, avg06, sem06, avg0, sem0 = split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContrasts") 
+
+    ax.plot(avg100, color=colors, label="100")
+    ax.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
+    ax.plot(avg25, color=colors, alpha=0.6, label="25")
+    ax.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
+    ax.plot(avg12, color=colors, alpha=0.4, label="12")
+    ax.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
+    ax.plot(avg06, color=colors, alpha=0.2, label="6")
+    ax.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
+    ax.plot(avg0, color=colors, alpha=0.05, label="0")
+    ax.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='gray', alpha=0.1)
+    ax.axvline(x=30, linestyle='dashed', color='black')
+    ax.legend()
+    ax.set_title(f'All contrasts {NM}, aligned to {event}')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+##########################################################################
+""" 2.1 a) 2x2 4NMs at stimOn """
 fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
 # Plot for DA
 plot_contrasts(
@@ -1299,6 +810,7 @@ plt.tight_layout(rect=[0, 0, 1, 0.96])
 plt.show() 
 
 ##########################################################################
+""" 2.1 b) 2x2 4NMs at feedback """
 fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
 # Plot for DA
 plot_contrasts(
