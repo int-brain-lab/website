@@ -486,7 +486,7 @@ plt.show()
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8), sharex=True, sharey=True)
 
 # Plot correct trials
-ax1.plot(psth_correct_avg_DA_s, color=colors_correct['DA'], linewidth=3, label='DA Correct')
+ax1.plot(psth_correct_avg_DA_stim, color=colors_correct['DA'], linewidth=3, label='DA Correct')
 ax1.fill_between(range(len(psth_correct_avg_DA_s)), psth_correct_avg_DA_s - sem_correct_DA_s, psth_correct_avg_DA_s + sem_correct_DA_s, color=colors_correct['DA'], alpha=0.15)
 ax1.plot(psth_correct_avg_5HT_s, color=colors_correct['5HT'], linewidth=3, label='5HT Correct')
 ax1.fill_between(range(len(psth_correct_avg_5HT_s)), psth_correct_avg_5HT_s - sem_correct_5HT_s, psth_correct_avg_5HT_s + sem_correct_5HT_s, color=colors_correct['5HT'], alpha=0.15)
@@ -520,46 +520,8 @@ plt.tight_layout()
 plt.show()
 
 
-
-
-
-##################################################################################################
 #%%
-""" 2. allContrasts """
-
-psth_array=psth_combined
-df_trials=df_trials_combined 
-event2="allContrasts"
-psth_100 = psth_array[:,(df_trials[event2] == 1)]
-avg100, sem100 = avg_sem(psth_100)
-psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
-avg25, sem25 = avg_sem(psth_25)
-psth_12 = psth_array[:, (df_trials[event2] == 0.125)]
-avg12, sem12 = avg_sem(psth_12)
-psth_06 = psth_array[:, (df_trials[event2] == 0.0625)]
-avg06, sem06 = avg_sem(psth_06)
-psth_0 = psth_array[:, (df_trials[event2] == 0)]
-avg0, sem0 = avg_sem(psth_0)
-
-plt.plot(avg100, color="black", label="100")
-plt.fill_between(range(len(avg100)), avg100 - sem100, avg100 + sem100, color='gray', alpha=0.1)
-plt.plot(avg25, color="black", alpha=0.6, label="25")
-plt.fill_between(range(len(avg25)), avg25 - sem25, avg25 + sem25, color='gray', alpha=0.1)
-plt.plot(avg12, color="black", alpha=0.4, label="12")
-plt.fill_between(range(len(avg12)), avg12 - sem12, avg12 + sem12, color='gray', alpha=0.1)
-plt.plot(avg06, color="black", alpha=0.2, label="6")
-plt.fill_between(range(len(avg06)), avg06 - sem06, avg06 + sem06, color='gray', alpha=0.1)
-plt.plot(avg0, color="black", alpha=0.05, label="0")
-plt.fill_between(range(len(avg0)), avg0 - sem0, avg0 + sem0, color='#d62828', alpha=0.1)
-
-plt.axvline(x=30, linestyle='dashed', color='black')
-plt.legend()
-plt.title(f'All contrasts {NM}, aligned to {EVENT}') 
-plt.show()
-
-
-#%%
-##################################################################################################
+################################################################################################## 
 ##################################################################################################
 ############################## WORKS ############################################
 """ 2.0 a) Individual plots each NM allContrasts at stimOn and feedback """
@@ -615,7 +577,7 @@ fig, axes = plt.subplots(1, figsize=(5, 5))
 plot_contrasts(
     ax=axes,
     NM="DA",
-    colors=colors_contrast["DA"],
+    colors=colors_contrast["DA"], 
     event="stimOnTrigger_times",
     psth_array=psth_combined_DA_stim,
     df_trials=df_trials_combined_DA_stim
@@ -857,6 +819,287 @@ plt.show()
 ##################################################################################################
 ##################################################################################################
 
+#%%
+##################################################################################################
+##################################################################################################
+############################## WORKS ############################################
+""" 3.0 2x2 4NMs allContrasts diff between correct and incorrect """ 
+"""DOUBLE CHECK"""
+# Define colors for neuromodulators
+colors_contrast = {
+    'DA': '#d62828',  # Red
+    '5HT': '#8e44ad',  # Purple
+    'NE': '#3498db',  # Blue
+    'ACh': '#3cb371'  # Green
+}
+
+def avg_sem(data):
+    avg = np.mean(data, axis=1)
+    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
+    return avg, sem
+
+def split_contrasts(psth_array, df_trials, event1="feedbackType", event2="allContrasts"): 
+    # Correct trials
+    psth_100_c = psth_array[:, (df_trials[event1] == 1) & (df_trials[event2] == 1)]
+    avg100_c, sem100_c = avg_sem(psth_100_c)
+    psth_25_c = psth_array[:, (df_trials[event1] == 1) & (df_trials[event2] == 0.25)]
+    avg25_c, sem25_c = avg_sem(psth_25_c)
+    psth_12_c = psth_array[:, (df_trials[event1] == 1) & (df_trials[event2] == 0.125)]
+    avg12_c, sem12_c = avg_sem(psth_12_c)
+    psth_06_c = psth_array[:, (df_trials[event1] == 1) & (df_trials[event2] == 0.0625)]
+    avg06_c, sem06_c = avg_sem(psth_06_c)
+    psth_0_c = psth_array[:, (df_trials[event1] == 1) & (df_trials[event2] == 0)]
+    avg0_c, sem0_c = avg_sem(psth_0_c)
+    
+    # Incorrect trials
+    psth_100_i = psth_array[:, (df_trials[event1] == -1) & (df_trials[event2] == 1)]
+    avg100_i, sem100_i = avg_sem(psth_100_i)
+    psth_25_i = psth_array[:, (df_trials[event1] == -1) & (df_trials[event2] == 0.25)]
+    avg25_i, sem25_i = avg_sem(psth_25_i)
+    psth_12_i = psth_array[:, (df_trials[event1] == -1) & (df_trials[event2] == 0.125)]
+    avg12_i, sem12_i = avg_sem(psth_12_i)
+    psth_06_i = psth_array[:, (df_trials[event1] == -1) & (df_trials[event2] == 0.0625)]
+    avg06_i, sem06_i = avg_sem(psth_06_i)
+    psth_0_i = psth_array[:, (df_trials[event1] == -1) & (df_trials[event2] == 0)]
+    avg0_i, sem0_i = avg_sem(psth_0_i)
+    
+    return (avg100_c, sem100_c, avg25_c, sem25_c, avg12_c, sem12_c, avg06_c, sem06_c, avg0_c, sem0_c, 
+            avg100_i, sem100_i, avg25_i, sem25_i, avg12_i, sem12_i, avg06_i, sem06_i, avg0_i, sem0_i)
+
+def plot_contrasts(ax, NM, colors, event, psth_array, df_trials): 
+    (avg100_c, sem100_c, avg25_c, sem25_c, avg12_c, sem12_c, avg06_c, sem06_c, avg0_c, sem0_c, 
+     avg100_i, sem100_i, avg25_i, sem25_i, avg12_i, sem12_i, avg06_i, sem06_i, avg0_i, sem0_i) = split_contrasts(psth_array=psth_array, df_trials=df_trials, event1="feedbackType", event2="allContrasts") 
+
+    # Correct trials
+    ax.plot(avg100_c, color=colors, label="100 Correct")
+    ax.fill_between(range(len(avg100_c)), avg100_c - sem100_c, avg100_c + sem100_c, color=colors, alpha=0.1)
+    ax.plot(avg25_c, color=colors, alpha=0.6, label="25 Correct")
+    ax.fill_between(range(len(avg25_c)), avg25_c - sem25_c, avg25_c + sem25_c, color=colors, alpha=0.1)
+    ax.plot(avg12_c, color=colors, alpha=0.4, label="12 Correct")
+    ax.fill_between(range(len(avg12_c)), avg12_c - sem12_c, avg12_c + sem12_c, color=colors, alpha=0.1)
+    ax.plot(avg06_c, color=colors, alpha=0.2, label="6 Correct")
+    ax.fill_between(range(len(avg06_c)), avg06_c - sem06_c, avg06_c + sem06_c, color=colors, alpha=0.1)
+    ax.plot(avg0_c, color=colors, alpha=0.05, label="0 Correct")
+    ax.fill_between(range(len(avg0_c)), avg0_c - sem0_c, avg0_c + sem0_c, color=colors, alpha=0.1)
+    
+    # Incorrect trials
+    ax.plot(avg100_i, color=colors, linestyle='--', label="100 Incorrect")
+    ax.fill_between(range(len(avg100_i)), avg100_i - sem100_i, avg100_i + sem100_i, color=colors, alpha=0.1)
+    ax.plot(avg25_i, color=colors, linestyle='--', alpha=0.6, label="25 Incorrect")
+    ax.fill_between(range(len(avg25_i)), avg25_i - sem25_i, avg25_i + sem25_i, color=colors, alpha=0.1)
+    ax.plot(avg12_i, color=colors, linestyle='--', alpha=0.4, label="12 Incorrect")
+    ax.fill_between(range(len(avg12_i)), avg12_i - sem12_i, avg12_i + sem12_i, color=colors, alpha=0.1)
+    ax.plot(avg06_i, color=colors, linestyle='--', alpha=0.2, label="6 Incorrect")
+    ax.fill_between(range(len(avg06_i)), avg06_i - sem06_i, avg06_i + sem06_i, color=colors, alpha=0.1)
+    ax.plot(avg0_i, color=colors, linestyle='--', alpha=0.05, label="0 Incorrect")
+    ax.fill_between(range(len(avg0_i)), avg0_i - sem0_i, avg0_i + sem0_i, color=colors, alpha=0.1)
+
+    ax.axvline(x=30, linestyle='dashed', color='black')
+    ax.legend()
+    ax.set_title(f'{NM}, aligned to {event}')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+##########################################################################
+""" 3.0 a) 2x2 4NMs at stimOn """
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
+# Plot for DA
+plot_contrasts(
+    ax=axes[0, 0],
+    NM="DA",
+    colors=colors_contrast["DA"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_DA_stim,
+    df_trials=df_trials_combined_DA_stim
+)
+# Plot for 5HT 
+plot_contrasts(
+    ax=axes[0, 1],
+    NM="5HT",
+    colors=colors_contrast["5HT"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_5HT_stim,
+    df_trials=df_trials_combined_5HT_stim
+) 
+# Plot for NE
+plot_contrasts(
+    ax=axes[1, 0],
+    NM="NE",
+    colors=colors_contrast["NE"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_NE_stim,
+    df_trials=df_trials_combined_NE_stim
+) 
+# Plot for ACh
+plot_contrasts(
+    ax=axes[1, 1],
+    NM="ACh",
+    colors=colors_contrast["ACh"],
+    event="stimOnTrigger_times",
+    psth_array=psth_combined_ACh_stim,
+    df_trials=df_trials_combined_ACh_stim
+)
+fig.suptitle('Neuromodulator activity at Stim Onset', fontsize=16)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+##########################################################################
+""" 3.0 b) 2x2 4NMs at feedback """
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
+# Plot for DA
+plot_contrasts(
+    ax=axes[0, 0],
+    NM="DA",
+    colors=colors_contrast["DA"],
+    event="feedback_times",
+    psth_array=psth_combined_DA,
+    df_trials=df_trials_combined_DA
+)
+# Plot for 5HT 
+plot_contrasts(
+    ax=axes[0, 1],
+    NM="5HT",
+    colors=colors_contrast["5HT"],
+    event="feedback_times",
+    psth_array=psth_combined_5HT,
+    df_trials=df_trials_combined_5HT
+) 
+# Plot for NE
+plot_contrasts(
+    ax=axes[1, 0],
+    NM="NE",
+    colors=colors_contrast["NE"],
+    event="feedback_times",
+    psth_array=psth_combined_NE,
+    df_trials=df_trials_combined_NE
+) 
+# Plot for ACh
+plot_contrasts(
+    ax=axes[1, 1],
+    NM="ACh",
+    colors=colors_contrast["ACh"],
+    event="feedback_times",
+    psth_array=psth_combined_ACh,
+    df_trials=df_trials_combined_ACh
+)
+fig.suptitle('Neuromodulator activity at Feedback', fontsize=16)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show() 
+
+
+#%%
+##################################################################################################
+##################################################################################################
+##############################  ############################################
+""" 4.1 2x2 4NMs reaction times diff between correct and incorrect """ 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define colors for neuromodulators
+colors_contrast = {
+    'DA': '#d62828',  # Red
+    '5HT': '#8e44ad',  # Purple
+    'NE': '#3498db',  # Blue
+    'ACh': '#3cb371'  # Green
+}
+
+def avg_sem(data):
+    avg = np.mean(data, axis=1)
+    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
+    return avg, sem
+
+def split_reaction_times(psth_array, df_trials, event1="feedbackType", reaction_time_col="reactionTime"): 
+    # Define reaction time thresholds
+    rt_thresholds = [0.5, 1.5]
+    
+    # Split data by reaction time thresholds and feedback type (correct vs incorrect)
+    splits = {}
+    for feedback in [1, -1]:
+        for i, rt_threshold in enumerate(rt_thresholds):
+            if i == 0:
+                mask = df_trials[reaction_time_col] < rt_threshold
+            else:
+                mask = df_trials[reaction_time_col] > rt_threshold
+            key = f'{"lt_05" if i == 0 else "gt_15"}_{"c" if feedback == 1 else "i"}'
+            splits[key] = psth_array[:, (df_trials[event1] == feedback) & mask]
+    
+    # Get average and SEM for each split
+    results = {}
+    for key, data in splits.items():
+        if data.shape[1] > 0:  # Ensure there's data to calculate avg and sem
+            results[key] = avg_sem(data)
+        else:
+            print(f"No data for {key}")
+            results[key] = (np.array([]), np.array([]))
+    
+    return results
+
+def plot_reaction_times(ax, NM, colors, event, psth_array, df_trials): 
+    results = split_reaction_times(psth_array=psth_array, df_trials=df_trials, event1="feedbackType", reaction_time_col="reactionTime") 
+
+    rt_colors = {'c': 'blue', 'i': 'red'}  # Blue for correct, red for incorrect
+
+    for i, rt in enumerate(['lt_05', 'gt_15']):
+        for feedback in ['c', 'i']:
+            avg, sem = results[f'{rt}_{feedback}']
+            if avg.size > 0:  # Check if there's data to plot
+                linestyle = '-' if rt == 'lt_05' else '--'
+                label = f'{rt} {"Correct" if feedback == "c" else "Incorrect"}'
+                ax.plot(avg, color=rt_colors[feedback], linestyle=linestyle, label=label)
+                ax.fill_between(range(len(avg)), avg - sem, avg + sem, color=rt_colors[feedback], alpha=0.1)
+
+    ax.axvline(x=30, linestyle='dashed', color='black')
+    ax.legend()
+    ax.set_title(f'{NM}, aligned to {event}')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+# Create 2x2 subplots for DA, 5HT, NE, ACh
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=False)
+
+# Plot for DA
+plot_reaction_times(
+    ax=axes[0, 0],
+    NM="DA",
+    colors=colors_contrast["DA"],
+    event="feedback_times",
+    psth_array=psth_combined_DA,
+    df_trials=df_trials_combined_DA
+)
+
+# Plot for 5HT
+plot_reaction_times(
+    ax=axes[0, 1],
+    NM="5HT",
+    colors=colors_contrast["5HT"],
+    event="feedback_times",
+    psth_array=psth_combined_5HT,
+    df_trials=df_trials_combined_5HT
+)
+
+# Plot for NE
+plot_reaction_times(
+    ax=axes[1, 0],
+    NM="NE",
+    colors=colors_contrast["NE"],
+    event="feedback_times",
+    psth_array=psth_combined_NE,
+    df_trials=df_trials_combined_NE
+)
+
+# Plot for ACh
+plot_reaction_times(
+    ax=axes[1, 1],
+    NM="ACh",
+    colors=colors_contrast["ACh"],
+    event="feedback_times",
+    psth_array=psth_combined_ACh,
+    df_trials=df_trials_combined_ACh
+)
+
+fig.suptitle('Neuromodulator activity at Feedback', fontsize=16)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show()
 
 
 
@@ -867,17 +1110,115 @@ plt.show()
 
 
 
+#%% 
+""" StimOn """
 
+# Define colors for neuromodulators
+colors_contrast = {
+    'DA': '#d62828',  # Red
+    '5HT': '#8e44ad',  # Purple
+    'NE': '#3498db',  # Blue
+    'ACh': '#3cb371'  # Green
+}
 
+def avg_sem(data):
+    avg = np.mean(data, axis=1)
+    sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
+    return avg, sem
 
+def split_reaction_times(psth_array, df_trials, event1="feedbackType", reaction_time_col="reactionTime"): 
+    # Define reaction time thresholds
+    rt_thresholds = {
+        'lt_05': df_trials[reaction_time_col] < 0.5,
+        'gt_15': df_trials[reaction_time_col] > 1.5
+    }
+    
+    # Split data by reaction time thresholds and feedback type (correct vs incorrect)
+    splits = {}
+    for feedback in [1, -1]:
+        for category, mask in rt_thresholds.items():
+            key = f'{category}_{"c" if feedback == 1 else "i"}'
+            splits[key] = psth_array[:, (df_trials[event1] == feedback) & mask]
+    
+    # Get average and SEM for each split
+    results = {}
+    for key, data in splits.items():
+        if data.shape[1] > 0:  # Ensure there's data to calculate avg and sem
+            results[key] = avg_sem(data)
+        else:
+            print(f"No data for {key}")
+            results[key] = (np.array([]), np.array([]))
+    
+    return results
 
+def plot_reaction_times(ax, NM, colors, event, psth_array, df_trials): 
+    results = split_reaction_times(psth_array=psth_array, df_trials=df_trials, event1="feedbackType", reaction_time_col="reactionTime") 
 
+    rt_styles = {
+        'lt_05': ('-', colors[0]),  # Solid line for <0.5s
+        'gt_15': ('--', colors[0])  # Dashed line for >1.5s
+    }
+    
+    feedback_colors = {'c': 'blue', 'i': 'red'}  # Blue for correct, red for incorrect
 
+    for category, (linestyle, color) in rt_styles.items():
+        for feedback in ['c', 'i']:
+            avg, sem = results[f'{category}_{feedback}']
+            if avg.size > 0:  # Check if there's data to plot
+                label = f'{category} {"Correct" if feedback == "c" else "Incorrect"}'
+                ax.plot(avg, color=feedback_colors[feedback], linestyle=linestyle, label=label)
+                ax.fill_between(range(len(avg)), avg - sem, avg + sem, color=feedback_colors[feedback], alpha=0.1)
 
+    ax.axvline(x=30, linestyle='dashed', color='black')
+    ax.legend()
+    ax.set_title(f'{NM}, aligned to {event}')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
 
+# Create 2x2 subplots for DA, 5HT, NE, ACh
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=False)
 
+# Plot for DA
+plot_reaction_times(
+    ax=axes[0, 0],
+    NM="DA",
+    colors=['#d62828'],  # Use DA's color for reaction times
+    event="stim_times",
+    psth_array=psth_combined_DA_stim,
+    df_trials=df_trials_combined_DA_stim
+)
 
+# Plot for 5HT
+plot_reaction_times(
+    ax=axes[0, 1],
+    NM="5HT",
+    colors=['#8e44ad'],  # Use 5HT's color for reaction times
+    event="stim_times",
+    psth_array=psth_combined_5HT_stim,
+    df_trials=df_trials_combined_5HT_stim
+)
 
+# Plot for NE
+plot_reaction_times(
+    ax=axes[1, 0],
+    NM="NE",
+    colors=['#3498db'],  # Use NE's color for reaction times
+    event="stim_times",
+    psth_array=psth_combined_NE_stim,
+    df_trials=df_trials_combined_NE_stim
+)
 
+# Plot for ACh
+plot_reaction_times(
+    ax=axes[1, 1],
+    NM="ACh",
+    colors=['#3cb371'],  # Use ACh's color for reaction times
+    event="stim_times",
+    psth_array=psth_combined_ACh_stim,
+    df_trials=df_trials_combined_ACh_stim
+)
 
-# %%
+fig.suptitle('Neuromodulator activity at Stimulus', fontsize=16)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) 
+plt.show()
+
