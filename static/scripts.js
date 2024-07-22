@@ -5,7 +5,7 @@
 
 // Passing data from Flask to Javascript
 
-const ENABLE_UNITY = false;   // disable for debugging
+const ENABLE_UNITY = true;   // disable for debugging
 
 const regexExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i;
 const SESSION_SEARCH_PLACEHOLDER = `examples: primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-`;
