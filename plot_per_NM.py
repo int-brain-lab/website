@@ -91,6 +91,7 @@ df_goodsessions = df_gs[df_gs["NM"]==NM].reset_index(drop=True)
 
 #%%
 for i in range(len(df_goodsessions)): 
+    print(i,df_goodsessions['Mouse'][i])
     if i < IMIN:
         continue
     if i in EXCLUDES:
@@ -102,6 +103,16 @@ for i in range(len(df_goodsessions)):
     region = df_goodsessions.region[i]
     eid, df_trials = get_eid(mouse,date)
     print(f"{mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+    print(f"i | {mouse} | {date} | {region} | {eid}")
+
+
     df_trials['trialNumber'] = range(1, len(df_trials) + 1) 
     df_trials["mouse"] = mouse
     df_trials["date"] = date
@@ -224,6 +235,7 @@ and plot them
 
 #%%
 """ IMPORTING ALL """ 
+# all checked and corrected 22July2024
 EVENT = "feedback_times"
 NM = "DA" 
 path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
@@ -231,17 +243,14 @@ what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_DA = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_DA = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
 NM = "5HT"
-path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_5HT = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_5HT = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
 NM = "NE"
-path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_NE = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_NE = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt')
 NM = "ACh"
-path_initial = f'/mnt/h0/kb/data/psth_npy/preprocess_calcium_jove2019_{EVENT}_etc/' 
 what_to_load = f'combined_{NM}_{EVENT}'
 psth_combined_ACh = np.load(path_initial+f'RESULTS/jove2019_psth_{what_to_load}.npy')
 df_trials_combined_ACh = pd.read_parquet(path_initial+f'RESULTS/jove2019_df_trials_{what_to_load}.pqt') 
@@ -275,73 +284,135 @@ df_trials_combined_ACh_stim = pd.read_parquet(path_initial+f'RESULTS/jove2019_df
 def avg_sem(psth_array): 
     psth_avg = psth_array.mean(axis=1)
     psth_sem = psth_array.std(axis=1) / np.sqrt(psth_array.shape[1])
-    return psth_avg, psth_sem
+    return psth_avg, psth_sem 
 
-""" 1. feedbackType """
-def correct_incorrect()
-psth_good = psth_combined[:,(df_trials_combined.feedbackType == 1)] 
-psth_error = psth_combined[:,(df_trials_combined.feedbackType == -1)]
-# Calculate averages and SEM
-psth_good_avg = psth_good.mean(axis=1)
-sem_good = psth_good.std(axis=1) / np.sqrt(psth_good.shape[1])
-psth_error_avg = psth_error.mean(axis=1)
-sem_error = psth_error.std(axis=1) / np.sqrt(psth_error.shape[1])
-
-# Create the figure and gridspec
-fig = plt.figure(figsize=(10, 12))
-gs = fig.add_gridspec(2, 2, height_ratios=[3, 1])
-
-# Plot the heatmap and line plot for correct trials
-ax1 = fig.add_subplot(gs[0, 0])
-sns.heatmap(psth_good.T, cbar=False, ax=ax1) #, center = 0.0)
-ax1.invert_yaxis()
-ax1.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
-ax1.set_title('Correct Trials')
-
-ax2 = fig.add_subplot(gs[1, 0], sharex=ax1)
-ax2.plot(psth_good_avg, color='#2f9c95', linewidth=3) 
-# ax2.plot(psth_good, color='#2f9c95', linewidth=0.1, alpha=0.2)
-ax2.fill_between(range(len(psth_good_avg)), psth_good_avg - sem_good, psth_good_avg + sem_good, color='#2f9c95', alpha=0.15)
-ax2.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
-ax2.set_ylabel('Average Value')
-ax2.set_xlabel('Time')
-
-# Plot the heatmap and line plot for incorrect trials
-ax3 = fig.add_subplot(gs[0, 1], sharex=ax1)
-sns.heatmap(psth_error.T, cbar=False, ax=ax3) #, center = 0.0)
-ax3.invert_yaxis()
-ax3.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
-ax3.set_title('Incorrect Trials')
-
-ax4 = fig.add_subplot(gs[1, 1], sharex=ax3, sharey=ax2)
-ax4.plot(psth_error_avg, color='#d62828', linewidth=3)
-ax4.fill_between(range(len(psth_error_avg)), psth_error_avg - sem_error, psth_error_avg + sem_error, color='#d62828', alpha=0.15)
-ax4.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
-ax4.set_ylabel('Average Value')
-ax4.set_xlabel('Time')
-
-plt.tight_layout()
-plt.show() 
-
-
-#%% 
-""" 1.2.1 feedback_times correct inc 4NMs - WORKS """ 
-def corr_incorr(psth_combined,df_trials): 
+def corr_incorr_avg_sem(psth_combined,df_trials): 
     psth_correct = psth_combined[:, (df_trials.feedbackType == 1)]
     psth_incorrect = psth_combined[:, (df_trials.feedbackType == -1)]
     psth_correct_avg, sem_correct = avg_sem(psth_correct)
     psth_incorrect_avg, sem_incorrect = avg_sem(psth_incorrect) 
-    return psth_correct_avg, sem_correct, psth_incorrect_avg, sem_incorrect
+    return psth_correct, psth_incorrect, psth_correct_avg, sem_correct, psth_incorrect_avg, sem_incorrect 
+
+##################################################################################################
+
+#%%
+# """ 1. feedbackType """
+""" 1. Heatmap and lineplot for 4 NMs for corr incorrect - WORKS """ 
+# DA
+psth_correct_DA, psth_incorrect_DA, psth_correct_avg_DA, sem_correct_DA, psth_incorrect_avg_DA, sem_incorrect_DA = corr_incorr_avg_sem(psth_combined_DA, df_trials_combined_DA)
+# 5HT
+psth_correct_5HT, psth_incorrect_5HT, psth_correct_avg_5HT, sem_correct_5HT, psth_incorrect_avg_5HT, sem_incorrect_5HT = corr_incorr_avg_sem(psth_combined_5HT, df_trials_combined_5HT)
+# NE
+psth_correct_NE, psth_incorrect_NE, psth_correct_avg_NE, sem_correct_NE, psth_incorrect_avg_NE, sem_incorrect_NE = corr_incorr_avg_sem(psth_combined_NE, df_trials_combined_NE)
+# ACh
+psth_correct_ACh, psth_incorrect_ACh, psth_correct_avg_ACh, sem_correct_ACh, psth_incorrect_avg_ACh, sem_incorrect_ACh = corr_incorr_avg_sem(psth_combined_ACh, df_trials_combined_ACh)
 
 # DA
-psth_correct_avg_DA_s, sem_correct_DA_s, psth_incorrect_avg_DA_s, sem_incorrect_DA_s = corr_incorr(psth_combined_DA_stim, df_trials_combined_DA_stim)
+psth_correct_DA_s, psth_incorrect_DA_s, psth_correct_avg_DA_s, sem_correct_DA_s, psth_incorrect_avg_DA_s, sem_incorrect_DA_s = corr_incorr_avg_sem(psth_combined_DA_stim, df_trials_combined_DA_stim)
 # 5HT
-psth_correct_avg_5HT_s, sem_correct_5HT_s, psth_incorrect_avg_5HT_s, sem_incorrect_5HT_s = corr_incorr(psth_combined_5HT_stim, df_trials_combined_5HT_stim)
+psth_correct_5HT_s, psth_incorrect_5HT_s, psth_correct_avg_5HT_s, sem_correct_5HT_s, psth_incorrect_avg_5HT_s, sem_incorrect_5HT_s = corr_incorr_avg_sem(psth_combined_5HT_stim, df_trials_combined_5HT_stim)
 # NE
-psth_correct_avg_NE_s, sem_correct_NE_s, psth_incorrect_avg_NE_s, sem_incorrect_NE_s = corr_incorr(psth_combined_NE_stim, df_trials_combined_NE_stim)
+psth_correct_NE_s, psth_incorrect_NE_s, psth_correct_avg_NE_s, sem_correct_NE_s, psth_incorrect_avg_NE_s, sem_incorrect_NE_s = corr_incorr_avg_sem(psth_combined_NE_stim, df_trials_combined_NE_stim)
 # ACh
-psth_correct_avg_ACh_s, sem_correct_ACh_s, psth_incorrect_avg_ACh_s, sem_incorrect_ACh_s = corr_incorr(psth_combined_ACh_stim, df_trials_combined_ACh_stim)
+psth_correct_ACh_s, psth_incorrect_ACh_s, psth_correct_avg_ACh_s, sem_correct_ACh_s, psth_incorrect_avg_ACh_s, sem_incorrect_ACh_s = corr_incorr_avg_sem(psth_combined_ACh_stim, df_trials_combined_ACh_stim)
 
+
+##################################################################################################
+
+def plot_heatmap_lineplot(psth_good_s, psth_error_s, psth_good_avg_s, sem_good_s, psth_error_avg_s, sem_error_s, 
+                          psth_good, psth_error, psth_good_avg, sem_good, psth_error_avg, sem_error, 
+                          titleNM=None): 
+    # Create the figure and gridspec
+    fig = plt.figure(figsize=(16, 10))
+    gs = fig.add_gridspec(2, 4, height_ratios=[3, 1])
+
+    # Plot the heatmap and line plot for correct trials stimOn
+    ax1 = fig.add_subplot(gs[0, 0])
+    sns.heatmap(psth_good_s.T, cbar=False, ax=ax1) #, center = 0.0)
+    ax1.invert_yaxis()
+    ax1.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
+    ax1.set_title('Correct Trials')
+
+    ax2 = fig.add_subplot(gs[1, 0], sharex=ax1)
+    ax2.plot(psth_good_avg_s, color='#2f9c95', linewidth=3) 
+    # ax2.plot(psth_good, color='#2f9c95', linewidth=0.1, alpha=0.2)
+    ax2.fill_between(range(len(psth_good_avg_s)), psth_good_avg_s - sem_good_s, psth_good_avg_s + sem_good_s, color='#2f9c95', alpha=0.15)
+    ax2.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax2.set_ylabel('Average Value')
+    ax2.set_xlabel('Time')
+
+    # Plot the heatmap and line plot for incorrect trials
+    ax3 = fig.add_subplot(gs[0, 1], sharex=ax1)
+    sns.heatmap(psth_error_s.T, cbar=False, ax=ax3) #, center = 0.0)
+    ax3.invert_yaxis()
+    ax3.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
+    ax3.set_title('Incorrect Trials')
+
+    ax4 = fig.add_subplot(gs[1, 1], sharex=ax1, sharey=ax2) 
+    ax4.plot(psth_error_avg_s, color='#d62828', linewidth=3)
+    ax4.fill_between(range(len(psth_error_avg_s)), psth_error_avg_s - sem_error_s, psth_error_avg_s + sem_error_s, color='#d62828', alpha=0.15)
+    ax4.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax4.set_ylabel('Average Value')
+    ax4.set_xlabel('Time')
+
+
+    # Plot the heatmap and line plot for correct trials feedback outcome
+    ax5 = fig.add_subplot(gs[0, 2])
+    sns.heatmap(psth_good.T, cbar=False, ax=ax5) #, center = 0.0)
+    ax5.invert_yaxis()
+    ax5.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
+    ax5.set_title('Correct Trials')
+
+    ax6 = fig.add_subplot(gs[1, 2], sharex=ax1, sharey=ax2)
+    ax6.plot(psth_good_avg, color='#2f9c95', linewidth=3) 
+    # ax2.plot(psth_good, color='#2f9c95', linewidth=0.1, alpha=0.2)
+    ax6.fill_between(range(len(psth_good_avg)), psth_good_avg - sem_good, psth_good_avg + sem_good, color='#2f9c95', alpha=0.15)
+    ax6.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax6.set_ylabel('Average Value')
+    ax6.set_xlabel('Time')
+
+    # Plot the heatmap and line plot for incorrect trials
+    ax7 = fig.add_subplot(gs[0, 3], sharex=ax1)
+    sns.heatmap(psth_error.T, cbar=False, ax=ax7) #, center = 0.0)
+    ax7.invert_yaxis()
+    ax7.axvline(x=30, color="white", alpha=0.9, linewidth=3, linestyle="dashed") 
+    ax7.set_title('Incorrect Trials')
+
+    ax8 = fig.add_subplot(gs[1, 3], sharex=ax1, sharey=ax2)
+    ax8.plot(psth_error_avg, color='#d62828', linewidth=3)
+    ax8.fill_between(range(len(psth_error_avg)), psth_error_avg - sem_error, psth_error_avg + sem_error, color='#d62828', alpha=0.15)
+    ax8.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax8.set_ylabel('Average Value')
+    ax8.set_xlabel('Time') 
+
+    plt.suptitle("Correct and incorrect for stimOn and Feedback for: " + titleNM)
+
+    plt.tight_layout()
+    plt.show() 
+
+# Plotting for Dopamine (DA)
+plot_heatmap_lineplot(psth_correct_DA_s, psth_incorrect_DA_s, psth_correct_avg_DA_s, sem_correct_DA_s, psth_incorrect_avg_DA_s, sem_incorrect_DA_s, 
+                      psth_correct_DA, psth_incorrect_DA, psth_correct_avg_DA, sem_correct_DA, psth_incorrect_avg_DA, sem_incorrect_DA, 
+                      titleNM="DA")
+
+# Plotting for Serotonin (5HT)
+plot_heatmap_lineplot(psth_correct_5HT_s, psth_incorrect_5HT_s, psth_correct_avg_5HT_s, sem_correct_5HT_s, psth_incorrect_avg_5HT_s, sem_incorrect_5HT_s, 
+                      psth_correct_5HT, psth_incorrect_5HT, psth_correct_avg_5HT, sem_correct_5HT, psth_incorrect_avg_5HT, sem_incorrect_5HT, 
+                      titleNM="5HT")
+
+# Plotting for Norepinephrine (NE)
+plot_heatmap_lineplot(psth_correct_NE_s, psth_incorrect_NE_s, psth_correct_avg_NE_s, sem_correct_NE_s, psth_incorrect_avg_NE_s, sem_incorrect_NE_s, 
+                      psth_correct_NE, psth_incorrect_NE, psth_correct_avg_NE, sem_correct_NE, psth_incorrect_avg_NE, sem_incorrect_NE, 
+                      titleNM="NE")
+
+# Plotting for Acetylcholine (ACh)
+plot_heatmap_lineplot(psth_correct_ACh_s, psth_incorrect_ACh_s, psth_correct_avg_ACh_s, sem_correct_ACh_s, psth_incorrect_avg_ACh_s, sem_incorrect_ACh_s, 
+                      psth_correct_ACh, psth_incorrect_ACh, psth_correct_avg_ACh, sem_correct_ACh, psth_incorrect_avg_ACh, sem_incorrect_ACh, 
+                      titleNM="ACh")
+
+##################################################################################################
+#%%
+""" 1.2.1 feedback_times correct inc 4NMs - WORKS """ 
 # Create the figure and gridspec
 fig = plt.figure(figsize=(12, 12))
 gs = fig.add_gridspec(2, 2, height_ratios=[3, 3])
@@ -402,30 +473,7 @@ plt.show()
 ##################################################################################################
 #%% 
 """ 1.2.2 feedback_times correct vs inc 4NMs - WORKS """ 
-# Calculate average and SEM for DA
-psth_correct_DA = psth_combined_DA[:, (df_trials_combined_DA.feedbackType == 1)]
-psth_incorrect_DA = psth_combined_DA[:, (df_trials_combined_DA.feedbackType == -1)]
-psth_correct_avg_DA, sem_correct_DA = avg_sem(psth_correct_DA)
-psth_incorrect_avg_DA, sem_incorrect_DA = avg_sem(psth_incorrect_DA)
-
-# Calculate average and SEM for 5HT
-psth_correct_5HT = psth_combined_5HT[:, (df_trials_combined_5HT.feedbackType == 1)]
-psth_incorrect_5HT = psth_combined_5HT[:, (df_trials_combined_5HT.feedbackType == -1)]
-psth_correct_avg_5HT, sem_correct_5HT = avg_sem(psth_correct_5HT)
-psth_incorrect_avg_5HT, sem_incorrect_5HT = avg_sem(psth_incorrect_5HT)
-
-# Calculate average and SEM for NE
-psth_correct_NE = psth_combined_NE[:, (df_trials_combined_NE.feedbackType == 1)]
-psth_incorrect_NE = psth_combined_NE[:, (df_trials_combined_NE.feedbackType == -1)]
-psth_correct_avg_NE, sem_correct_NE = avg_sem(psth_correct_NE)
-psth_incorrect_avg_NE, sem_incorrect_NE = avg_sem(psth_incorrect_NE)
-
-# Calculate average and SEM for ACh
-psth_correct_ACh = psth_combined_ACh[:, (df_trials_combined_ACh.feedbackType == 1)]
-psth_incorrect_ACh = psth_combined_ACh[:, (df_trials_combined_ACh.feedbackType == -1)]
-psth_correct_avg_ACh, sem_correct_ACh = avg_sem(psth_correct_ACh)
-psth_incorrect_avg_ACh, sem_incorrect_ACh = avg_sem(psth_incorrect_ACh) 
-
+# # Calculate average and SEM for DA
 # Define colors for correct and incorrect trials
 colors_correct = {
     'DA': '#d62828',  # Red
@@ -440,39 +488,54 @@ colors_incorrect = {
     'ACh': '#3cb371'  # Green
 }
 
+def get_trial_numbers(psth_combined,df_trials): 
+    psth_correct = psth_combined[:, (df_trials.feedbackType == 1)]
+    psth_incorrect = psth_combined[:, (df_trials.feedbackType == -1)]
+    n_correct = str(psth_correct.shape[1])
+    n_incorrect = str(psth_incorrect.shape[1])
+    return n_correct, n_incorrect 
+da_c, da_i = get_trial_numbers(psth_combined_DA, df_trials_combined_DA)
+ht_c, ht_i = get_trial_numbers(psth_combined_5HT, df_trials_combined_5HT)
+ne_c, ne_i = get_trial_numbers(psth_combined_NE, df_trials_combined_NE)
+ac_c, ac_i = get_trial_numbers(psth_combined_ACh, df_trials_combined_ACh)
+
+
 # Create the figure and gridspec for side-by-side plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8), sharex=True, sharey=True)
 
 # Plot correct trials
-ax1.plot(psth_correct_avg_DA, color=colors_correct['DA'], linewidth=3, label='DA Correct')
+ax1.plot(psth_correct_avg_DA, color=colors_correct['DA'], linewidth=3, label='DA Correct trials: ' + da_c)
 ax1.fill_between(range(len(psth_correct_avg_DA)), psth_correct_avg_DA - sem_correct_DA, psth_correct_avg_DA + sem_correct_DA, color=colors_correct['DA'], alpha=0.15)
-ax1.plot(psth_correct_avg_5HT, color=colors_correct['5HT'], linewidth=3, label='5HT Correct')
+ax1.plot(psth_correct_avg_5HT, color=colors_correct['5HT'], linewidth=3, label='5HT Correct trials: ' + ht_c)
 ax1.fill_between(range(len(psth_correct_avg_5HT)), psth_correct_avg_5HT - sem_correct_5HT, psth_correct_avg_5HT + sem_correct_5HT, color=colors_correct['5HT'], alpha=0.15)
-ax1.plot(psth_correct_avg_NE, color=colors_correct['NE'], linewidth=3, label='NE Correct')
+ax1.plot(psth_correct_avg_NE, color=colors_correct['NE'], linewidth=3, label='NE Correct trials: ' + ne_c)
 ax1.fill_between(range(len(psth_correct_avg_NE)), psth_correct_avg_NE - sem_correct_NE, psth_correct_avg_NE + sem_correct_NE, color=colors_correct['NE'], alpha=0.15)
-ax1.plot(psth_correct_avg_ACh, color=colors_correct['ACh'], linewidth=3, label='ACh Correct')
+ax1.plot(psth_correct_avg_ACh, color=colors_correct['ACh'], linewidth=3, label='ACh Correct trials: ' + ac_c)
 ax1.fill_between(range(len(psth_correct_avg_ACh)), psth_correct_avg_ACh - sem_correct_ACh, psth_correct_avg_ACh + sem_correct_ACh, color=colors_correct['ACh'], alpha=0.15)
 ax1.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax1.set_ylabel('Average Value')
 ax1.set_xlabel('Time')
 ax1.set_title('Correct Trials')
+ax1.spines['right'].set_visible(False)
+ax1.spines['top'].set_visible(False)
 ax1.legend()
 
 # Plot incorrect trials
-ax2.plot(psth_incorrect_avg_DA, color=colors_incorrect['DA'], linewidth=3, linestyle='dashed', label='DA Incorrect')
+ax2.plot(psth_incorrect_avg_DA, color=colors_incorrect['DA'], linewidth=3, linestyle='dashed', label='DA Incorrect trials: ' + da_i)
 ax2.fill_between(range(len(psth_incorrect_avg_DA)), psth_incorrect_avg_DA - sem_incorrect_DA, psth_incorrect_avg_DA + sem_incorrect_DA, color=colors_incorrect['DA'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_5HT, color=colors_incorrect['5HT'], linewidth=3, linestyle='dashed', label='5HT Incorrect')
+ax2.plot(psth_incorrect_avg_5HT, color=colors_incorrect['5HT'], linewidth=3, linestyle='dashed', label='5HT Incorrect trials: ' + ht_i)
 ax2.fill_between(range(len(psth_incorrect_avg_5HT)), psth_incorrect_avg_5HT - sem_incorrect_5HT, psth_incorrect_avg_5HT + sem_incorrect_5HT, color=colors_incorrect['5HT'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_NE, color=colors_incorrect['NE'], linewidth=3, linestyle='dashed', label='NE Incorrect')
+ax2.plot(psth_incorrect_avg_NE, color=colors_incorrect['NE'], linewidth=3, linestyle='dashed', label='NE Incorrect trials: ' + ne_i)
 ax2.fill_between(range(len(psth_incorrect_avg_NE)), psth_incorrect_avg_NE - sem_incorrect_NE, psth_incorrect_avg_NE + sem_incorrect_NE, color=colors_incorrect['NE'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_ACh, color=colors_incorrect['ACh'], linewidth=3, linestyle='dashed', label='ACh Incorrect')
+ax2.plot(psth_incorrect_avg_ACh, color=colors_incorrect['ACh'], linewidth=3, linestyle='dashed', label='ACh Incorrect trials: ' + ac_i)
 ax2.fill_between(range(len(psth_incorrect_avg_ACh)), psth_incorrect_avg_ACh - sem_incorrect_ACh, psth_incorrect_avg_ACh + sem_incorrect_ACh, color=colors_incorrect['ACh'], alpha=0.15)
 ax2.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax2.set_ylabel('Average Value')
 ax2.set_xlabel('Time')
 ax2.set_title('Incorrect Trials')
+ax2.spines['right'].set_visible(False)
+ax2.spines['top'].set_visible(False)
 ax2.legend()
-
 fig.suptitle('Neuromodulator activity at Feedback Outcome', y=1.02, fontsize=16)
 plt.tight_layout()
 plt.show()
@@ -481,38 +544,55 @@ plt.show()
 
 ##################################################################################################
 #%%
-""" chatgpt from prev codeblock """
+
+def get_trial_numbers(psth_combined, df_trials):
+    psth_correct = psth_combined[:, (df_trials.feedbackType == 1)]
+    psth_incorrect = psth_combined[:, (df_trials.feedbackType == -1)]
+    n_correct = str(psth_correct.shape[1])
+    n_incorrect = str(psth_incorrect.shape[1])
+    return n_correct, n_incorrect
+
+da_c, da_i = get_trial_numbers(psth_combined_DA_stim, df_trials_combined_DA_stim)
+ht_c, ht_i = get_trial_numbers(psth_combined_5HT_stim, df_trials_combined_5HT_stim)
+ne_c, ne_i = get_trial_numbers(psth_combined_NE_stim, df_trials_combined_NE_stim)
+ac_c, ac_i = get_trial_numbers(psth_combined_ACh_stim, df_trials_combined_ACh_stim)
+
+
 # Create the figure and gridspec for side-by-side plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8), sharex=True, sharey=True)
 
 # Plot correct trials
-ax1.plot(psth_correct_avg_DA_stim, color=colors_correct['DA'], linewidth=3, label='DA Correct')
+ax1.plot(psth_correct_avg_DA_s, color=colors_correct['DA'], linewidth=3, label='DA Correct trials: ' + da_c)
 ax1.fill_between(range(len(psth_correct_avg_DA_s)), psth_correct_avg_DA_s - sem_correct_DA_s, psth_correct_avg_DA_s + sem_correct_DA_s, color=colors_correct['DA'], alpha=0.15)
-ax1.plot(psth_correct_avg_5HT_s, color=colors_correct['5HT'], linewidth=3, label='5HT Correct')
+ax1.plot(psth_correct_avg_5HT_s, color=colors_correct['5HT'], linewidth=3, label='5HT Correct trials: ' + ht_c)
 ax1.fill_between(range(len(psth_correct_avg_5HT_s)), psth_correct_avg_5HT_s - sem_correct_5HT_s, psth_correct_avg_5HT_s + sem_correct_5HT_s, color=colors_correct['5HT'], alpha=0.15)
-ax1.plot(psth_correct_avg_NE_s, color=colors_correct['NE'], linewidth=3, label='NE Correct')
+ax1.plot(psth_correct_avg_NE_s, color=colors_correct['NE'], linewidth=3, label='NE Correct trials: ' + ne_c)
 ax1.fill_between(range(len(psth_correct_avg_NE_s)), psth_correct_avg_NE_s - sem_correct_NE_s, psth_correct_avg_NE_s + sem_correct_NE_s, color=colors_correct['NE'], alpha=0.15)
-ax1.plot(psth_correct_avg_ACh_s, color=colors_correct['ACh'], linewidth=3, label='ACh Correct')
+ax1.plot(psth_correct_avg_ACh_s, color=colors_correct['ACh'], linewidth=3, label='ACh Correct trials: ' + ac_c)
 ax1.fill_between(range(len(psth_correct_avg_ACh_s)), psth_correct_avg_ACh_s - sem_correct_ACh_s, psth_correct_avg_ACh_s + sem_correct_ACh_s, color=colors_correct['ACh'], alpha=0.15)
 ax1.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax1.set_ylabel('Average Value')
 ax1.set_xlabel('Time')
 ax1.set_title('Correct Trials')
+ax1.spines['right'].set_visible(False)
+ax1.spines['top'].set_visible(False)
 ax1.legend()
 
 # Plot incorrect trials
-ax2.plot(psth_incorrect_avg_DA_s, color=colors_incorrect['DA'], linewidth=3, linestyle='dashed', label='DA Incorrect')
+ax2.plot(psth_incorrect_avg_DA_s, color=colors_incorrect['DA'], linewidth=3, linestyle='dashed', label='DA Incorrect trials: ' + da_i)
 ax2.fill_between(range(len(psth_incorrect_avg_DA_s)), psth_incorrect_avg_DA_s - sem_incorrect_DA_s, psth_incorrect_avg_DA_s + sem_incorrect_DA_s, color=colors_incorrect['DA'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_5HT_s, color=colors_incorrect['5HT'], linewidth=3, linestyle='dashed', label='5HT Incorrect')
+ax2.plot(psth_incorrect_avg_5HT_s, color=colors_incorrect['5HT'], linewidth=3, linestyle='dashed', label='5HT Incorrect trials: ' + ht_i)
 ax2.fill_between(range(len(psth_incorrect_avg_5HT_s)), psth_incorrect_avg_5HT_s - sem_incorrect_5HT_s, psth_incorrect_avg_5HT_s + sem_incorrect_5HT_s, color=colors_incorrect['5HT'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_NE_s, color=colors_incorrect['NE'], linewidth=3, linestyle='dashed', label='NE Incorrect')
+ax2.plot(psth_incorrect_avg_NE_s, color=colors_incorrect['NE'], linewidth=3, linestyle='dashed', label='NE Incorrect trials: ' + ne_i)
 ax2.fill_between(range(len(psth_incorrect_avg_NE_s)), psth_incorrect_avg_NE_s - sem_incorrect_NE_s, psth_incorrect_avg_NE_s + sem_incorrect_NE_s, color=colors_incorrect['NE'], alpha=0.15)
-ax2.plot(psth_incorrect_avg_ACh_s, color=colors_incorrect['ACh'], linewidth=3, linestyle='dashed', label='ACh Incorrect')
+ax2.plot(psth_incorrect_avg_ACh_s, color=colors_incorrect['ACh'], linewidth=3, linestyle='dashed', label='ACh Incorrect trials: ' + ac_i)
 ax2.fill_between(range(len(psth_incorrect_avg_ACh_s)), psth_incorrect_avg_ACh_s - sem_incorrect_ACh_s, psth_incorrect_avg_ACh_s + sem_incorrect_ACh_s, color=colors_incorrect['ACh'], alpha=0.15)
 ax2.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
 ax2.set_ylabel('Average Value')
 ax2.set_xlabel('Time')
 ax2.set_title('Incorrect Trials')
+ax2.spines['right'].set_visible(False)
+ax2.spines['top'].set_visible(False)
 ax2.legend()
 
 fig.suptitle('Neuromodulator activity at StimOnset', y=1.02, fontsize=16)
@@ -538,7 +618,7 @@ def avg_sem(data):
     sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
     return avg, sem
 
-def split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContrasts"): 
+def split_contrasts(psth_array, df_trials, event2="allContrasts"): 
     psth_100 = psth_array[:, (df_trials[event2] == 1)]
     avg100, sem100 = avg_sem(psth_100)
     psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
@@ -694,7 +774,7 @@ def avg_sem(data):
     sem = np.std(data, axis=1) / np.sqrt(data.shape[1])
     return avg, sem
 
-def split_contrasts(psth_array=psth_array, df_trials=df_trials, event2="allContrasts"): 
+def split_contrasts(psth_array, df_trials, event2="allContrasts"): 
     psth_100 = psth_array[:, (df_trials[event2] == 1)]
     avg100, sem100 = avg_sem(psth_100)
     psth_25 = psth_array[:, (df_trials[event2] == 0.25)]
@@ -727,6 +807,7 @@ def plot_contrasts(ax, NM, colors, event, psth_array, df_trials):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
+#%%
 ##########################################################################
 """ 2.1 a) 2x2 4NMs at stimOn """
 fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharex=True, sharey=True)
@@ -1187,7 +1268,6 @@ plot_reaction_times(
     psth_array=psth_combined_DA_stim,
     df_trials=df_trials_combined_DA_stim
 )
-
 # Plot for 5HT
 plot_reaction_times(
     ax=axes[0, 1],
@@ -1197,7 +1277,6 @@ plot_reaction_times(
     psth_array=psth_combined_5HT_stim,
     df_trials=df_trials_combined_5HT_stim
 )
-
 # Plot for NE
 plot_reaction_times(
     ax=axes[1, 0],
@@ -1207,7 +1286,6 @@ plot_reaction_times(
     psth_array=psth_combined_NE_stim,
     df_trials=df_trials_combined_NE_stim
 )
-
 # Plot for ACh
 plot_reaction_times(
     ax=axes[1, 1],
@@ -1222,3 +1300,42 @@ fig.suptitle('Neuromodulator activity at Stimulus', fontsize=16)
 plt.tight_layout(rect=[0, 0, 1, 0.96]) 
 plt.show()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+#%%
+""" ADDING RESPONSE TIME """ 
+
+df_trials_combined_NE["responseTime"] = df_trials_combined_NE["feedback_times"] - df_trials_combined_NE["stimOnTrigger_times"]
+df_trials_combined_NE_stim["responseTime"] = df_trials_combined_NE_stim["feedback_times"] - df_trials_combined_NE_stim["stimOnTrigger_times"]
+df_trials_combined_ACh["responseTime"] = df_trials_combined_ACh["feedback_times"] - df_trials_combined_ACh["stimOnTrigger_times"] 
+df_trials_combined_ACh_stim["responseTime"] = df_trials_combined_ACh_stim["feedback_times"] - df_trials_combined_ACh_stim["stimOnTrigger_times"] 
+df_trials_combined_DA_stim["responseTime"] = df_trials_combined_DA_stim["feedback_times"] - df_trials_combined_DA_stim["stimOnTrigger_times"] 
+df_trials_combined_5HT_stim["responseTime"] = df_trials_combined_5HT_stim["feedback_times"] - df_trials_combined_5HT_stim["stimOnTrigger_times"] 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# %%
