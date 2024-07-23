@@ -582,6 +582,7 @@ function onSpikeSortingChanged(ev) {
     else if (ev.target.id == "ss-3") ss = "ss_2024-05-06";
     else { console.log("unknown spikesorting " + ss); return; }
     CTX.spikesorting = ss;
+    CTX.cid = -1;
     let url = getUrl();
     window.location.href = url;
 }
