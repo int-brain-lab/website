@@ -5,8 +5,11 @@
 
 <script src=" https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 
-<!-- Generated script with all data -->
-<script src="{{ url_for('static', filename='data.js') }}"></script>
+<!-- Generated script with all data per spikesorting-->
+<script src="{{ url_for('static', filename='cache/' + spikesorting + '/data.js') }}"></script>
+
+<!-- Common context data -->
+<script src="{{ url_for('static', filename='ctx.js') }}"></script>
 
 <!-- Custom Array class -->
 <script src="{{ url_for('static', filename='array.js') }}"></script>
@@ -78,14 +81,24 @@
 <div class="row">
     <div class="twelve columns">
         <!-- <div>Dataset selector</div> -->
+            <div id="dset-container">
+                <input id="dset-1" type="radio" name="dset-group" checked="checked" />
+                <label for="dset-1">Brain wide map</label>
 
-        <div id="dset-container">
-            <input id="dset-1" type="radio" name="dset-group" checked="checked" />
-            <label for="dset-1">Brain wide map</label>
+                <input id="dset-2" type="radio" name="dset-group" />
+                <label for="dset-2">Repeated sites</label>
+            </div>
 
-            <input id="dset-2" type="radio" name="dset-group" />
-            <label for="dset-2">Repeated sites</label>
-        </div>
+            <div id="ss-container">
+                <input id="ss-1" type="radio" name="ss-group" checked="checked" />
+                <label for="ss-1">Original</label>
+
+                <input id="ss-2" type="radio" name="ss-group" />
+                <label for="ss-2">2024-03-22</label>
+
+                <input id="ss-3" type="radio" name="ss-group" />
+                <label for="ss-3">2024-05-06</label>
+            </div>
     </div>
 </div>
 
