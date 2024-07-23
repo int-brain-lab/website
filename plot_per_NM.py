@@ -2739,3 +2739,182 @@ ax4.legend()
 fig.suptitle('Neuromodulator activity split by probabilityLeft', y=1.02, fontsize=16)
 plt.tight_layout()
 plt.show()
+
+#%% 
+""" NM activity per mouse for correct (and incorrect)""" 
+# Create the figure and gridspec
+fig = plt.figure(figsize=(15, 12))
+gs = fig.add_gridspec(2, 2, height_ratios=[3, 3])
+
+def plot_neuromodulator(ax, psth_combined, df_trials, title):
+    # Filter to include only correct trials
+    correct_trials_mask = df_trials.feedbackType == 1 #change here VenomA
+    df_trials_correct = df_trials[correct_trials_mask]
+    unique_mice = df_trials_correct.mouse.unique()
+    
+    # Sort mice to handle transparency based on recency
+    unique_mice.sort()
+
+    # Colormap from blue to red
+    cmap = plt.get_cmap('BrBG')
+    num_mice = len(unique_mice)
+    colors = [cmap(i / num_mice) for i in range(num_mice)]
+
+    # Normalize transparency based on the number of mice
+    alpha_increment = 1 / num_mice
+
+    for i, mouse in enumerate(unique_mice):
+        mouse_mask = df_trials.mouse == mouse
+        combined_mask = correct_trials_mask & mouse_mask
+        psth_combined_on_mouse = psth_combined[:, combined_mask.values]
+        
+        if psth_combined_on_mouse.shape[1] > 0:
+            avg, sem = avg_sem(psth_combined_on_mouse)
+            alpha = 0.3 + (alpha_increment * (i + 1) * 0.7)  # Ensure earliest mouse is more visible
+            color = colors[i]
+            ax.plot(avg, color=color, linewidth=1, alpha=alpha, label=f'{mouse}')
+            ax.fill_between(range(len(avg)), avg - sem, avg + sem, color=color, alpha=alpha * 0.3)
+    
+    ax.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax.set_ylabel('Average Value')
+    ax.set_xlabel('Time')
+    ax.set_title(title)
+    ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+# Plot for DA
+ax1 = fig.add_subplot(gs[0, 0])
+plot_neuromodulator(ax1, psth_combined_DA, df_trials_combined_DA, 'DA')
+
+# Plot for 5HT
+ax2 = fig.add_subplot(gs[0, 1], sharex=ax1)
+plot_neuromodulator(ax2, psth_combined_5HT, df_trials_combined_5HT, '5HT')
+
+# Plot for NE
+ax3 = fig.add_subplot(gs[1, 0], sharex=ax1)
+plot_neuromodulator(ax3, psth_combined_NE, df_trials_combined_NE, 'NE')
+
+# Plot for ACh
+ax4 = fig.add_subplot(gs[1, 1], sharex=ax1)
+plot_neuromodulator(ax4, psth_combined_ACh, df_trials_combined_ACh, 'ACh')
+
+fig.suptitle('Neuromodulator activity for correct trials across different mice', y=1.02, fontsize=16)
+plt.tight_layout()
+plt.show() 
+
+
+
+
+
+#%%
+""" """
+    psth_array = psth_combined_DA_stim
+    df_trials = df_trials_combined_DA_stim
+    event1="feedbackType"
+    event2 = "allContrasts"
+    psth_100 = psth_array[:, (df_trials[event2] == 1) & (df_trials[event1] == 1)]
+    psth_array_test = psth_100[30:60]
+    avg100, sem100 = avg_sem(psth_array_test)
+    avg_fo_100=np.mean(avg100)
+
+    psth_test_bf = psth_100[29]
+    avg_fo_bf_100 = np.mean(psth_test_bf)
+
+    print(avg_fo_bf_100, avg_fo_100, avg_fo_100-avg_fo_bf_100)
+
+    psth_array = psth_combined_DA_stim
+    df_trials = df_trials_combined_DA_stim
+    event1="feedbackType"
+    event2 = "allContrasts"
+    psth_100 = psth_array[:, (df_trials[event2] == 0.25) & (df_trials[event1] == 1)]
+    psth_array_test = psth_100[30:60]
+    avg100, sem100 = avg_sem(psth_array_test)
+    avg_fo_25=np.mean(avg100)
+
+    psth_test_bf = psth_100[29]
+    avg_fo_bf_25 = np.mean(psth_test_bf)
+
+    print(avg_fo_bf_25, avg_fo_25, avg_fo_25-avg_fo_bf_25)
+
+
+    psth_array = psth_combined_DA_stim
+    df_trials = df_trials_combined_DA_stim
+    event1="feedbackType"
+    event2 = "allContrasts"
+    psth_100 = psth_array[:, (df_trials[event2] == 0.125) & (df_trials[event1] == 1)]
+    psth_array_test = psth_100[30:60]
+    avg100, sem100 = avg_sem(psth_array_test)
+    avg_fo_12=np.mean(avg100)
+
+    psth_test_bf = psth_100[29]
+    avg_fo_bf_12 = np.mean(psth_test_bf)
+
+    print(avg_fo_bf_12, avg_fo_12, avg_fo_12-avg_fo_bf_12)
+
+    psth_array = psth_combined_DA_stim
+    df_trials = df_trials_combined_DA_stim
+    event1="feedbackType"
+    event2 = "allContrasts"
+    psth_100 = psth_array[:, (df_trials[event2] == 0.0625) & (df_trials[event1] == 1)]
+    psth_array_test = psth_100[30:60]
+    avg100, sem100 = avg_sem(psth_array_test)
+    avg_fo_06=np.mean(avg100)
+
+    psth_test_bf = psth_100[29]
+    avg_fo_bf_06 = np.mean(psth_test_bf)
+
+    print(avg_fo_bf_06, avg_fo_06, avg_fo_06-avg_fo_bf_06)
+
+    psth_array = psth_combined_DA_stim
+    df_trials = df_trials_combined_DA_stim
+    event1="feedbackType"
+    event2 = "allContrasts"
+    psth_100 = psth_array[:, (df_trials[event2] == 0) & (df_trials[event1] == 1)]
+    psth_array_test = psth_100[30:60]
+    avg100, sem100 = avg_sem(psth_array_test)
+    avg_fo_0=np.mean(avg100)
+
+    psth_test_bf = psth_100[29]
+    avg_fo_bf_0 = np.mean(psth_test_bf)
+
+    print(avg_fo_bf_0, avg_fo_0, avg_fo_0-avg_fo_bf_0)
+
+
+x = ["100", "25","12","6","0"]
+y = [avg_fo_bf_100, avg_fo_bf_25, avg_fo_bf_12, avg_fo_bf_06, avg_fo_bf_0]
+
+barWidth = 0.25
+fig = plt.subplots(figsize =(12, 8)) 
+
+# set height of bar 
+IT = [avg_fo_bf_100, avg_fo_bf_25, avg_fo_bf_12, avg_fo_bf_06, avg_fo_bf_0] 
+ECE = [avg_fo_100, avg_fo_25, avg_fo_12, avg_fo_06, avg_fo_0] 
+CSE = [avg_fo_100-avg_fo_bf_100, avg_fo_25-avg_fo_bf_25, avg_fo_12-avg_fo_bf_12, avg_fo_06-avg_fo_bf_06, avg_fo_0-avg_fo_bf_0] 
+
+# Set position of bar on X axis 
+br1 = np.arange(len(IT)) 
+br2 = [x + barWidth for x in br1] 
+br3 = [x + barWidth for x in br2] 
+
+# Make the plot
+plt.bar(br1, IT, color ='#d00000', width = barWidth, alpha=0.55, 
+        edgecolor ='black', label ='avg bef feedback') 
+plt.bar(br2, ECE, color ='#d00000', width = barWidth, alpha=0.55, 
+        edgecolor ='black', label ='avg after feedback ~1s') 
+plt.bar(br3, CSE, color ='#d00000', width = barWidth, 
+        edgecolor ='black', label ='avg change') 
+
+# Adding Xticks 
+plt.xlabel('Contrasts', fontsize = 15) 
+plt.ylabel('avg_fo_bf - avg_fo_af_w', fontsize = 15) 
+plt.xticks([r + barWidth for r in range(len(IT))], 
+        ["100", "25","12","6","0"])
+plt.plot(CSE, color="black", linewidth=3)
+
+plt.legend()
+plt.title("DA stimulus onset correct")
+plt.show() 
+
+
+
+
+
