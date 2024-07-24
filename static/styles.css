@@ -224,6 +224,7 @@ h4 {
 
 #dset-container {
     margin-bottom: 0;
+    float: left;
 }
 
 #dset-container input {
@@ -267,7 +268,7 @@ h4 {
 /* https://codepen.io/CesarVMB/pen/kPOrQb */
 #ss-container {
     margin-bottom: 0;
-    float: right
+    float: right;
 }
 
 #ss-container input {
