@@ -2583,6 +2583,81 @@ plt.tight_layout()
 plt.show() 
 
 #%%
+""" DIVIDE BY SESSION """ 
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.colors as mcolors
+
+# Sample data
+# Define your avg_sem function if not already defined
+def avg_sem(data):
+    avg = data.mean(axis=1)
+    sem = data.std(axis=1) / np.sqrt(data.shape[1])
+    return avg, sem
+
+# Create the figure and gridspec
+fig = plt.figure(figsize=(12, 12))
+gs = fig.add_gridspec(2, 2, height_ratios=[3, 3])
+
+def plot_neuromodulator(ax, psth_combined, df_trials, title):
+    # Filter to include only correct trials
+    correct_trials_mask = df_trials.feedbackType == 1
+    df_trials_correct = df_trials[correct_trials_mask]
+    unique_dates = df_trials_correct.date.unique()
+    
+    # Sort dates to handle transparency based on recency
+    unique_dates.sort()
+
+    # Colormap from blue to red
+    cmap = plt.get_cmap('PRGn')
+    colors = [cmap(i / len(unique_dates)) for i in range(len(unique_dates))]
+
+    # Normalize transparency based on the number of sessions
+    num_dates = len(unique_dates)
+    alpha_increment = 1 / num_dates
+
+    for i, date in enumerate(unique_dates):
+        date_mask = df_trials.date == date
+        combined_mask = correct_trials_mask & date_mask
+        psth_combined_on_date = psth_combined[:, combined_mask.values]
+        
+        if psth_combined_on_date.shape[1] > 0:
+            avg, sem = avg_sem(psth_combined_on_date)
+            alpha = alpha_increment * (i + 1)
+            color = colors[i]
+            ax.plot(avg, color=color, linewidth=1, alpha=alpha, label=f'{date}')
+            ax.fill_between(range(len(avg)), avg - sem, avg + sem, color=color, alpha=alpha * 0.3)
+    
+    ax.axvline(x=30, color="black", alpha=0.9, linewidth=3, linestyle="dashed")
+    ax.set_ylabel('Average Value')
+    ax.set_xlabel('Time')
+    ax.set_title(title)
+
+# Plot for DA
+ax1 = fig.add_subplot(gs[0, 0])
+plot_neuromodulator(ax1, psth_combined_DA, df_trials_combined_DA, 'DA')
+
+# Plot for 5HT
+ax2 = fig.add_subplot(gs[0, 1], sharex=ax1)
+plot_neuromodulator(ax2, psth_combined_5HT, df_trials_combined_5HT, '5HT')
+
+# Plot for NE
+ax3 = fig.add_subplot(gs[1, 0], sharex=ax1)
+plot_neuromodulator(ax3, psth_combined_NE, df_trials_combined_NE, 'NE')
+
+# Plot for ACh
+ax4 = fig.add_subplot(gs[1, 1], sharex=ax1)
+plot_neuromodulator(ax4, psth_combined_ACh, df_trials_combined_ACh, 'ACh')
+
+# Adding legend outside the plots
+handles, labels = ax1.get_legend_handles_labels()
+fig.legend(handles, labels, loc='upper right', bbox_to_anchor=(1.15, 1), bbox_transform=plt.gcf().transFigure)
+
+fig.suptitle('Neuromodulator activity for correct trials across different sessions', y=1.02, fontsize=16)
+plt.tight_layout()
+plt.show()
+
+#%%
 # Create the figure and gridspec
 fig = plt.figure(figsize=(12, 12))
 gs = fig.add_gridspec(2, 2, height_ratios=[3, 3])
@@ -2740,6 +2815,7 @@ fig.suptitle('Neuromodulator activity split by probabilityLeft', y=1.02, fontsiz
 plt.tight_layout()
 plt.show()
 
+
 #%% 
 """ NM activity per mouse for correct (and incorrect)""" 
 # Create the figure and gridspec
@@ -2806,110 +2882,45 @@ plt.show()
 
 
 #%%
-""" """
-    psth_array = psth_combined_DA_stim
-    df_trials = df_trials_combined_DA_stim
-    event1="feedbackType"
-    event2 = "allContrasts"
-    psth_100 = psth_array[:, (df_trials[event2] == 1) & (df_trials[event1] == 1)]
-    psth_array_test = psth_100[30:60]
-    avg100, sem100 = avg_sem(psth_array_test)
+""" PLOT AVG BARPLOTS FOR STIM CORRECT SPLIT BY CONTRASTS - with a function """
+def get_avg_windows(psth_array, df_trials, contrast, feedback, window1=30, window2=60, event1="feedbackType", event2="allContrasts"): 
+    psth_100 = psth_array[:, (df_trials[event2] == contrast) & (df_trials[event1] == feedback)]
+    psth_array_window = psth_100[window1:window2]
+    avg100, sem100 = avg_sem(psth_array_window)
     avg_fo_100=np.mean(avg100)
 
     psth_test_bf = psth_100[29]
-    avg_fo_bf_100 = np.mean(psth_test_bf)
+    avg_fo_bf_100 = np.mean(psth_test_bf) 
+    diff_avg100 = avg_fo_100-avg_fo_bf_100
 
-    print(avg_fo_bf_100, avg_fo_100, avg_fo_100-avg_fo_bf_100)
+    return(avg_fo_bf_100, avg_fo_100, diff_avg100) 
 
-    psth_array = psth_combined_DA_stim
-    df_trials = df_trials_combined_DA_stim
-    event1="feedbackType"
-    event2 = "allContrasts"
-    psth_100 = psth_array[:, (df_trials[event2] == 0.25) & (df_trials[event1] == 1)]
-    psth_array_test = psth_100[30:60]
-    avg100, sem100 = avg_sem(psth_array_test)
-    avg_fo_25=np.mean(avg100)
-
-    psth_test_bf = psth_100[29]
-    avg_fo_bf_25 = np.mean(psth_test_bf)
-
-    print(avg_fo_bf_25, avg_fo_25, avg_fo_25-avg_fo_bf_25)
-
-
-    psth_array = psth_combined_DA_stim
-    df_trials = df_trials_combined_DA_stim
-    event1="feedbackType"
-    event2 = "allContrasts"
-    psth_100 = psth_array[:, (df_trials[event2] == 0.125) & (df_trials[event1] == 1)]
-    psth_array_test = psth_100[30:60]
-    avg100, sem100 = avg_sem(psth_array_test)
-    avg_fo_12=np.mean(avg100)
-
-    psth_test_bf = psth_100[29]
-    avg_fo_bf_12 = np.mean(psth_test_bf)
-
-    print(avg_fo_bf_12, avg_fo_12, avg_fo_12-avg_fo_bf_12)
-
-    psth_array = psth_combined_DA_stim
-    df_trials = df_trials_combined_DA_stim
-    event1="feedbackType"
-    event2 = "allContrasts"
-    psth_100 = psth_array[:, (df_trials[event2] == 0.0625) & (df_trials[event1] == 1)]
-    psth_array_test = psth_100[30:60]
-    avg100, sem100 = avg_sem(psth_array_test)
-    avg_fo_06=np.mean(avg100)
-
-    psth_test_bf = psth_100[29]
-    avg_fo_bf_06 = np.mean(psth_test_bf)
-
-    print(avg_fo_bf_06, avg_fo_06, avg_fo_06-avg_fo_bf_06)
-
-    psth_array = psth_combined_DA_stim
-    df_trials = df_trials_combined_DA_stim
-    event1="feedbackType"
-    event2 = "allContrasts"
-    psth_100 = psth_array[:, (df_trials[event2] == 0) & (df_trials[event1] == 1)]
-    psth_array_test = psth_100[30:60]
-    avg100, sem100 = avg_sem(psth_array_test)
-    avg_fo_0=np.mean(avg100)
-
-    psth_test_bf = psth_100[29]
-    avg_fo_bf_0 = np.mean(psth_test_bf)
-
-    print(avg_fo_bf_0, avg_fo_0, avg_fo_0-avg_fo_bf_0)
-
+avg_fo_bf_100, avg_fo_100, diff_avg100 = get_avg_windows(psth_combined_DA_stim, df_trials_combined_DA_stim, 
+                                                         contrast=1, feedback=1, window1=30, window2=60) 
+avg_fo_bf_25, avg_fo_25, diff_avg25 = get_avg_windows(psth_combined_DA_stim, df_trials_combined_DA_stim, 
+                                                      contrast=0.25, feedback=1, window1=30, window2=60) 
+avg_fo_bf_12, avg_fo_12, diff_avg12 = get_avg_windows(psth_combined_DA_stim, df_trials_combined_DA_stim, 
+                                                      contrast=0.125, feedback=1, window1=30, window2=60) 
+avg_fo_bf_06, avg_fo_06, diff_avg06 = get_avg_windows(psth_combined_DA_stim, df_trials_combined_DA_stim, 
+                                                      contrast=0.0625, feedback=1, window1=30, window2=60) 
+avg_fo_bf_0, avg_fo_0, diff_avg0 = get_avg_windows(psth_combined_DA_stim, df_trials_combined_DA_stim, 
+                                                   contrast=0, feedback=1, window1=30, window2=60) 
 
 x = ["100", "25","12","6","0"]
-y = [avg_fo_bf_100, avg_fo_bf_25, avg_fo_bf_12, avg_fo_bf_06, avg_fo_bf_0]
+y = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
 
 barWidth = 0.25
-fig = plt.subplots(figsize =(12, 8)) 
-
+fig, ax = plt.subplots(figsize =(12, 8)) 
 # set height of bar 
-IT = [avg_fo_bf_100, avg_fo_bf_25, avg_fo_bf_12, avg_fo_bf_06, avg_fo_bf_0] 
-ECE = [avg_fo_100, avg_fo_25, avg_fo_12, avg_fo_06, avg_fo_0] 
-CSE = [avg_fo_100-avg_fo_bf_100, avg_fo_25-avg_fo_bf_25, avg_fo_12-avg_fo_bf_12, avg_fo_06-avg_fo_bf_06, avg_fo_0-avg_fo_bf_0] 
-
+CSE = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
 # Set position of bar on X axis 
-br1 = np.arange(len(IT)) 
-br2 = [x + barWidth for x in br1] 
-br3 = [x + barWidth for x in br2] 
-
+br3 = np.arange(len(CSE)) 
 # Make the plot
-plt.bar(br1, IT, color ='#d00000', width = barWidth, alpha=0.55, 
-        edgecolor ='black', label ='avg bef feedback') 
-plt.bar(br2, ECE, color ='#d00000', width = barWidth, alpha=0.55, 
-        edgecolor ='black', label ='avg after feedback ~1s') 
-plt.bar(br3, CSE, color ='#d00000', width = barWidth, 
-        edgecolor ='black', label ='avg change') 
-
+bars = ax.bar(br3, CSE, color='#d00000', width=barWidth, edgecolor='black', label='avg change') 
 # Adding Xticks 
-plt.xlabel('Contrasts', fontsize = 15) 
-plt.ylabel('avg_fo_bf - avg_fo_af_w', fontsize = 15) 
-plt.xticks([r + barWidth for r in range(len(IT))], 
-        ["100", "25","12","6","0"])
-plt.plot(CSE, color="black", linewidth=3)
-
+ax.set_xticks(br3)
+ax.set_xticklabels(x)
+ax.plot(br3, CSE, color="#d00000", linewidth=3)
 plt.legend()
 plt.title("DA stimulus onset correct")
 plt.show() 
@@ -2918,3 +2929,179 @@ plt.show()
 
 
 
+
+
+#%% 
+""" same but in a loop with count """
+# Function to get average windows and number of observations
+def get_avg_windows_and_counts(psth_array, df_trials, contrast, feedback, window1=30, window2=60, event1="feedbackType", event2="allContrasts"): 
+    psth = psth_array[:, (df_trials[event2] == contrast) & (df_trials[event1] == feedback)]
+    psth_array_window = psth[window1:window2]
+    avg, sem = avg_sem(psth_array_window)
+    avg_fo = np.mean(avg)
+
+    psth_test_bf = psth[29]
+    avg_fo_bf = np.mean(psth_test_bf) 
+    diff_avg = avg_fo - avg_fo_bf
+
+    count = psth.shape[1]  # Number of observations
+
+    return avg_fo_bf, avg_fo, diff_avg, count
+
+
+NEUROMODULATORS = ['DA', '5HT', 'NE', 'ACh']
+colors = ['#d00000', '#7f3cb9', '#3aaed8', '#09814a']
+color_map = dict(zip(NEUROMODULATORS, colors))
+
+# Iterate through each test and generate the plot
+for name in NEUROMODULATORS: 
+    avg_fo_bf_100, avg_fo_100, diff_avg100, count100 = get_avg_windows_and_counts(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+                                                            contrast=1, feedback=1, window1=30, window2=60) 
+    avg_fo_bf_25, avg_fo_25, diff_avg25, count25 = get_avg_windows_and_counts(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+                                                        contrast=0.25, feedback=1, window1=30, window2=60) 
+    avg_fo_bf_12, avg_fo_12, diff_avg12, count12 = get_avg_windows_and_counts(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+                                                        contrast=0.125, feedback=1, window1=30, window2=60) 
+    avg_fo_bf_06, avg_fo_06, diff_avg06, count06 = get_avg_windows_and_counts(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+                                                        contrast=0.0625, feedback=1, window1=30, window2=60) 
+    avg_fo_bf_0, avg_fo_0, diff_avg0, count0 = get_avg_windows_and_counts(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+                                                    contrast=0, feedback=1, window1=30, window2=60) 
+
+    x = ["100", "25", "12", "6", "0"]
+    y = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
+    counts = [count100, count25, count12, count06, count0]
+
+    barWidth = 1
+    fig, ax = plt.subplots(figsize=(5, 5)) 
+
+
+
+    # Set height of bar 
+    CSE = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
+    # Set position of bar on X axis 
+    br3 = np.arange(len(CSE)) 
+    # Make the plot
+    bars = ax.bar(br3, CSE, color=color_map[name], width=barWidth, edgecolor='black', label=f'{name}') 
+
+    # Adding Xticks 
+    ax.set_xticks(br3)
+    ax.set_xticklabels(x)
+    ax.plot(br3, CSE, color="black", linewidth=1, linestyle='dashed')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    # Add number of observations above each bar
+    for idx, count in enumerate(counts):
+        ax.text(br3[idx], CSE[idx], f'n={count}', ha='center', va='bottom')
+
+    plt.legend()
+    plt.title(f"{name} stimulus onset correct")
+    plt.show()
+
+#%% 
+""" for different NMs loop WORKS """ 
+# # Define the test names and corresponding colors
+# test = ['DA', '5HT', 'NE', 'ACh']
+# colors = ['#d00000', '#7f3cb9', '#3aaed8', '#09814a']
+# color_map = dict(zip(test, colors))
+
+# # Iterate through each test and generate the plot
+# for name in test: 
+#     avg_fo_bf_100, avg_fo_100, diff_avg100 = get_avg_windows(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+#                                                             contrast=1, feedback=1, window1=30, window2=60) 
+#     avg_fo_bf_25, avg_fo_25, diff_avg25 = get_avg_windows(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+#                                                         contrast=0.25, feedback=1, window1=30, window2=60) 
+#     avg_fo_bf_12, avg_fo_12, diff_avg12 = get_avg_windows(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+#                                                         contrast=0.125, feedback=1, window1=30, window2=60) 
+#     avg_fo_bf_06, avg_fo_06, diff_avg06 = get_avg_windows(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+#                                                         contrast=0.0625, feedback=1, window1=30, window2=60) 
+#     avg_fo_bf_0, avg_fo_0, diff_avg0 = get_avg_windows(eval(f'psth_combined_{name}_stim'), eval(f'df_trials_combined_{name}_stim'), 
+#                                                     contrast=0, feedback=1, window1=30, window2=60) 
+
+#     x = ["100", "25", "12", "6", "0"]
+#     y = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
+
+#     barWidth = 1
+#     fig, ax = plt.subplots(figsize=(5, 5)) 
+
+#     # Set height of bar 
+#     CSE = [diff_avg100, diff_avg25, diff_avg12, diff_avg06, diff_avg0]
+#     # Set position of bar on X axis 
+#     br3 = np.arange(len(CSE)) 
+#     # Make the plot
+#     bars = ax.bar(br3, CSE, color=color_map[name], width=barWidth, edgecolor='black', label=f'{name}') 
+#     # Adding Xticks 
+#     ax.set_xticks(br3)
+#     ax.set_xticklabels(x)
+#     ax.plot(br3, CSE, color="black", linewidth=1, linestyle='dashed')
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+
+
+#     plt.legend()
+#     plt.title(f"{name} stimulus onset correct")
+#     plt.show()
+
+
+
+# %%
+""" STATISTICAL TESTS """
+""" on the different contrasts at stimulus onset for dopamine """ 
+
+
+psth_array = psth_combined_DA
+df_trials = df_trials_combined_DA
+event1="feedbackType"
+event2 = "allContrasts"
+psth_100 = psth_array[:, (df_trials[event2] == 1) & (df_trials[event1] == 1)]
+psth_array_test = psth_100[30:60]
+avg100, sem100 = avg_sem(psth_array_test)
+
+psth_25 = psth_array[:, (df_trials[event2] == 0.25) & (df_trials[event1] == 1)]
+psth_array_test = psth_25[30:60]
+avg25, sem25 = avg_sem(psth_array_test)
+
+psth_12 = psth_array[:, (df_trials[event2] == 0.125) & (df_trials[event1] == 1)]
+psth_array_test = psth_12[30:60]
+avg12, sem12 = avg_sem(psth_array_test)
+
+psth_06 = psth_array[:, (df_trials[event2] == 0.0625) & (df_trials[event1] == 1)]
+psth_array_test = psth_06[30:60]
+avg06, sem06 = avg_sem(psth_array_test)
+
+psth_0 = psth_array[:, (df_trials[event2] == 0) & (df_trials[event1] == 1)]
+psth_array_test = psth_0[30:60]
+avg0, sem0 = avg_sem(psth_array_test)
+
+import pandas as pd
+from statsmodels.stats.anova import AnovaRM
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+# Assuming your data arrays are named avg100, avg25, avg12, avg06, avg0
+# and they are shaped (30,)
+
+# Create a DataFrame for the data
+data = {
+    'subject': np.arange(30), 
+    'avg100': avg100,
+    'avg25': avg25,
+    'avg12': avg12,
+    'avg06': avg06,
+    'avg0': avg0
+}
+
+df = pd.DataFrame(data)
+
+# Melt the DataFrame to long format
+long_data = df.melt(id_vars=['subject'], var_name='condition', value_name='value')
+
+# Perform the repeated measures ANOVA
+aovrm = AnovaRM(long_data, 'value', 'subject', within=['condition'])
+res = aovrm.fit()
+
+print(res.summary())
+
+# Conduct pairwise Tukey HSD test
+tukey_results = pairwise_tukeyhsd(endog=long_data['value'], groups=long_data['condition'], alpha=0.05)
+
+print(tukey_results)
+# %%
