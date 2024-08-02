@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: d71e565d-4ddb-42df-849e-f99cfdeced52
   m_Data:
     m_SerializedData: []
-  m_GUID: c48cf9912919f354dbfda67cf1bab251
+  m_GUID: a936a162369702e4a8d78152fab9fdd3
   m_SerializeEntries:
   - m_GUID: 76bcaf6ea3403bc41ad68568cd7753b2
     m_Address: Assets/AddressableAssets/d71e565d-4ddb-42df-849e-f99cfdeced52/d71e565d-4ddb-42df-849e-f99cfdeced52.left_ts.bytes

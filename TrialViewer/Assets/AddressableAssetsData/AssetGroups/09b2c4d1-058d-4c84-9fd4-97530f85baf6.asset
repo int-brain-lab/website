@@ -15,8 +15,13 @@ MonoBehaviour:
   m_GroupName: 09b2c4d1-058d-4c84-9fd4-97530f85baf6
   m_Data:
     m_SerializedData: []
-  m_GUID: b4379dd83eb708643863c5d20d6010c8
+  m_GUID: 2296d66a27fd8c849a2cc1cd24868721
   m_SerializeEntries:
+  - m_GUID: bfdbab1e3fe3b5541a9ae9cc0bd48647
+    m_Address: Assets/AddressableAssets/09b2c4d1-058d-4c84-9fd4-97530f85baf6/09b2c4d1-058d-4c84-9fd4-97530f85baf6.left_ts.bytes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b9a9690ba8644d446b1f5121a5e6cd82
     m_Address: Assets/AddressableAssets/09b2c4d1-058d-4c84-9fd4-97530f85baf6/09b2c4d1-058d-4c84-9fd4-97530f85baf6.trials.csv
     m_ReadOnly: 0
@@ -24,11 +29,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9aad583423aac0a4daac049e4e0ef72f
     m_Address: Assets/AddressableAssets/09b2c4d1-058d-4c84-9fd4-97530f85baf6/09b2c4d1-058d-4c84-9fd4-97530f85baf6.wheel.bytes
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bfdbab1e3fe3b5541a9ae9cc0bd48647
-    m_Address: Assets/AddressableAssets/09b2c4d1-058d-4c84-9fd4-97530f85baf6/09b2c4d1-058d-4c84-9fd4-97530f85baf6.left_ts.bytes
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

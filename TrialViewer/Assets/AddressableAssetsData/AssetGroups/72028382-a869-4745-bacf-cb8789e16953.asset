@@ -15,7 +15,7 @@ MonoBehaviour:
   m_GroupName: 72028382-a869-4745-bacf-cb8789e16953
   m_Data:
     m_SerializedData: []
-  m_GUID: 71e95facf0bedda4b86e097bb7a29cc0
+  m_GUID: 8b7489ecfc89e06449ccf39e7d8e8b2b
   m_SerializeEntries:
   - m_GUID: 8bcec75ef9d4bdd40a64ceb9f686242f
     m_Address: Assets/AddressableAssets/72028382-a869-4745-bacf-cb8789e16953/72028382-a869-4745-bacf-cb8789e16953.left_ts.bytes

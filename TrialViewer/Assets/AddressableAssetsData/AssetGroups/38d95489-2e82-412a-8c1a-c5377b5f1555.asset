@@ -15,8 +15,23 @@ MonoBehaviour:
   m_GroupName: 38d95489-2e82-412a-8c1a-c5377b5f1555
   m_Data:
     m_SerializedData: []
-  m_GUID: 7318217f89b7812458e2b5342083d13e
-  m_SerializeEntries: []
+  m_GUID: 734c9c898407bf04f8203d318680acfd
+  m_SerializeEntries:
+  - m_GUID: c3bb306ee435d8a4bad041ad8e4c7046
+    m_Address: Assets/AddressableAssets/38d95489-2e82-412a-8c1a-c5377b5f1555/38d95489-2e82-412a-8c1a-c5377b5f1555.left_ts.bytes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 05d74bd4c954e144f9b26417920cb73d
+    m_Address: Assets/AddressableAssets/38d95489-2e82-412a-8c1a-c5377b5f1555/38d95489-2e82-412a-8c1a-c5377b5f1555.trials.csv
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70fae18684741bb4ba815e65d55c6f00
+    m_Address: Assets/AddressableAssets/38d95489-2e82-412a-8c1a-c5377b5f1555/38d95489-2e82-412a-8c1a-c5377b5f1555.wheel.bytes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 9fc1257868a6ce1488968c72223134bd, type: 2}
   m_SchemaSet:
