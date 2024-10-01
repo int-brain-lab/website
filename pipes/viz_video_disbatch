@@ -1,0 +1,25 @@
+#DISBATCH PREFIX ( module load python/3.10.8; module load ffmpeg; /mnt/home/mfaulkner/Documents/PYTHON/envs/ibllib/bin/python /mnt/home/mfaulkner/Documents/PYTHON/website/pipes/viz_videos_popeye.py
+#DISBATCH SUFFIX  ) &> /mnt/home/mfaulkner/Documents/repro_videos/${DISBATCH_NAMETASKS}_${DISBATCH_JOBID}_${DISBATCH_TASKID}.log
+
+30c4e2ab-dffc-499d-aae4-e51d6b3218c2
+38d95489-2e82-412a-8c1a-c5377b5f1555
+41872d7f-75cb-4445-bb1a-132b354c44f0
+572a95d1-39ca-42e1-8424-5c9ffcb2df87
+57fd2325-67f4-4d45-9907-29e77d3043d7
+5dcee0eb-b34d-4652-acc3-d10afc6eae68
+614e1937-4b24-4ad3-9055-c8253d089919
+61e11a11-ab65-48fb-ae08-3cb80662e5d6
+6899a67d-2e53-4215-a52a-c7021b5da5d4
+71e55bfe-5a3a-4cba-bdc7-f085140d798e
+754b74d5-7a06-4004-ae0c-72a10b6ed2e6
+7691eeb3-715b-4571-8fda-6bb57aab8253
+862ade13-53cd-4221-a3fa-dda8643641f2
+b03fbc44-3d8e-4a6c-8a50-5ea3498568e0
+b196a2ad-511b-4e90-ac99-b5a29ad25c22
+c7248e09-8c0d-40f2-9eb4-700a8973d8c8
+c7bf2d49-4937-4597-b307-9f39cb1c7b16
+d04feec7-d0b7-4f35-af89-0232dd975bf0
+d9f0c293-df4c-410a-846d-842e47c6b502
+e9b57a5a-b06d-476d-ad20-7ec42a16f5f5
+f115196e-8dfe-4d2a-8af3-8206d93c1729
+f140a2ec-fd49-4814-994a-fe3476f14e66
