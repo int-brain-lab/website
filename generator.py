@@ -673,7 +673,7 @@ def sessions(cache_dir=None):
     eids = [eid for eid in eids if is_valid_uuid(eid)]
     sessions = [load_json_c(session_details_path(eid, cache_path=cache_dir)) for eid in eids]
     sessions = [_ for _ in sessions if _]
-    sessions = sorted(sessions, key=itemgetter('Lab', 'Subject'))
+    sessions = sorted(sessions, key=itemgetter('Lab', '_acronyms', 'Subject', 'Recording date'))
     return sessions
 
 
