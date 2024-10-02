@@ -261,6 +261,18 @@ function filter_by_good(_, index) {
     return this[index] === true;
 };
 
+function findNext(val) {
+
+    let sessions = FLASK_CTX.SESSIONS;
+    let idx = sessions.findIndex(s => s['eid'] == CTX.eid) + val
+    if (idx == -1 || idx == sessions.length) return;
+    let eid = sessions[idx]['eid']
+    selectSession(eid)
+    autoCompleteJS.setQuery(eid);
+
+
+};
+
 
 /*************************************************************************************************/
 /*  Share button                                                                                 */
@@ -300,6 +312,17 @@ function setupQC() {
         CTX.qc = qc.checked ? 1 : 0;
         let url = getUrl();
         window.location.href = url;
+    });
+};
+
+function setupArrowNavigate() {
+    document.addEventListener("keydown", function (e) {
+        let key = e.key;
+        if (key == 'ArrowRight') {
+            findNext(1);
+        } else if (key == 'ArrowLeft') {
+            findNext(-1);
+        }
     });
 };
 
@@ -425,8 +448,9 @@ function setupRoiDropdown(roi_ids, roi_id = -1) {
     for (var i = 0; i < roi_ids.length; i++) {
         var rid = roi_ids[i];
         option = new Option(`roi ${rid}`, rid);
-        if (((roi_id == -1) && (i == 0)) || (rid == roi_id))
+        if (((roi_id == -1) && (i == 0)) || (rid == roi_id)) {
             option.selected = true;
+        }
         s.options[s.options.length] = option;
     }
 }
@@ -452,8 +476,10 @@ function setupPreprocessDropdown(preprocess_ids, preprocess_id = -1) {
     for (var i = 0; i < preprocess_ids.length; i++) {
         var preid = preprocess_ids[i];
         option = new Option(`${preid}`, preid);
-        if (((preprocess_id == -1) && (preprocess == 0)) || (preid == preprocess_id))
+        if (((preprocess_id == -1) && (i == 0)) || (preid == preprocess_id)) {
             option.selected = true;
+
+        }
         s.options[s.options.length] = option;
     }
 }
@@ -526,6 +552,7 @@ function getUniqueAcronyms(_acronyms, _good_ids) {
 function acronymsToNames(acronyms) {
     return acronyms.map(acronym => ALLEN_REGIONS[acronym].toLowerCase());
 }
+
 
 function getSessionList() {
 
@@ -669,6 +696,7 @@ async function selectSession(eid) {
     CTX.trial_ids = trial_ids;
     CTX.trial_onsets = details["_trial_onsets"];
     CTX.trial_offsets = details["_trial_offsets"];
+    CTX.eid = eid;
 
     // Make table with session details.
     fillVerticalTable(details, 'sessionDetails')
@@ -682,14 +710,13 @@ async function selectSession(eid) {
 
     // Setup the roi selector.
     var roi_id = 0;
-    if (CTX.eid == eid && CTX.rid)
-        roi_id = CTX.rid;
     setupRoiDropdown(roi_ids, roi_id);
 
     // Setup the preprocess selector
     var preprocess_id = 'calcium_photobleach';
-    if (CTX.eid == eid && CTX.preprocess)
+    if (CTX.eid == eid && CTX.preprocess) {
         preprocess_id = CTX.preprocess;
+    }
     setupPreprocessDropdown(preprocess_ids, preprocess_id);
 
     // Set the Roi and update plots
@@ -703,8 +730,6 @@ async function selectSession(eid) {
 
     // Set the trial and update plots
     // selectTrial(eid, CTX.tid);
-
-    CTX.eid = eid;
     isLoading = false;
 };
 
@@ -963,7 +988,7 @@ async function selectRoi(eid, rid, preprocess) {
     var details = await r.json();
 
     // Fill the trial details table.
-    fillHorizontalTable(details, 'roiDetails')
+    fillVerticalTable(details, 'roiDetails')
 
 };
 
@@ -990,7 +1015,7 @@ async function selectPreprocess(eid, rid, preprocess) {
 
 function load() {
     setupShare();
-    setupQC();
+    setupArrowNavigate();
 
     loadAutoComplete();
 
