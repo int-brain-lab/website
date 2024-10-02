@@ -34,21 +34,8 @@
 
 {% block share %}
 
-<div id="qc-switch">
-    <span>show advanced metrics</span>
-    <input type="checkbox" id="qc-checkbox" />
-    <label for="qc-checkbox"></label>
-</div>
-
 <div id="share"><a>share</a></div>
 
-<!-- PRE-PROCESSING SELECTOR -->
-<div class="row" id="preprocess-dropdown">
-        <!-- Select -->
-        <p><b>Select preprocessing</b></p>
-        <select size="1" id="preprocessSelector" class="u-full-width">
-        </select>
-</div>
 
 {% endblock %}
 
@@ -60,16 +47,46 @@
 <!--                                       SESSION SELECTOR                                     -->
 <!------------------------------------------------------------------------------------------------>
 
+
+<!-- PRE-PROCESSING SELECTOR -->
+<div class="flex-container" id="session-details", class="two columns">
+
+
+    <div class="dropdown">
+        <div>
+            <!-- Select -->
+            <p><b>Select preprocessing</b></p>
+            <select size="1" id="preprocessSelector" class="u-full-width">
+            </select>
+        </div>
+        <div>
+            <!-- Select -->
+            <p><b>Select ROI</b></p>
+            <select size="1" id="roiSelector" class="u-full-width">
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <div id="roiDetails"></div>
+    </div>
+
+    <div>
+        <div id="sessionDetails"></div>
+    </div>
+</div>
+
+
 <!-- SESSION SELECTOR HEADER -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <h2>Session selector</h2>
     </div>
 </div>
 
 <!-- SESSION SELECTION TEXT -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the
             available insertions in the 3D brain.
         </p>
@@ -84,7 +101,7 @@
 
 <!-- SESSION SELECTION TEXT -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <!-- <div>Dataset selector</div> -->
 
         <div id="dset-container">
@@ -96,41 +113,10 @@
 
 <!-- SESSION DROPDOWN -->
 <div class="row">
-    <div id="sessionSelector" class="u-full-width"></div>
+    <div id="sessionSelector" class="ten columns"></div>
     <!-- onClick="this.select();"> -->
     <!-- value="{{ default_pid }}"> -->
 </div>
-
-<!-- ROW WITH UNITY AND SESSION DETAILS -->
-<div class="row">
-    <!-- UNITY -->
-    <div class="eight columns">
-        <canvas id="unity-canvas"></canvas>
-    </div>
-
-    <!-- SESSION DETAILS -->
-    <div class="four columns">
-        <div id="sessionDetails"></div>
-    </div>
-</div>
-
-
-<div class="row">
-    <!-- ROI SELECTOR -->
-    <div class="four columns">
-        <!-- Select -->
-        <p><b>Select ROI</b></p>
-        <select size="1" id="roiSelector" class="u-full-width">
-        </select>
-    </div>
-
-        <!-- ROI INFO -->
-    <div class="four columns">
-        <div id="roiDetails"></div>
-    </div>
-
-</div>
-
 
 
 
@@ -140,14 +126,14 @@
 
 <!-- SESSION OVERVIEW HEADER -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <h2>Session overview</h2>
     </div>
 </div>
 
 <!-- SESSION TEXT -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <p></p>
     </div>
 </div>
@@ -156,7 +142,7 @@
 <!-- SESSION PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
-    <div class="twelve columns">
+    <div class="ten columns">
         <figure>
             <div class="imgWrapper"><img id="sessionPlot"></div>
             <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
@@ -174,7 +160,7 @@
 <!-- BEHAVIOUR DATA PLOTS -->
 <div class="row">
     <!-- Session overview plot -->
-    <div class="twelve columns">
+    <div class="ten columns">
         <figure>
             <div class="imgWrapper"><img id="behaviourPlot"></div>
             <img id="behaviourPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
@@ -190,7 +176,7 @@
 <!--                                          FIGURE 3                                          -->
 <!-- Trial event plot -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <figure>
             <div class="imgWrapper"><img id="trialRasterPlot"></div>
             <img id="trialRasterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
@@ -205,7 +191,7 @@
 <!--                                          FIGURE 3                                          -->
 <!-- Trial event plot -->
 <div class="row">
-    <div class="twelve columns">
+    <div class="ten columns">
         <figure>
             <div class="imgWrapper"><img id="trialPsthPlot"></div>
             <img id="trialPsthPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
