@@ -78,30 +78,31 @@ PSTH_EVENTS = {
 }
 
 SUBJECT_ROI = {
-    "ZFM-04022": 'VTA, SNc',  # Ask Kcenia about these ones
-    "ZFM-04026": 'VTA',
-    "ZFM-03447": 'VTA',
-    "ZFM-04019": 'SNc',
-    "ZFM-03448": 'SNc, SI',
-    "ZFM-05245": 'DR',
-    "ZFM-05248": 'DR',
-    "ZFM-05235": 'DR',
-    "ZFM-05236": 'DR',
-    "ZFM-04392": 'DR',
     "ZFM-03059": 'DR',
     "ZFM-03061": 'DR',
+    "ZFM-03062": '5HT?',  # TODO: Ask Kcenia about the region of this mouse
     "ZFM-03065": 'DR',
-    "ZFM-06271": 'LC',
-    "ZFM-06272": 'LC',
+    "ZFM-03447": 'VTA',
+    "ZFM-03448": 'SNc, SI',
+    "ZFM-03450": 'DA?',  # TODO: Ask Kcenia about the region of this mouse
+    "ZFM-04019": 'SNc',
+    "ZFM-04022": 'VTA, SNc',  # TODO: Ask Kcenia about these ones
+    "ZFM-04026": 'VTA',
+    "ZFM-04392": 'DR',
     "ZFM-04533": 'LC',
     "ZFM-04534": 'LC',
-    "ZFM-06275": 'LC',
-    "ZFM-06268": 'LC',
+    "ZFM-05235": 'DR',
+    "ZFM-05236": 'DR',
+    "ZFM-05245": 'DR',
+    "ZFM-05248": 'DR',
     "ZFM-06171": 'LC',
+    "ZFM-06268": 'LC',
+    "ZFM-06271": 'LC',
+    "ZFM-06272": 'LC',
+    "ZFM-06275": 'LC',
     "ZFM-06305": 'SI',
     "ZFM-06948": 'SI',
 }
-
 # -------------------------------------------------------------------------------------------------
 # Loading functions
 # -------------------------------------------------------------------------------------------------
