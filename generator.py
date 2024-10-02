@@ -80,7 +80,7 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
-DEFAULT_EID = '65f90bf6-5124-430a-ab73-134ac6fb374f'
+DEFAULT_EID = '75cf3bf9-4217-46ce-8887-b6a2ec372d58'
 DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
