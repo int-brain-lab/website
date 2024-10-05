@@ -681,6 +681,13 @@ def legends():
     return load_json(figure_details_path())
 
 
+def generate_data_df(cache_dir=None):
+    import pandas as pd
+    df = pd.DataFrame(list(sessions(cache_dir=cache_dir)))
+    df = df.loc[:, ['eid', 'Subject', 'Recording date', 'N rois', '_acronyms', '_roi_ids']]
+    return df
+
+
 def generate_data_js(cache_dir=None):
     FLASK_CTX = {
         "SESSIONS": sessions(cache_dir=cache_dir),
