@@ -80,8 +80,8 @@ add_default_handler(logger, level='DEBUG')
 
 CACHE_DIR = ROOT_DIR / 'static/cache'
 PORT = 4321
-DEFAULT_EID = '75cf3bf9-4217-46ce-8887-b6a2ec372d58'
-DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
+DEFAULT_EID = 'd2453284-c893-4a54-a5e7-f015854c727f'  # October 1st release, first eid sorted by Acronym / Subject/ Date
+DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
 
 
 # -------------------------------------------------------------------------------------------------
