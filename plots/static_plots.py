@@ -23,6 +23,7 @@ from brainbox.behavior.training import (plot_psychometric, plot_reaction_time, p
 from iblatlas.atlas import AllenAtlas, Insertion, Trajectory
 from iblutil.util import Bunch
 import iblphotometry.preprocessing as iblphot
+import iblphotometry.outlier_detection as outlier_detection
 import psychofit as psy
 
 import one.alf.io as alfio
@@ -30,6 +31,7 @@ from one.alf.exceptions import ALFObjectNotFound
 
 from one.api import ONE
 
+import pynapple as nap
 
 # -------------------------------------------------------------------------------------------------
 # Constants
@@ -115,9 +117,11 @@ def load_trials(eid, one, data_path=None):
 
 def load_photometry(eid, roi=None, data_path=None):
     data_path = data_path or DATA_DIR
-    photometry = pd.read_parquet(data_path.joinpath('alf', roi, 'raw_photometry.pqt'))
-    t_sel = photometry.times > -60  # we take one minute before the start of the task
-    photometry = photometry.loc[t_sel].reset_index()
+    raw_data = pd.read_parquet(data_path.joinpath('alf', roi, 'raw_photometry.pqt'))
+    raw_data = nap.TsdFrame(raw_data.set_index("times"))
+    photometry = {}
+    photometry['raw_calcium'] = raw_data['raw_calcium']
+    photometry['raw_isosbestic'] = raw_data['raw_isosbestic']
     return photometry
 
 
@@ -331,12 +335,19 @@ class DataLoader:
                 'protocol': session_info['task_protocol']
             }
 
-        # Load photometry data for default roi and preprocessing
-        self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
-
         # Load trials data
         self.trials = load_trials(eid, self.one, data_path=self.data_path)
         self.trial_intervals, self.trial_idx = self.compute_trial_intervals()
+        
+        # Load photometry data for default roi and preprocessing
+        self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
+
+        # restrict photometry data to the time within the task
+        t_start = self.trials['intervals'][0,0] - 10
+        t_stop = self.trials['intervals'][-1,1] + 10
+        session_interval = nap.IntervalSet(t_start, t_stop)
+        for key in self.photometry.keys():
+            self.photometry[key] = self.photometry[key].restrict(session_interval)
 
         # Load wheel data
         self.wheel = load_wheel(eid, self.one, data_path=self.data_path)
@@ -365,19 +376,21 @@ class DataLoader:
         self.preprocess_photometry_data()
         self.psth = self.compute_photometry_psth()
 
-        self.photometry_lim = [self.photometry.times[int(self.photometry.times.size/2)],
-                               self.photometry.times[int(self.photometry.times.size/2) + 250]]
-
     def preprocess_photometry_data(self):
-        raw_calcium = self.photometry['raw_calcium'].values
-        raw_isosbestic = self.photometry['raw_isosbestic'].values
-        times = self.photometry['times'].values
+        raw_calcium = self.photometry['raw_calcium']
+        raw_isosbestic = self.photometry['raw_isosbestic']
+        times = self.photometry['raw_calcium'].times()
+        
+        # spike artifact removal
+        calcium = outlier_detection.remove_spikes(raw_calcium, sd=5)
+        isosbestic = outlier_detection.remove_spikes(raw_isosbestic, sd=5)
+        
         fs = 1 / np.median(np.diff(times))
-        self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(raw_calcium, fs=fs)
-        self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=fs)
-        self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=fs)
-        self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(raw_calcium, times, fs=fs)
-        self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=fs)
+        self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(calcium, fs=fs)
+        self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(isosbestic, fs=fs)
+        self.photometry['calcium_jove2019'] = iblphot.jove2019(calcium, isosbestic, fs=fs)
+        self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(calcium, fs=fs)
+        self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(isosbestic, fs=fs)
 
     def compute_photometry_psth(self):
         psth_preprocess = Bunch()
@@ -386,7 +399,7 @@ class DataLoader:
         for preprocess in PREPROCESS:
             psth = Bunch()
             for event in PSTH_EVENTS.keys():
-                psth[event] = compute_psth(self.photometry[preprocess].values, self.photometry['times'].values,
+                psth[event] = compute_psth(self.photometry[preprocess].values, self.photometry['raw_calcium'].times(),
                                            self.trials[event], fs, peri_event_window=event_window).T
             psth_preprocess[preprocess] = psth
 
@@ -406,7 +419,7 @@ class DataLoader:
         details['Lab'] = self.session_info['lab']
         details['DOB'] = self.session_info['dob']
         details['Recording date'] = self.session_info['date']
-        details['Recording length'] = f'{int(np.max(self.photometry["times"]) / 60)} minutes'
+        details['Recording length'] = f"{int(np.max(self.photometry['raw_calcium'].times()) / 60)} minutes"
         details['N trials'] = f'{self.trials.stimOnTrigger_times.size}'
         details['N rois'] = self.n_rois
         details['Protocol'] = self.session_info['protocol']
@@ -422,7 +435,7 @@ class DataLoader:
         details['_trial_offsets'] = [float(_) if not np.isnan(_) else None for _ in self.trial_intervals[:, 1]]
 
         # Session duration
-        details['_duration'] = np.max(self.photometry["times"])
+        details['_duration'] = np.max(self.photometry['raw_calcium'].times())
 
         # Acronyms
         details['_acronyms'] = [*SUBJECT_ROI[self.session_info['subject']].split(', ')]
@@ -492,9 +505,9 @@ class DataLoader:
 
         linewidth = 0.1 if xlim is None else 1
 
-        ax.plot(self.photometry['times'], self.photometry['raw_isosbestic'], linewidth=linewidth,
+        ax.plot(self.photometry['raw_calcium'].times(), self.photometry['raw_isosbestic'], linewidth=linewidth,
                 c=LINE_COLOURS['raw_isosbestic'])
-        ax.plot(self.photometry['times'], self.photometry['raw_calcium'], linewidth=linewidth,
+        ax.plot(self.photometry['raw_calcium'].times(), self.photometry['raw_calcium'], linewidth=linewidth,
                   c=LINE_COLOURS['raw_calcium'])
 
         ax.set_xlim(xlim)
@@ -519,7 +532,7 @@ class DataLoader:
         phot_signal = self.photometry[signal]
         col = LINE_COLOURS[signal]
 
-        ax.plot(self.photometry['times'], phot_signal, linewidth=linewidth, c=col)
+        ax.plot(self.photometry['raw_calcium'].times(), phot_signal, linewidth=linewidth, c=col)
 
         set_axis_style(ax, xlabel=xlabel, ylabel=ylabel, title=title)
         ax.set_xlim(xlim)
@@ -552,7 +565,7 @@ class DataLoader:
         calcium_lp = scipy.signal.sosfiltfilt(sos, self.photometry['raw_calcium'])
         isosbestic_lp = scipy.signal.sosfiltfilt(sos, self.photometry['raw_isosbestic'])
 
-        scat = ax.scatter(isosbestic_lp, calcium_lp, s=1, c=self.photometry['times'],
+        scat = ax.scatter(isosbestic_lp, calcium_lp, s=1, c=self.photometry['raw_calcium'].times(),
                           cmap='magma', alpha=.8)
         set_axis_style(ax, xlabel='raw isobestic', ylabel='raw calcium', title=title)
         fig.colorbar(scat, ax=ax_cbar, orientation='horizontal', label='Time in session (s)')

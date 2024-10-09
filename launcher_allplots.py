@@ -6,10 +6,10 @@ from iblutil.util import setup_logger
 import logging
 import traceback
 
-logger = setup_logger(name='ibl', level='INFO', file=Path('/home/olivier/scratch/photometry.log'))
+logger = setup_logger(name='ibl', level='INFO', file=Path('/home/georg/scratch/photometry.log'))
 
 one = ONE(base_url='https://alyx.internationalbrainlab.org', cache_dir="/mnt/h0/kb/data/one")
-SAVE_PATH = Path("/mnt/h0/kb/viz_figures")
+SAVE_PATH = Path("/mnt/h0/kb/viz_figures_preproc")
 SAVE_PATH.mkdir(exist_ok=True, parents=True)
 
 photometry_data = list(Path('/mnt/h0/kb/data/one/mainenlab/Subjects').rglob('raw_photometry.pqt'))
