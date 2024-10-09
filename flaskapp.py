@@ -131,7 +131,10 @@ def make_app():
 
     @app.route('/api/session/<pid>/session_plot/<rid>/<preprocess>')
     def session_overview_plot(pid, rid, preprocess):
-        return send(session_overview_path(pid, rid, preprocess))
+        if session_overview_path(pid, rid, preprocess).exists():
+            return send(session_overview_path(pid, rid, preprocess))
+        else:
+            return send(CACHE_DIR.parent.joinpath('images', 'blank.png'))
 
     @app.route('/api/session/<pid>/behaviour_plot')
     def behaviour_overview_plot(pid):
@@ -139,11 +142,17 @@ def make_app():
 
     @app.route('/api/session/<pid>/trial_raster_plot/<rid>/<preprocess>')
     def trial_raster_overview_plot(pid, rid, preprocess):
-        return send(trial_raster_overview_path(pid, rid, preprocess))
+        if trial_raster_overview_path(pid, rid, preprocess).exists():
+            return send(trial_raster_overview_path(pid, rid, preprocess))
+        else:
+            return send(CACHE_DIR.parent.joinpath('images', 'blank.png'))
 
     @app.route('/api/session/<pid>/trial_psth_plot/<rid>/<preprocess>')
     def trial_psth_overview_plot(pid, rid, preprocess):
-        return send(trial_psth_overview_path(pid, rid, preprocess))
+        if trial_psth_overview_path(pid, rid, preprocess).exists():
+            return send(trial_psth_overview_path(pid, rid, preprocess))
+        else:
+            return send(CACHE_DIR.parent.joinpath('images', 'blank.png'))
 
     @app.route('/api/session/<pid>/trial_plot/<int:trial_idx>')
     def trial_overview_plot(pid, trial_idx):

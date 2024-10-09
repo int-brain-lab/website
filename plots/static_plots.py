@@ -121,6 +121,26 @@ def load_photometry(eid, roi=None, data_path=None):
     return photometry
 
 
+def load_photometry_witten(eid, one, roi=None, data_path=None):
+    data_path = data_path or DATA_DIR
+    photometry = one.load_dataset(eid, 'photometry.signal.pqt')
+    if roi is None:
+        return photometry
+
+    # Only include raw_calcium and inclide intervals
+    photometry = photometry[photometry['wavelength'] == 470]
+    photometry = photometry[photometry['include'] == 1]
+    photometry = photometry.rename(columns={roi: 'raw_calcium'})
+    photometry = photometry.reset_index()
+    return photometry
+
+
+def load_roi(eid, one, data_path=None):
+    data_path = data_path or DATA_DIR
+    roi = one.load_dataset(eid, 'photometryROI.locations.pqt')
+    return roi.to_dict()
+
+
 def load_camera(eid, one, camera, data_path=None):
     data_path = data_path or DATA_DIR
     try:
@@ -316,10 +336,21 @@ class DataLoader:
         session_path = self.one.eid2path(eid)
         session_info = self.one.path2record(session_path).to_dict()
         subject = self.one.alyx.rest('subjects', 'list', nickname=session_info['subject'])[0]
+        self.lab = session_info['lab']
 
-        self.regions = [reg.name for reg in session_path.joinpath('alf').glob('Region*')]
+        if self.lab == 'wittenlab':
+            self.photometry = load_photometry_witten(eid, self.one, roi=None)
+            self.regions = [col for col in self.photometry if 'Region' in col]
+            self.n_rois = len(self.regions)
+            self.roi_locations = load_roi(eid, self.one)
+            self.acronyms = [self.roi_locations['brain_region'][reg] for reg in self.regions]
 
-        self.n_rois = len(self.regions)
+        else:
+            self.regions = [reg.name for reg in session_path.joinpath('alf').glob('Region*')]
+            self.n_rois = len(self.regions)
+            self.acronyms = SUBJECT_ROI[subject]
+            # Load photometry data for default roi and preprocessing
+            self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
 
         self.session_info = {
                 'eid': eid,
@@ -331,8 +362,6 @@ class DataLoader:
                 'protocol': session_info['task_protocol']
             }
 
-        # Load photometry data for default roi and preprocessing
-        self.photometry = load_photometry(eid, roi=self.regions[0], data_path=self.data_path)
 
         # Load trials data
         self.trials = load_trials(eid, self.one, data_path=self.data_path)
@@ -360,8 +389,10 @@ class DataLoader:
             self.lick_flag = True
 
     def load_photometry_data(self, roi):
-
-        self.photometry = load_photometry(self.eid, roi=self.regions[roi], data_path=self.data_path)
+        if self.lab == 'wittenlab':
+            self.photometry = load_photometry_witten(self.eid, self.one, roi=self.regions[roi])
+        else:
+            self.photometry = load_photometry(self.eid, roi=self.regions[roi], data_path=self.data_path)
         self.preprocess_photometry_data()
         self.psth = self.compute_photometry_psth()
 
@@ -370,20 +401,25 @@ class DataLoader:
 
     def preprocess_photometry_data(self):
         raw_calcium = self.photometry['raw_calcium'].values
-        raw_isosbestic = self.photometry['raw_isosbestic'].values
         times = self.photometry['times'].values
         fs = 1 / np.median(np.diff(times))
         self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(raw_calcium, fs=fs)
-        self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=fs)
-        self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=fs)
         self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(raw_calcium, times, fs=fs)
-        self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=fs)
+
+        if 'raw_isosbestic' in self.photometry.columns:
+            raw_isosbestic = self.photometry['raw_isosbestic'].values
+
+            self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=fs)
+            self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=fs)
+            self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=fs)
 
     def compute_photometry_psth(self):
         psth_preprocess = Bunch()
         event_window = [-1, 2]
         fs = 30
         for preprocess in PREPROCESS:
+            if preprocess not in self.photometry.columns:
+                continue
             psth = Bunch()
             for event in PSTH_EVENTS.keys():
                 psth[event] = compute_psth(self.photometry[preprocess].values, self.photometry['times'].values,
@@ -425,7 +461,7 @@ class DataLoader:
         details['_duration'] = np.max(self.photometry["times"])
 
         # Acronyms
-        details['_acronyms'] = [*SUBJECT_ROI[self.session_info['subject']].split(', ')]
+        details['_acronyms'] = [*self.acronyms.split(', ')] if isinstance(self.acronyms, str) else self.acronyms
 
         return details
 
@@ -437,7 +473,7 @@ class DataLoader:
 
         details = OrderedDict()
         details['name'] = self.regions[roi_idx]
-        details['acronym'] = SUBJECT_ROI[self.session_info['subject']]
+        details['acronym'] = self.acronyms if isinstance(self.acronyms, str) else self.acronyms[roi_idx]
 
         return details
 
@@ -492,10 +528,11 @@ class DataLoader:
 
         linewidth = 0.1 if xlim is None else 1
 
-        ax.plot(self.photometry['times'], self.photometry['raw_isosbestic'], linewidth=linewidth,
-                c=LINE_COLOURS['raw_isosbestic'])
+        if 'raw_isosbestic' in self.photometry.columns:
+            ax.plot(self.photometry['times'], self.photometry['raw_isosbestic'], linewidth=linewidth,
+                    c=LINE_COLOURS['raw_isosbestic'])
         ax.plot(self.photometry['times'], self.photometry['raw_calcium'], linewidth=linewidth,
-                  c=LINE_COLOURS['raw_calcium'])
+                c=LINE_COLOURS['raw_calcium'])
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)

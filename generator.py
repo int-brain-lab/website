@@ -351,8 +351,12 @@ class Generator:
             gs0_ax7 = fig.add_subplot(gs1[1:3])
             gs0_ax8 = fig.add_subplot(gs1[0])
 
-            self.dl.plot_photometry_correlation(ax=gs0_ax7, ax_cbar=gs0_ax8)
-            remove_frame(gs0_ax8)
+            if 'raw_isosbestic' in self.dl.photometry.columns:
+                self.dl.plot_photometry_correlation(ax=gs0_ax7, ax_cbar=gs0_ax8)
+                remove_frame(gs0_ax8)
+            else:
+                remove_frame(gs0_ax7)
+                remove_frame(gs0_ax8)
 
             fig.subplots_adjust(left=0.08, right=1-0.08, bottom=0.08, top=1-0.08)
 
@@ -639,6 +643,8 @@ class Generator:
             self.dl.load_photometry_data(roi)
             self.save_roi_details(roi)
             for preprocess in PREPROCESS:
+                if preprocess not in self.dl.photometry.columns:
+                    continue
                 # Figure 1
                 self.make_session_plot(roi, preprocess, force=1 in nums)
                 # Figure 3
