@@ -261,14 +261,26 @@ function filter_by_good(_, index) {
     return this[index] === true;
 };
 
-function findNext(val) {
+function findNextSession(val) {
 
     let sessions = FLASK_CTX.SESSIONS;
     let idx = sessions.findIndex(s => s['eid'] == CTX.eid) + val
     if (idx == -1 || idx == sessions.length) return;
-    let eid = sessions[idx]['eid']
-    selectSession(eid)
+    let eid = sessions[idx]['eid'];
+    selectSession(eid);
     autoCompleteJS.setQuery(eid);
+
+};
+
+
+function findNextROI(val) {
+
+    let rois = CTX.roi_ids;
+    let idx = rois.findIndex(r => r == CTX.rid) + val
+    if (idx == -1 || idx == rois.length) return;
+    let rid = rois[idx];
+    selectRoi(CTX.eid, rid, CTX.preprocess);
+    setupRoiDropdown(CTX.roi_ids, CTX.rid);
 
 
 };
@@ -319,9 +331,13 @@ function setupArrowNavigate() {
     document.addEventListener("keydown", function (e) {
         let key = e.key;
         if (key == 'ArrowRight') {
-            findNext(1);
+            findNextSession(1);
         } else if (key == 'ArrowLeft') {
-            findNext(-1);
+            findNextSession(-1);
+        } else if (key == 'ArrowUp' && e.shiftKey) {
+            findNextROI(-1);
+        } else if (key == 'ArrowDown' && e.shiftKey) {
+            findNextROI(1);
         }
     });
 };
@@ -697,6 +713,7 @@ async function selectSession(eid) {
     CTX.trial_onsets = details["_trial_onsets"];
     CTX.trial_offsets = details["_trial_offsets"];
     CTX.eid = eid;
+    CTX.roi_ids = roi_ids
 
     // Make table with session details.
     fillVerticalTable(details, 'sessionDetails')
