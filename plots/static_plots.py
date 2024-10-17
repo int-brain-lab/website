@@ -388,11 +388,14 @@ class DataLoader:
         else:
             self.lick_flag = True
 
+
     def load_photometry_data(self, roi):
         if self.lab == 'wittenlab':
             self.photometry = load_photometry_witten(self.eid, self.one, roi=self.regions[roi])
         else:
             self.photometry = load_photometry(self.eid, roi=self.regions[roi], data_path=self.data_path)
+
+        self.fs = 1 / np.median(np.diff(self.photometry['times'].values))
         self.preprocess_photometry_data()
         self.psth = self.compute_photometry_psth()
 
@@ -402,31 +405,29 @@ class DataLoader:
     def preprocess_photometry_data(self):
         raw_calcium = self.photometry['raw_calcium'].values
         times = self.photometry['times'].values
-        fs = 1 / np.median(np.diff(times))
-        self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(raw_calcium, fs=fs)
-        self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(raw_calcium, times, fs=fs)
+        self.photometry['calcium_photobleach'] = iblphot.photobleaching_lowpass(raw_calcium, fs=self.fs)
+        self.photometry['calcium_mad'] = iblphot.preprocess_sliding_mad(raw_calcium, times, fs=self.fs)
 
         if 'raw_isosbestic' in self.photometry.columns:
             raw_isosbestic = self.photometry['raw_isosbestic'].values
 
-            self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=fs)
-            self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=fs)
-            self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=fs)
+            self.photometry['isosbestic_photobleach'] = iblphot.photobleaching_lowpass(raw_isosbestic, fs=self.fs)
+            self.photometry['calcium_jove2019'] = iblphot.jove2019(raw_calcium, raw_isosbestic, fs=self.fs)
+            self.photometry['isosbestic_mad'] = iblphot.preprocess_sliding_mad(raw_isosbestic, times, fs=self.fs)
 
     def compute_photometry_psth(self):
         psth_preprocess = Bunch()
         event_window = [-1, 2]
-        fs = 30
         for preprocess in PREPROCESS:
             if preprocess not in self.photometry.columns:
                 continue
             psth = Bunch()
             for event in PSTH_EVENTS.keys():
                 psth[event] = compute_psth(self.photometry[preprocess].values, self.photometry['times'].values,
-                                           self.trials[event], fs, peri_event_window=event_window).T
+                                           self.trials[event], self.fs, peri_event_window=event_window).T
             psth_preprocess[preprocess] = psth
 
-        psth_preprocess['times'] = np.arange(event_window[0] * fs, event_window[1] * fs + 1)
+        psth_preprocess['times'] = np.arange(event_window[0] * self.fs, event_window[1] * self.fs + 1)
 
         return psth_preprocess
 
