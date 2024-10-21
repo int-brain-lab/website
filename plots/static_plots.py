@@ -21,7 +21,6 @@ import mpl_scatter_density
 from brainbox.task.trials import find_trial_ids
 from brainbox.task.passive import get_stim_aligned_activity
 from brainbox.population.decode import xcorr
-from brainbox.behavior.wheel import velocity, interpolate_position
 from brainbox.ephys_plots import plot_brain_regions
 from brainbox.plot_base import arrange_channels2banks, ProbePlot
 from brainbox.behavior.training import plot_psychometric, plot_reaction_time, plot_reaction_time_over_trials, get_signed_contrast
@@ -1191,6 +1190,7 @@ class DataLoader:
 
     def plot_wheel_raster(self, axs=None, xlabel='T from First Move (s)', ylabel0='Wheel velocity (rad/s)',
                           ylabel1='Sorted Trial Number', title=None):
+        from brainbox.behavior.wheel import velocity
 
         wheel = load_wheel(self.eid, data_path=self.data_path)
         speed = velocity(wheel.timestamps, wheel.position)
@@ -1206,6 +1206,7 @@ class DataLoader:
         return fig
 
     def plot_wheel_trace(self, trial_idx, ax=None, xlabel='Time in trial (s)', ylabel='Wheel pos (rad)'):
+        from brainbox.behavior.wheel import interpolate_position
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=(9, 6))
         else:
