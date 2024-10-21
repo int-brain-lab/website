@@ -2,6 +2,17 @@
 
 Note: a generic (non strictly IBL) version of this repository can be found [in the `generic` branch](https://github.com/int-brain-lab/website/tree/generic).
 
+## Updating the production website
+
+1. `git clone https://github.com/int-brain-lab/website`
+2. `cd website`
+3. Make your modifications. To modify the landing page, just edit `templates/index.html`.
+4. Commit and push your changes.
+5. To deploy the changes on the production server, connect to the `viz.internationalbrainlab.org` via SSH.
+6. `cd /var/www/ibl_website/website`
+7. `git pull`
+8. `sudo service apache2 restart`
+
 ## Development notes
 
 * Install Python requirements
