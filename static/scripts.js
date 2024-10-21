@@ -609,6 +609,9 @@ function onDatasetChanged(ev) {
     else { console.log("unknown dset name " + dset); return; }
     CTX.dset = dset;
     autoCompleteJS.refresh();
+
+    // NOTE: hide the "ss-2" spike sorting version when the dataset is not repeated sites.
+    document.getElementById('ss-2-label').style.display = CTX.dset == "rs" ? "block" : "none";
 }
 
 function setupDataset() {
@@ -617,6 +620,11 @@ function setupDataset() {
 
     if (CTX.dset == "bwm") document.getElementById('dset-1').checked = true;
     if (CTX.dset == "rs") document.getElementById('dset-2').checked = true;
+
+    // NOTE: hide the "ss-2" spike sorting version when the dataset is not repeated sites.
+    if (CTX.dset != "rs") {
+        document.getElementById('ss-2-label').style.display = "none";
+    }
 }
 
 /*************************************************************************************************/
@@ -718,6 +726,7 @@ async function selectSession(pid) {
     var url = `/api/${CTX.spikesorting}/session/${pid}/details`;
     var r = await fetch(url);
     var details = await r.json();
+    if (Object.keys(details).length == 0) return;
 
     // Pop the cluster ids into a new variable
 
