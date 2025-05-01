@@ -505,7 +505,7 @@ function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_id
     [field, value] = query_.split(":");
 
     // if (field == "region") return contains(query_, regions);
-    if (field == "region") return contains(value, acronyms, exact = true);
+    if (field == "region") return acronyms.some(x => x.startsWith(value));
     if (field == "pid") return pid.includes(value);
     if (field == "eid") return eid.includes(value);
     if (field == "lab") return Lab.includes(value);
