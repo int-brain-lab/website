@@ -498,7 +498,7 @@ function filterQuery(query_, Lab, Subject, pid, eid, acronyms, regions, _good_id
 
     // By default (no colon ":"), search the region names.
     if (!query_.includes(":")) {
-        return regions.some(name => name.includes(query_));
+        return acronyms.some(x => x.startsWith(query_)) || regions.some(x => x.startsWith(query_));
     }
 
     // Otherwise, we assume the query is of the form:

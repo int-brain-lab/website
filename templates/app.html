@@ -68,10 +68,9 @@
         <p>Select a session by searching by lab, subject, or brain region in the dropdown menu or by selecting from the
             available insertions in the 3D brain.
         </p>
-        <p><strong>Examples:</strong>
-            <code>cortexlab</code> (lab),
-            <code>CSHL052</code> (subject),
-            <code>CA1</code> (brain region)
+        <p>
+            Examples :
+            <code>primary motor ; region:VISa6a ; pid:decc8d40, eid:f88d4dd4 ; lab:churchlandlab ; subject:NYU-</code>
         </p>
     </div>
 </div>
@@ -81,24 +80,24 @@
 <div class="row">
     <div class="twelve columns">
         <!-- <div>Dataset selector</div> -->
-            <div id="dset-container">
-                <input id="dset-1" type="radio" name="dset-group" checked="checked" />
-                <label for="dset-1">Brain wide map</label>
+        <div id="dset-container">
+            <input id="dset-1" type="radio" name="dset-group" checked="checked" />
+            <label for="dset-1">Brain wide map</label>
 
-                <input id="dset-2" type="radio" name="dset-group" />
-                <label for="dset-2">Repeated sites</label>
-            </div>
+            <input id="dset-2" type="radio" name="dset-group" />
+            <label for="dset-2">Repeated sites</label>
+        </div>
 
-            <div id="ss-container">
-                <input id="ss-1" type="radio" name="ss-group" checked="checked" />
-                <label id="ss-1-label" for="ss-1" title="Original dataset">Original</label>
+        <div id="ss-container">
+            <input id="ss-1" type="radio" name="ss-group" checked="checked" />
+            <label id="ss-1-label" for="ss-1" title="Original dataset">Original</label>
 
-                <input id="ss-2" type="radio" name="ss-group" />
-                <label id="ss-2-label" for="ss-2" title="Repeated sites only">2024-03-22</label>
+            <input id="ss-2" type="radio" name="ss-group" />
+            <label id="ss-2-label" for="ss-2" title="Repeated sites only">2024-03-22</label>
 
-                <input id="ss-3" type="radio" name="ss-group" />
-                <label id="ss-3-label" for="ss-3" title="Default dataset">2024-05-06</label>
-            </div>
+            <input id="ss-3" type="radio" name="ss-group" />
+            <label id="ss-3-label" for="ss-3" title="Default dataset">2024-05-06</label>
+        </div>
     </div>
 </div>
 
@@ -164,7 +163,8 @@
     <div class="twelve columns">
         <figure>
             <div class="imgWrapper"><img id="sessionPlot"></div>
-            <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <img id="sessionPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
             <details>
                 <summary id="sessionPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
                     its figure legend here.</summary>
@@ -225,7 +225,8 @@
     <div class="twelve columns">
         <figure>
             <div class="imgWrapper"><img id="behaviourPlot"></div>
-            <img id="behaviourPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <img id="behaviourPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
             <details>
                 <summary id="behaviourPlotLegend">Please hover your mouse over a subplot panel of interest above to
                     obtain its figure legend here.</summary>
@@ -331,7 +332,8 @@
     <div class="twelve columns">
         <figure id="trialWrapper">
             <div class="imgWrapper"><img id="trialPlot"></div>
-            <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <img id="trialPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
             <div id="trialTime"></div>
             <details>
                 <summary id="trialPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
@@ -366,7 +368,8 @@
     <div class="twelve columns">
         <figure>
             <div class="imgWrapper"><img id="trialEventPlot"></div>
-            <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <img id="trialEventPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
             <details>
                 <summary id="trialEventPlotLegend">Please hover your mouse over a subplot panel of interest above to
                     obtain its figure legend here.</summary>
@@ -431,7 +434,8 @@
     <div class="twelve columns">
         <figure>
             <div class="imgWrapper"><img id="clusterPlot"></div>
-            <img id="clusterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" class="loading">
+            <img id="clusterPlotLoading" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif"
+                class="loading">
             <details>
                 <summary id="clusterPlotLegend">Please hover your mouse over a subplot panel of interest above to obtain
                     its figure legend here.</summary>
