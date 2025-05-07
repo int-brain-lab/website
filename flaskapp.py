@@ -97,7 +97,8 @@ def make_app():
 
     @app.route('/app')
     def the_app():
-        spikesorting = request.args.get('spikesorting', 'ss_original')
+        # NOTE: DEFAULT_SPIKESORTING comes from generator import *
+        spikesorting = request.args.get('spikesorting', DEFAULT_SPIKESORTING)
         return _render('app.html', spikesorting=spikesorting)
 
     @app.route('/WebGL/<path:path>')

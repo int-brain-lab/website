@@ -82,6 +82,7 @@ PORT = 4321
 #DEFAULT_PID = 'decc8d40-cf74-4263-ae9d-a0cc68b47e86'
 DEFAULT_PID = 'c4f6665f-8be5-476b-a6e8-d81eeae9279d'
 DEFAULT_DSET = 'bwm'  # 'bwm' (brain wide map) or 'rs' (repeated sites)
+DEFAULT_SPIKESORTING = 'ss_2024-05-06'
 
 
 # -------------------------------------------------------------------------------------------------

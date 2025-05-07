@@ -8,7 +8,7 @@ var CTX = {
     trial_offsets: [],
     dur: 0, // session duration
     qc: parseInt(QUERY_PARAMS.qc, 10) || 0, // qc mode
-    spikesorting: QUERY_PARAMS.spikesorting || "ss_original"
+    spikesorting: QUERY_PARAMS.spikesorting || DEFAULT_SPIKESORTING
 
 };
 

@@ -8,6 +8,12 @@
 <!-- Generated script with all data per spikesorting-->
 <script src="{{ url_for('static', filename='cache/' + spikesorting + '/data.js') }}"></script>
 
+<script>
+    // NOTE: this will be used in ctx.js below to get the default spike sorting if no spike
+    // sorting was specified on the query string.
+    DEFAULT_SPIKESORTING = '{{ spikesorting }}';
+</script>
+
 <!-- Common context data -->
 <script src="{{ url_for('static', filename='ctx.js') }}"></script>
 
